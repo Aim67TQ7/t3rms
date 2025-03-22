@@ -47,7 +47,9 @@ const Analyzer = () => {
   // Increment usage mutation
   const incrementUsage = useMutation({
     mutationFn: async () => {
-      if (!userData) return;
+      if (!userData) return null;
+      
+      console.log('Incrementing usage for user:', userData.user_id);
       
       // Increment monthly_usage and decrement monthly_remaining
       const { data, error } = await supabase
@@ -59,15 +61,28 @@ const Analyzer = () => {
         .eq('user_id', userData.user_id)
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error incrementing usage:', error);
+        throw error;
+      }
+      
+      console.log('Usage incremented successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['t3rmsUser'] });
+    },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      toast({
+        title: "Error updating usage",
+        description: "There was a problem tracking your usage.",
+        variant: "destructive",
+      });
     }
   });
 
-  // Submit feedback mutation - Fixed the return type issue
+  // Submit feedback mutation
   const submitFeedback = useMutation({
     mutationFn: async ({ rating, comments }: { rating: number; comments: string }) => {
       if (!userData) return null;
@@ -93,6 +108,8 @@ const Analyzer = () => {
   });
 
   const handleNewAnalysis = () => {
+    console.log('New Analysis button clicked');
+    
     if (!userData) {
       toast({
         title: "Authentication required",
@@ -113,7 +130,9 @@ const Analyzer = () => {
     }
 
     // Refresh the iframe by changing its key
-    setIframeKey(Date.now());
+    const newKey = Date.now();
+    console.log('Setting new iframe key:', newKey);
+    setIframeKey(newKey);
     
     // Increment usage counter
     incrementUsage.mutate();

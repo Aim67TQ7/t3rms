@@ -1,15 +1,16 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [userId, setUserId] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,24 +31,40 @@ const Navbar = () => {
 
   // Check auth state on component mount
   useEffect(() => {
-    // Simulate auth check - in a real app, this would use Supabase auth
-    const checkAuth = () => {
-      const fakeAuthData = localStorage.getItem('t3rms_auth');
-      if (fakeAuthData) {
-        try {
-          const userData = JSON.parse(fakeAuthData);
-          setIsAuthenticated(true);
-          setUserId(userData.userId);
-        } catch (e) {
-          setIsAuthenticated(false);
-          localStorage.removeItem('t3rms_auth');
-        }
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        setUserEmail(session.user.email || '');
       } else {
         setIsAuthenticated(false);
+        setUserId('');
+        setUserEmail('');
       }
     };
 
     checkAuth();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setIsAuthenticated(true);
+          setUserId(session.user.id);
+          setUserEmail(session.user.email || '');
+        } else {
+          setIsAuthenticated(false);
+          setUserId('');
+          setUserEmail('');
+        }
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Close mobile menu when changing routes
@@ -55,19 +72,24 @@ const Navbar = () => {
     setIsOpen(false);
   }, [location]);
 
-  const handleLogout = () => {
-    // In a real app, this would call Supabase auth.signOut()
-    localStorage.removeItem('t3rms_auth');
-    setIsAuthenticated(false);
-    setUserId('');
-    
-    toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account",
-    });
-    
-    // Redirect to home page
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      
+      // Redirect to home page
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -132,7 +154,7 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="rounded-full gap-2">
                     <User size={14} />
-                    <span className="text-xs font-mono">{userId.substring(0, 8)}...</span>
+                    <span className="text-xs font-mono">{userEmail || userId.substring(0, 8)}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -211,7 +233,7 @@ const Navbar = () => {
                   <div className="px-4 py-3 flex items-center justify-between bg-gray-50 rounded-md">
                     <div className="flex items-center gap-2">
                       <User size={14} />
-                      <span className="text-xs font-mono">{userId.substring(0, 8)}...</span>
+                      <span className="text-xs font-mono">{userEmail || userId.substring(0, 8)}</span>
                     </div>
                     <Button 
                       variant="ghost" 

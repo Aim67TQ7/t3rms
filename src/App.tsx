@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Pages
 import Index from "./pages/Index";
@@ -21,25 +22,33 @@ const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
-    // In a real app, this would use Supabase auth.getUser()
-    const checkAuth = () => {
-      const fakeAuthData = localStorage.getItem('t3rms_auth');
-      if (fakeAuthData) {
-        try {
-          JSON.parse(fakeAuthData);
-          setIsAuthenticated(true);
-        } catch (e) {
-          setIsAuthenticated(false);
-          localStorage.removeItem('t3rms_auth');
-        }
-      } else {
+    // Check if user is authenticated with Supabase
+    const checkAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setIsAuthenticated(!!data.session);
+      } catch (error) {
+        console.error("Error checking authentication:", error);
         setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setIsAuthenticated(!!session);
+        setLoading(false);
+      }
+    );
+
     checkAuth();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {

@@ -540,6 +540,45 @@ export type Database = {
         }
         Relationships: []
       }
+      t3rms_users: {
+        Row: {
+          created_at: string
+          email: string
+          feedback_comments: string | null
+          feedback_rating: number | null
+          id: string
+          monthly_remaining: number
+          monthly_usage: number
+          plan: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          feedback_comments?: string | null
+          feedback_rating?: number | null
+          id?: string
+          monthly_remaining?: number
+          monthly_usage?: number
+          plan?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          feedback_comments?: string | null
+          feedback_rating?: number | null
+          id?: string
+          monthly_remaining?: number
+          monthly_usage?: number
+          plan?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_access_levels: {
         Row: {
           access_id: string | null

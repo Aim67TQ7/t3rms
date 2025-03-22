@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -9,14 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronLeft, ArrowRight, Key, AlertCircle } from 'lucide-react';
-
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-};
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const location = useLocation();
@@ -30,15 +24,15 @@ const Auth = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fakeAuthData = localStorage.getItem('t3rms_auth');
-    if (fakeAuthData) {
-      try {
-        JSON.parse(fakeAuthData);
+    // Check for existing session
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
         navigate('/analyzer');
-      } catch (e) {
-        localStorage.removeItem('t3rms_auth');
       }
-    }
+    };
+    
+    checkSession();
   
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('signup') === 'true') {
@@ -50,7 +44,7 @@ const Auth = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -61,41 +55,75 @@ const Auth = () => {
       return;
     }
 
-    if (activeTab === 'signup' && password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
+    if (activeTab === 'signup') {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        setIsLoading(false);
+        return;
+      }
 
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      const fakeUserId = generateUUID();
-      localStorage.setItem('t3rms_auth', JSON.stringify({
-        userId: fakeUserId,
-        email: email,
-        createdAt: new Date().toISOString()
-      }));
-      
-      toast({
-        title: activeTab === 'login' ? 'Signed in successfully' : 'Account created successfully',
-        description: "Welcome to T3RMS!",
-      });
-      
-      navigate('/analyzer');
-    }, 1500);
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+        
+        toast({
+          title: 'Account created successfully',
+          description: "Welcome to T3RMS!",
+        });
+        
+        navigate('/analyzer');
+      } catch (error) {
+        setError(error.message || 'An error occurred during sign up');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+        
+        toast({
+          title: 'Signed in successfully',
+          description: "Welcome back to T3RMS!",
+        });
+        
+        navigate('/analyzer');
+      } catch (error) {
+        setError(error.message || 'Invalid email or password');
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
-  const handlePasswordReset = () => {
+  const handlePasswordReset = async () => {
     if (!email) {
       setError('Please enter your email address');
       return;
     }
     
-    toast({
-      title: 'Password reset email sent',
-      description: `Check ${email} for reset instructions`,
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'Password reset email sent',
+        description: `Check ${email} for reset instructions`,
+      });
+    } catch (error) {
+      setError(error.message || 'Failed to send reset email');
+    }
   };
 
   return (

@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useQuery } from '@tanstack/react-query';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +18,27 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const { data: userData } = useQuery({
+    queryKey: ['t3rmsUser'],
+    queryFn: async () => {
+      if (!isAuthenticated) return null;
+      
+      const { data, error } = await supabase
+        .from('t3rms_users')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user data:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: isAuthenticated
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,7 +53,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check auth state on component mount
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -46,7 +69,6 @@ const Navbar = () => {
 
     checkAuth();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
@@ -61,13 +83,11 @@ const Navbar = () => {
       }
     );
 
-    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Close mobile menu when changing routes
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
@@ -81,7 +101,6 @@ const Navbar = () => {
         description: "You have been logged out of your account",
       });
       
-      // Redirect to home page
       navigate('/');
     } catch (error) {
       toast({
@@ -90,6 +109,26 @@ const Navbar = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getUserInitials = () => {
+    if (!userEmail) return '?';
+    
+    const emailParts = userEmail.split('@')[0].split(/[._-]/);
+    if (emailParts.length === 1) {
+      return emailParts[0].substring(0, 2).toUpperCase();
+    }
+    
+    return (emailParts[0].charAt(0) + emailParts[1].charAt(0)).toUpperCase();
+  };
+
+  const getUsageDisplay = () => {
+    if (!userData) return null;
+    
+    const { monthly_remaining, plan } = userData;
+    const total = plan === 'free' ? 3 : 100;
+    
+    return `${monthly_remaining}/${total}`;
   };
 
   return (
@@ -102,14 +141,12 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <span className="font-mono text-lg md:text-xl font-bold text-t3rms-charcoal">
               T<span className="text-red-500">3</span>RMS
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             <Link
               to="/"
@@ -147,23 +184,38 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Auth Buttons or User Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="rounded-full gap-2">
-                    <User size={14} />
-                    <span className="text-xs font-mono">{userEmail || userId.substring(0, 8)}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-t3rms-danger">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-3">
+                {userData && (
+                  <Badge 
+                    variant="outline" 
+                    className="bg-t3rms-lightblue/30 text-t3rms-blue border-t3rms-blue/20 py-1 px-3"
+                  >
+                    {getUsageDisplay()} analyses remaining
+                  </Badge>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="rounded-full p-0 w-9 h-9 overflow-hidden">
+                      <Avatar>
+                        <AvatarFallback className="bg-t3rms-blue text-white text-sm">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5 text-sm font-medium text-gray-700 border-b border-gray-100 mb-1">
+                      {userEmail}
+                    </div>
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-t3rms-danger">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <>
                 <Link to="/auth">
@@ -180,7 +232,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 focus:outline-none"
             onClick={() => setIsOpen(!isOpen)}
@@ -194,7 +245,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden pt-4 pb-2 animate-fade-in">
             <div className="flex flex-col space-y-2">
@@ -230,10 +280,24 @@ const Navbar = () => {
                   >
                     Pricing
                   </Link>
+                  {userData && (
+                    <div className="px-4 py-2 mb-2">
+                      <Badge 
+                        variant="outline" 
+                        className="bg-t3rms-lightblue/30 text-t3rms-blue border-t3rms-blue/20 py-1 px-2 w-full text-center"
+                      >
+                        {getUsageDisplay()} analyses remaining
+                      </Badge>
+                    </div>
+                  )}
                   <div className="px-4 py-3 flex items-center justify-between bg-gray-50 rounded-md">
                     <div className="flex items-center gap-2">
-                      <User size={14} />
-                      <span className="text-xs font-mono">{userEmail || userId.substring(0, 8)}</span>
+                      <Avatar className="h-7 w-7">
+                        <AvatarFallback className="bg-t3rms-blue text-white text-xs">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm text-gray-700 font-medium truncate max-w-[140px]">{userEmail}</span>
                     </div>
                     <Button 
                       variant="ghost" 

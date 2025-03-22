@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -10,6 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronLeft, ArrowRight, Key, AlertCircle } from 'lucide-react';
+
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 const Auth = () => {
   const location = useLocation();
@@ -23,14 +30,22 @@ const Auth = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Check if the URL contains signup parameter
+    const fakeAuthData = localStorage.getItem('t3rms_auth');
+    if (fakeAuthData) {
+      try {
+        JSON.parse(fakeAuthData);
+        navigate('/analyzer');
+      } catch (e) {
+        localStorage.removeItem('t3rms_auth');
+      }
+    }
+  
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('signup') === 'true') {
       setActiveTab('signup');
     }
-  }, [location]);
+  }, [location, navigate]);
 
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -40,7 +55,6 @@ const Auth = () => {
     setError('');
     setIsLoading(true);
 
-    // Validate form
     if (!email || !password) {
       setError('Please fill in all fields');
       setIsLoading(false);
@@ -53,12 +67,16 @@ const Auth = () => {
       return;
     }
 
-    // Simulate authentication
     setTimeout(() => {
       setIsLoading(false);
       
-      // In a real app, this would call Supabase auth
-      // For demo, we'll just simulate success and redirect
+      const fakeUserId = generateUUID();
+      localStorage.setItem('t3rms_auth', JSON.stringify({
+        userId: fakeUserId,
+        email: email,
+        createdAt: new Date().toISOString()
+      }));
+      
       toast({
         title: activeTab === 'login' ? 'Signed in successfully' : 'Account created successfully',
         description: "Welcome to T3RMS!",

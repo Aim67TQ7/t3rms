@@ -1,13 +1,19 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,10 +28,47 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check auth state on component mount
+  useEffect(() => {
+    // Simulate auth check - in a real app, this would use Supabase auth
+    const checkAuth = () => {
+      const fakeAuthData = localStorage.getItem('t3rms_auth');
+      if (fakeAuthData) {
+        try {
+          const userData = JSON.parse(fakeAuthData);
+          setIsAuthenticated(true);
+          setUserId(userData.userId);
+        } catch (e) {
+          setIsAuthenticated(false);
+          localStorage.removeItem('t3rms_auth');
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   // Close mobile menu when changing routes
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
+
+  const handleLogout = () => {
+    // In a real app, this would call Supabase auth.signOut()
+    localStorage.removeItem('t3rms_auth');
+    setIsAuthenticated(false);
+    setUserId('');
+    
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account",
+    });
+    
+    // Redirect to home page
+    navigate('/');
+  };
 
   return (
     <nav
@@ -56,40 +99,63 @@ const Navbar = () => {
             >
               Home
             </Link>
-            <Link
-              to="/analyzer"
-              className={`px-4 py-2 rounded-md transition-colors ${
-                location.pathname === '/analyzer' 
-                  ? 'text-t3rms-charcoal font-medium' 
-                  : 'text-gray-600 hover:text-t3rms-charcoal'
-              }`}
-            >
-              Analyzer
-            </Link>
-            <Link
-              to="/pricing"
-              className={`px-4 py-2 rounded-md transition-colors ${
-                location.pathname === '/pricing' 
-                  ? 'text-t3rms-charcoal font-medium' 
-                  : 'text-gray-600 hover:text-t3rms-charcoal'
-              }`}
-            >
-              Pricing
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/analyzer"
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    location.pathname === '/analyzer' 
+                      ? 'text-t3rms-charcoal font-medium' 
+                      : 'text-gray-600 hover:text-t3rms-charcoal'
+                  }`}
+                >
+                  Analyzer
+                </Link>
+                <Link
+                  to="/pricing"
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    location.pathname === '/pricing' 
+                      ? 'text-t3rms-charcoal font-medium' 
+                      : 'text-gray-600 hover:text-t3rms-charcoal'
+                  }`}
+                >
+                  Pricing
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons or User Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/auth">
-              <Button variant="outline" size="sm" className="rounded-full px-4">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/auth?signup=true">
-              <Button size="sm" className="rounded-full px-4 bg-t3rms-blue hover:bg-t3rms-blue/90">
-                Sign Up
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-full gap-2">
+                    <User size={14} />
+                    <span className="text-xs font-mono">{userId.substring(0, 8)}...</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-t3rms-danger">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline" size="sm" className="rounded-full px-4">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth?signup=true">
+                  <Button size="sm" className="rounded-full px-4 bg-t3rms-blue hover:bg-t3rms-blue/90">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -120,38 +186,57 @@ const Navbar = () => {
               >
                 Home
               </Link>
-              <Link
-                to="/analyzer"
-                className={`px-4 py-3 rounded-md ${
-                  location.pathname === '/analyzer' 
-                    ? 'bg-t3rms-lightblue/30 text-t3rms-charcoal font-medium' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Analyzer
-              </Link>
-              <Link
-                to="/pricing"
-                className={`px-4 py-3 rounded-md ${
-                  location.pathname === '/pricing' 
-                    ? 'bg-t3rms-lightblue/30 text-t3rms-charcoal font-medium' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Pricing
-              </Link>
-              <div className="pt-2 flex flex-col space-y-2">
-                <Link to="/auth" className="w-full">
-                  <Button variant="outline" className="w-full rounded-md">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth?signup=true" className="w-full">
-                  <Button className="w-full rounded-md bg-t3rms-blue hover:bg-t3rms-blue/90">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/analyzer"
+                    className={`px-4 py-3 rounded-md ${
+                      location.pathname === '/analyzer' 
+                        ? 'bg-t3rms-lightblue/30 text-t3rms-charcoal font-medium' 
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    Analyzer
+                  </Link>
+                  <Link
+                    to="/pricing"
+                    className={`px-4 py-3 rounded-md ${
+                      location.pathname === '/pricing' 
+                        ? 'bg-t3rms-lightblue/30 text-t3rms-charcoal font-medium' 
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    Pricing
+                  </Link>
+                  <div className="px-4 py-3 flex items-center justify-between bg-gray-50 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <User size={14} />
+                      <span className="text-xs font-mono">{userId.substring(0, 8)}...</span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleLogout}
+                      className="text-t3rms-danger hover:text-t3rms-danger/90 hover:bg-red-50 p-1 h-auto"
+                    >
+                      <LogOut size={16} />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="pt-2 flex flex-col space-y-2">
+                  <Link to="/auth" className="w-full">
+                    <Button variant="outline" className="w-full rounded-md">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/auth?signup=true" className="w-full">
+                    <Button className="w-full rounded-md bg-t3rms-blue hover:bg-t3rms-blue/90">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

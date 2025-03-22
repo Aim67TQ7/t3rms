@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -21,7 +20,7 @@ const Pricing = () => {
     { name: "Risk Identification", free: true, pro: true, enterprise: true },
     { name: "Risk Scoring", free: true, pro: true, enterprise: true },
     { name: "Document History", free: false, pro: true, enterprise: true },
-    { name: "Team Sharing", free: false, pro: true, enterprise: true },
+    { name: "Downloadable PDFs", free: false, pro: true, enterprise: true },
     { name: "API Access", free: false, pro: false, enterprise: true },
     { name: "Custom Training", free: false, pro: false, enterprise: true },
     { name: "Dedicated Support", free: false, pro: false, enterprise: true },
@@ -116,7 +115,7 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-gray-100 mr-3">
                         <X className="h-4 w-4" />
                       </span>
-                      <span>Team sharing</span>
+                      <span>Downloadable PDFs</span>
                     </div>
                   </div>
                 </CardContent>
@@ -188,7 +187,7 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Team sharing (up to 5 users)</span>
+                      <span className="text-gray-600">Downloadable PDFs</span>
                     </div>
                   </div>
                 </CardContent>

@@ -345,7 +345,7 @@ const Pricing = () => {
                     How does team sharing work?
                   </h3>
                   <p className="text-gray-600">
-                    Pro users can share analysis results with up to 5 team members by sending them a secure link. Enterprise users can add unlimited team members to their workspace with customizable permission levels.
+                    Enterprise users can add unlimited team members to their workspace with customizable permission levels.
                   </p>
                 </div>
                 

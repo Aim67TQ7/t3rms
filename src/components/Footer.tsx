@@ -12,7 +12,7 @@ const Footer = () => {
           <div className="col-span-1">
             <Link to="/" className="inline-block mb-4">
               <span className="font-mono text-xl font-bold text-t3rms-charcoal">
-                T3<span className="text-t3rms-blue">RMS</span>
+                T<span className="text-red-500">3</span>RMS
               </span>
             </Link>
             <p className="text-gray-600 text-sm mb-4">

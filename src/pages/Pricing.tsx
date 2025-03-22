@@ -4,271 +4,360 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Check, Building, ArrowRight, CreditCard } from 'lucide-react';
-
-const PricingTier = ({ 
-  tier, 
-  price, 
-  features, 
-  isPopular = false, 
-  buttonText, 
-  buttonVariant = "default", 
-  buttonLink,
-  icon 
-}) => {
-  return (
-    <Card className={`relative w-full h-full transition-all duration-300 hover:shadow-md ${
-      isPopular ? 'border-t3rms-blue shadow-lg' : 'border-gray-200'
-    }`}>
-      {isPopular && (
-        <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/2">
-          <span className="bg-t3rms-blue text-white text-xs font-medium px-4 py-1 rounded-full shadow-sm">
-            Most Popular
-          </span>
-        </div>
-      )}
-      
-      <CardHeader className="pt-8 pb-4">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="inline-block p-2 bg-t3rms-blue/10 rounded-lg text-t3rms-blue">
-            {icon}
-          </span>
-          <h3 className="text-xl font-medium text-t3rms-charcoal">{tier}</h3>
-        </div>
-        <div className="mb-2">
-          <span className="text-4xl font-bold text-t3rms-charcoal">{price}</span>
-          {price !== 'Custom' && <span className="text-gray-500 ml-1">/month</span>}
-        </div>
-        <p className="text-gray-600 text-sm">
-          {tier === 'Free'
-            ? 'Perfect for occasional use'
-            : tier === 'Pro'
-              ? 'For individuals who need more analyses'
-              : 'For businesses with advanced needs'
-          }
-        </p>
-      </CardHeader>
-      
-      <CardContent className="py-4">
-        <ul className="space-y-3">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <Check className="h-5 w-5 text-t3rms-blue mr-2 mt-0.5" />
-              <span className="text-gray-600 text-sm">{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-      
-      <CardFooter className="pt-4 pb-8">
-        <Link to={buttonLink} className="w-full">
-          <Button 
-            variant={buttonVariant} 
-            className={`w-full ${
-              buttonVariant === "default" 
-                ? "bg-t3rms-blue hover:bg-t3rms-blue/90" 
-                : ""
-            }`}
-          >
-            {buttonText}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
-  );
-};
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Check, X, CreditCard, Building2, Lock, ArrowRight } from 'lucide-react';
 
 const Pricing = () => {
-  const [annualBilling, setAnnualBilling] = useState(true);
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
   
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  const features = [
+    { name: "Document Uploads", free: true, pro: true, enterprise: true },
+    { name: "Risk Identification", free: true, pro: true, enterprise: true },
+    { name: "Risk Scoring", free: true, pro: true, enterprise: true },
+    { name: "Document History", free: false, pro: true, enterprise: true },
+    { name: "Team Sharing", free: false, pro: true, enterprise: true },
+    { name: "API Access", free: false, pro: false, enterprise: true },
+    { name: "Custom Training", free: false, pro: false, enterprise: true },
+    { name: "Dedicated Support", free: false, pro: false, enterprise: true },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col page-transition">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-20">
+      <main className="flex-grow mt-20">
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center mb-12">
-              <h1 className="text-4xl font-bold text-t3rms-charcoal mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-t3rms-charcoal mb-4">
                 Simple, Transparent Pricing
               </h1>
-              <p className="text-xl text-gray-600 mb-6">
-                Choose the plan that's right for you
+              <p className="text-xl text-gray-600">
+                Choose the plan that fits your needs
               </p>
               
-              <div className="inline-flex items-center bg-gray-100 p-1 rounded-full">
+              <div className="mt-8 inline-flex items-center p-1 bg-gray-100 rounded-full">
                 <button
-                  onClick={() => setAnnualBilling(true)}
+                  onClick={() => setBilling('monthly')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    annualBilling 
-                      ? 'bg-white text-t3rms-charcoal shadow-sm' 
-                      : 'text-gray-500 hover:text-t3rms-charcoal'
+                    billing === 'monthly' 
+                      ? 'bg-white shadow-sm text-t3rms-charcoal' 
+                      : 'text-gray-500'
                   }`}
                 >
-                  Annual Billing
-                  {annualBilling && (
-                    <span className="ml-2 text-xs font-medium text-t3rms-success">Save 20%</span>
-                  )}
+                  Monthly
                 </button>
                 <button
-                  onClick={() => setAnnualBilling(false)}
+                  onClick={() => setBilling('annual')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    !annualBilling 
-                      ? 'bg-white text-t3rms-charcoal shadow-sm' 
-                      : 'text-gray-500 hover:text-t3rms-charcoal'
+                    billing === 'annual' 
+                      ? 'bg-white shadow-sm text-t3rms-charcoal' 
+                      : 'text-gray-500'
                   }`}
                 >
-                  Monthly Billing
+                  Annual <Badge variant="outline" className="ml-1 bg-t3rms-blue/10 text-t3rms-blue border-none">Save 20%</Badge>
                 </button>
               </div>
             </div>
             
-            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-              <PricingTier
-                tier="Free"
-                price="$0"
-                features={[
-                  "3 analyses per month",
-                  "Basic risk detection",
-                  "Manual document upload",
-                  "Standard response time",
-                  "Community support"
-                ]}
-                buttonText="Get Started"
-                buttonVariant="outline"
-                buttonLink="/auth?signup=true"
-                icon={<Check className="h-5 w-5" />}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Free Tier */}
+              <Card className="border border-gray-200 shadow-sm transition-all hover:shadow-md">
+                <CardHeader className="pb-8">
+                  <div className="mb-2">
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600 border-none">
+                      Free Tier
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
+                    Basic
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    For individuals just getting started
+                  </CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold text-t3rms-charcoal">$0</span>
+                    <span className="text-gray-500 ml-2">/ month</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="border-t border-gray-100 pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">3 document analyses/month</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Basic risk identification</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Documents up to 20 pages</span>
+                    </div>
+                    <div className="flex items-center text-gray-400">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-gray-100 mr-3">
+                        <X className="h-4 w-4" />
+                      </span>
+                      <span>Document history</span>
+                    </div>
+                    <div className="flex items-center text-gray-400">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-gray-100 mr-3">
+                        <X className="h-4 w-4" />
+                      </span>
+                      <span>Team sharing</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link to="/auth?signup=true" className="w-full">
+                    <Button variant="outline" className="w-full">
+                      Sign Up <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
               
-              <PricingTier
-                tier="Pro"
-                price={annualBilling ? "$9.60" : "$12"}
-                isPopular={true}
-                features={[
-                  "100 analyses per month",
-                  "Advanced risk detection",
-                  "Document chunking",
-                  "Priority response time",
-                  "Email support",
-                  "Export results as PDF",
-                  "Analysis history"
-                ]}
-                buttonText="Subscribe Now"
-                buttonLink="/auth?signup=true"
-                icon={<CreditCard className="h-5 w-5" />}
-              />
+              {/* Pro Tier */}
+              <Card className="border-2 border-t3rms-blue shadow-md relative transition-all hover:shadow-lg">
+                <div className="absolute -top-4 inset-x-0 mx-auto w-max bg-t3rms-blue text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  MOST POPULAR
+                </div>
+                <CardHeader className="pb-8">
+                  <div className="mb-2">
+                    <Badge className="bg-t3rms-blue text-white hover:bg-t3rms-blue/90 border-none">
+                      Pro Tier
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
+                    Professional
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    For individuals and small teams
+                  </CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold text-t3rms-charcoal">
+                      ${billing === 'monthly' ? '12' : '10'}
+                    </span>
+                    <span className="text-gray-500 ml-2">/ month</span>
+                    {billing === 'annual' && (
+                      <span className="block text-t3rms-success text-sm mt-1">
+                        $120 billed annually (save $24)
+                      </span>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="border-t border-gray-100 pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">100 document analyses/month</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Advanced risk identification</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Documents up to 100 pages</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">30-day document history</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Team sharing (up to 5 users)</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link to="/auth?signup=true&plan=pro" className="w-full">
+                    <Button className="w-full bg-t3rms-blue hover:bg-t3rms-blue/90">
+                      Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
               
-              <PricingTier
-                tier="Enterprise"
-                price="Custom"
-                features={[
-                  "Unlimited analyses",
-                  "Local deployment option",
-                  "Custom integrations",
-                  "Dedicated account manager",
-                  "SLA guarantees",
-                  "API access",
-                  "Team management",
-                  "Custom reporting"
-                ]}
-                buttonText="Contact Sales"
-                buttonVariant="outline"
-                buttonLink="#contact"
-                icon={<Building className="h-5 w-5" />}
-              />
+              {/* Enterprise Tier */}
+              <Card className="border border-gray-200 shadow-sm transition-all hover:shadow-md">
+                <CardHeader className="pb-8">
+                  <div className="mb-2">
+                    <Badge variant="outline" className="bg-gray-900 text-white border-none">
+                      Enterprise
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
+                    Enterprise
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    For organizations with advanced needs
+                  </CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold text-t3rms-charcoal">Custom</span>
+                    <span className="text-gray-500 block mt-1">Contact for pricing</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="border-t border-gray-100 pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Unlimited document analyses</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Custom AI training</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">API access</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Unlimited document history</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Unlimited team members</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link to="/contact" className="w-full">
+                    <Button variant="outline" className="w-full">
+                      Contact Sales <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
             </div>
-          </div>
-        </section>
-        
-        {/* FAQ Section */}
-        <section className="py-16 bg-gray-50 border-t border-gray-100">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold text-t3rms-charcoal mb-8 text-center">
+            
+            {/* Features Table */}
+            <div className="mt-20 max-w-6xl mx-auto overflow-hidden rounded-lg border border-gray-200">
+              <table className="w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                      Features
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
+                      Free
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
+                      Pro
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
+                      Enterprise
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {features.map((feature, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        {feature.name}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {feature.free ? (
+                          <Check className="mx-auto h-5 w-5 text-t3rms-success" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {feature.pro ? (
+                          <Check className="mx-auto h-5 w-5 text-t3rms-success" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {feature.enterprise ? (
+                          <Check className="mx-auto h-5 w-5 text-t3rms-success" />
+                        ) : (
+                          <X className="mx-auto h-5 w-5 text-gray-300" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* FAQ Section */}
+            <div className="mt-20 max-w-3xl mx-auto">
+              <h2 className="text-2xl font-bold text-t3rms-charcoal mb-8 text-center">
                 Frequently Asked Questions
               </h2>
               
               <div className="space-y-6">
-                <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    How accurate is the AI analysis?
+                    Can I upgrade or downgrade my plan later?
                   </h3>
                   <p className="text-gray-600">
-                    T3RMS uses state-of-the-art AI models to provide highly accurate analyses. However, while our system can identify most potential issues, it should be used as a tool to assist your review, not replace legal counsel for critical documents.
+                    Yes, you can upgrade, downgrade, or cancel your subscription at any time. If you downgrade, your new plan will take effect at the end of your current billing cycle.
                   </p>
                 </div>
                 
-                <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    How do you handle my data?
+                    What happens if I exceed my document analysis limit?
                   </h3>
                   <p className="text-gray-600">
-                    We take data security seriously. Documents are processed in memory and not permanently stored. All data is encrypted in transit and we adhere to strict privacy standards. For Enterprise customers, we offer local deployment options for maximum data control.
+                    Free users who exceed their limit can provide feedback to receive additional analyses or upgrade to our Pro plan. Pro users who exceed their limit will be notified, and any additional analyses will be counted toward the next billing cycle.
                   </p>
                 </div>
                 
-                <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    Can I upgrade or downgrade my plan?
+                    How does team sharing work?
                   </h3>
                   <p className="text-gray-600">
-                    Yes, you can change your plan at any time. Upgrades take effect immediately, while downgrades will apply at the end of your current billing cycle. Unused analyses do not roll over to the next month.
+                    Pro users can share analysis results with up to 5 team members by sending them a secure link. Enterprise users can add unlimited team members to their workspace with customizable permission levels.
                   </p>
                 </div>
                 
-                <div className="bg-white rounded-xl p-6 shadow-sm">
+                <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    What file formats are supported?
+                    Is my data secure?
                   </h3>
                   <p className="text-gray-600">
-                    T3RMS supports PDF, DOCX, TXT, and RTF formats. We also support direct text input if you want to paste content directly. For other formats, please convert them before uploading.
+                    Yes, we take security very seriously. Your documents are encrypted in transit and at rest. We do not store your documents permanently after analysis unless you explicitly save them to your account's document history.
                   </p>
                 </div>
-                
-                <div className="bg-white rounded-xl p-6 shadow-sm">
-                  <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    Is there a limit to document size?
-                  </h3>
-                  <p className="text-gray-600">
-                    Free tier users can analyze documents up to 10 pages. Pro users can analyze documents up to 50 pages, and Enterprise users have no page limits. Our document chunking technology efficiently handles large documents.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* CTA Section */}
-        <section id="contact" className="py-16 md:py-24 bg-white">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-4xl mx-auto bg-gradient-to-r from-t3rms-blue/10 to-blue-100/30 rounded-2xl p-8 md:p-12">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-t3rms-charcoal mb-4">
-                  Ready to get started?
-                </h2>
-                <p className="text-lg text-gray-600">
-                  Join thousands of users who trust T3RMS to analyze their contracts
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/auth?signup=true">
-                  <Button size="lg" className="hero-button-primary">
-                    Create Free Account
-                  </Button>
-                </Link>
-                <a href="mailto:sales@t3rms.com">
-                  <Button size="lg" variant="outline" className="hero-button-secondary">
-                    Contact Sales
-                  </Button>
-                </a>
               </div>
             </div>
           </div>

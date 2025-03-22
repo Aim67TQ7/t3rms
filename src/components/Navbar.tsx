@@ -40,7 +40,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <span className="font-mono text-lg md:text-xl font-bold text-t3rms-charcoal">
-              T3<span className="text-t3rms-blue">RMS</span>
+              T<span className="text-red-500">3</span>RMS
             </span>
           </Link>
 

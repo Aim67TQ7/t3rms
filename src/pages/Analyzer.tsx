@@ -67,10 +67,10 @@ const Analyzer = () => {
     }
   });
 
-  // Submit feedback mutation
+  // Submit feedback mutation - Fixed the return type issue
   const submitFeedback = useMutation({
-    mutationFn: async ({ rating, comments }) => {
-      if (!userData) return;
+    mutationFn: async ({ rating, comments }: { rating: number; comments: string }) => {
+      if (!userData) return null;
       
       // Add feedback and grant bonus uses
       const { data, error } = await supabase

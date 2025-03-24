@@ -54,6 +54,39 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_history: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          id: string
+          metadata: Json | null
+          status: string
+          stripe_payment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          status: string
+          stripe_payment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_payment_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       t3rms_users: {
         Row: {
           created_at: string | null
@@ -64,6 +97,10 @@ export type Database = {
           monthly_remaining: number | null
           monthly_usage: number | null
           plan: string | null
+          stripe_customer_id: string | null
+          subscription_id: string | null
+          subscription_period_end: string | null
+          subscription_status: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -76,6 +113,10 @@ export type Database = {
           monthly_remaining?: number | null
           monthly_usage?: number | null
           plan?: string | null
+          stripe_customer_id?: string | null
+          subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -88,6 +129,10 @@ export type Database = {
           monthly_remaining?: number | null
           monthly_usage?: number | null
           plan?: string | null
+          stripe_customer_id?: string | null
+          subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }

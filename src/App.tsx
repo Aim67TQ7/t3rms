@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import FeedbackPrompt from "@/components/FeedbackPrompt";
+import { useExitFeedback } from "@/hooks/use-exit-feedback";
 
 // Pages
 import Index from "./pages/Index";
@@ -16,8 +18,9 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+const AppContent = () => {
   const [loading, setLoading] = useState(true);
+  const { showFeedbackPrompt, closeFeedbackPrompt, userId } = useExitFeedback();
 
   // Just check session for loading state (we no longer redirect from protected routes)
   useEffect(() => {
@@ -39,7 +42,7 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -54,6 +57,21 @@ const App = () => {
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      
+      {/* Feedback prompt */}
+      <FeedbackPrompt 
+        isOpen={showFeedbackPrompt} 
+        onClose={closeFeedbackPrompt}
+        userId={userId}
+      />
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
     </QueryClientProvider>
   );
 };

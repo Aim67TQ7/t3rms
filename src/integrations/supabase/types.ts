@@ -9,7 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      anonymous_usage: {
+        Row: {
+          id: string
+          ip_address: string
+          last_visit: string | null
+          visit_count: number | null
+        }
+        Insert: {
+          id?: string
+          ip_address: string
+          last_visit?: string | null
+          visit_count?: number | null
+        }
+        Update: {
+          id?: string
+          ip_address?: string
+          last_visit?: string | null
+          visit_count?: number | null
+        }
+        Relationships: []
+      }
+      t3rms_users: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          feedback_comments: string | null
+          feedback_rating: number | null
+          id: string
+          monthly_remaining: number | null
+          monthly_usage: number | null
+          plan: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          feedback_comments?: string | null
+          feedback_rating?: number | null
+          id?: string
+          monthly_remaining?: number | null
+          monthly_usage?: number | null
+          plan?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          feedback_comments?: string | null
+          feedback_rating?: number | null
+          id?: string
+          monthly_remaining?: number | null
+          monthly_usage?: number | null
+          plan?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

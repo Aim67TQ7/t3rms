@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCw, Upload, AlertTriangle, Star } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ const Analyzer = () => {
   const [iframeKey, setIframeKey] = useState(Date.now());
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComments, setFeedbackComments] = useState('');
+  const [anonymousVisits, setAnonymousVisits] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -23,29 +24,66 @@ const Analyzer = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Fetch user data
-  const { data: userData, isLoading, error } = useQuery({
-    queryKey: ['t3rmsUser'],
+  // Check if user is authenticated
+  const { data: session } = useQuery({
+    queryKey: ['authSession'],
     queryFn: async () => {
-      // First get the current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) throw new Error("Not authenticated");
-      
-      // Then get their T3RMS profile
-      const { data, error } = await supabase
-        .from('t3rms_users')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
+      const { data } = await supabase.auth.getSession();
+      return data.session;
     }
   });
 
-  // Increment usage mutation
-  const incrementUsage = useMutation({
+  // Load anonymous visits from local storage on component mount
+  useEffect(() => {
+    const storedVisits = localStorage.getItem('anonymousVisits');
+    if (storedVisits) {
+      setAnonymousVisits(parseInt(storedVisits, 10));
+    }
+  }, []);
+
+  // Fetch user data if authenticated
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ['t3rmsUser'],
+    queryFn: async () => {
+      if (!session) return null;
+      
+      // Get their T3RMS profile
+      const { data, error } = await supabase
+        .from('t3rms_users')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user data:', error);
+        
+        // If user doesn't have a profile yet, create one
+        if (error.code === 'PGRST116') {
+          const { data: newProfile, error: createError } = await supabase
+            .from('t3rms_users')
+            .insert({
+              user_id: session.user.id,
+              email: session.user.email,
+              monthly_usage: 0,
+              monthly_remaining: 5
+            })
+            .select()
+            .single();
+            
+          if (createError) throw createError;
+          return newProfile;
+        }
+        
+        throw error;
+      }
+      
+      return data;
+    },
+    enabled: !!session
+  });
+
+  // Increment usage mutation for authenticated users
+  const incrementAuthUsage = useMutation({
     mutationFn: async () => {
       if (!userData) return null;
       
@@ -82,6 +120,13 @@ const Analyzer = () => {
     }
   });
 
+  // Increment anonymous visits
+  const incrementAnonymousVisits = () => {
+    const newVisitCount = anonymousVisits + 1;
+    setAnonymousVisits(newVisitCount);
+    localStorage.setItem('anonymousVisits', newVisitCount.toString());
+  };
+
   // Submit feedback mutation
   const submitFeedback = useMutation({
     mutationFn: async ({ rating, comments }: { rating: number; comments: string }) => {
@@ -110,37 +155,50 @@ const Analyzer = () => {
   const handleNewAnalysis = () => {
     console.log('New Analysis button clicked');
     
-    if (!userData) {
+    // For authenticated users
+    if (session && userData) {
+      if (userData.monthly_remaining <= 0) {
+        setShowFeedbackPrompt(true);
+        toast({
+          title: "Usage limit reached",
+          description: "You've reached your monthly limit. Provide feedback for bonus uses or upgrade.",
+          variant: "default",
+        });
+        return;
+      }
+      
+      // Increment usage counter for authenticated users
+      incrementAuthUsage.mutate();
+      
       toast({
-        title: "Authentication required",
-        description: "Please sign in to use the analyzer",
-        variant: "destructive",
+        title: "New analysis started",
+        description: `${userData.monthly_remaining - 1} analyses remaining this month`,
       });
-      return;
-    }
-
-    if (userData.monthly_remaining <= 0) {
-      setShowFeedbackPrompt(true);
+    } 
+    // For anonymous users
+    else {
+      if (anonymousVisits >= 5) {
+        toast({
+          title: "Usage limit reached",
+          description: "Sign up for a free account to continue using the analyzer.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Increment anonymous visit count
+      incrementAnonymousVisits();
+      
       toast({
-        title: "Usage limit reached",
-        description: "You've reached your monthly limit. Provide feedback for bonus uses or upgrade.",
-        variant: "default",
+        title: "New analysis started",
+        description: `${5 - anonymousVisits - 1} free analyses remaining. Sign up for more!`,
       });
-      return;
     }
 
     // Refresh the iframe by changing its key
     const newKey = Date.now();
     console.log('Setting new iframe key:', newKey);
     setIframeKey(newKey);
-    
-    // Increment usage counter
-    incrementUsage.mutate();
-
-    toast({
-      title: "New analysis started",
-      description: `${userData.monthly_remaining - 1} analyses remaining this month`,
-    });
   };
 
   const handleProvideFeedback = () => {
@@ -164,7 +222,15 @@ const Analyzer = () => {
     });
   };
 
-  if (isLoading) {
+  const getRemainingAnalyses = () => {
+    if (session && userData) {
+      return userData.monthly_remaining;
+    } else {
+      return 5 - anonymousVisits;
+    }
+  };
+
+  if (isLoading && session) {
     return (
       <div className="min-h-screen flex flex-col page-transition">
         <Navbar />
@@ -195,16 +261,14 @@ const Analyzer = () => {
               </div>
               
               <div className="flex items-center gap-4">
-                {userData && (
-                  <div className="bg-t3rms-blue/10 text-t3rms-blue rounded-full px-4 py-1 text-sm font-medium">
-                    {userData.monthly_remaining <= 0 
-                      ? 'Limit reached' 
-                      : `${userData.monthly_remaining}/${userData.plan === 'free' ? '3' : '100'} analyses remaining`}
-                  </div>
-                )}
+                <div className="bg-t3rms-blue/10 text-t3rms-blue rounded-full px-4 py-1 text-sm font-medium">
+                  {getRemainingAnalyses() <= 0 
+                    ? 'Limit reached' 
+                    : `${getRemainingAnalyses()}/${session && userData?.plan === 'free' ? '5' : '5'} analyses remaining`}
+                </div>
                 <Button 
                   onClick={handleNewAnalysis}
-                  disabled={!userData || (userData.monthly_remaining <= 0 && !showFeedbackPrompt)}
+                  disabled={(session && userData?.monthly_remaining <= 0) || (!session && anonymousVisits >= 5)}
                   className="bg-t3rms-blue hover:bg-t3rms-blue/90"
                 >
                   <RefreshCw className="mr-2 h-4 w-4" /> New Analysis
@@ -212,7 +276,7 @@ const Analyzer = () => {
               </div>
             </div>
             
-            {showFeedbackPrompt && (
+            {showFeedbackPrompt && userData && (
               <Card className="mb-8 border-t3rms-blue/20 bg-blue-50/50">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-6 items-center">
@@ -221,7 +285,7 @@ const Analyzer = () => {
                         You've reached your monthly limit
                       </h3>
                       <p className="text-gray-600 mb-4">
-                        Provide feedback about your experience to get 2 bonus analyses, or upgrade to our Pro plan for 100 analyses per month.
+                        Provide feedback about your experience to get 2 bonus analyses, or upgrade to our Pro plan for more analyses per month.
                       </p>
                       
                       <div className="mb-4">
@@ -281,6 +345,30 @@ const Analyzer = () => {
                     </div>
                     <div className="flex-shrink-0 bg-t3rms-blue/10 p-4 rounded-full">
                       <AlertTriangle className="h-8 w-8 text-t3rms-blue" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {!session && anonymousVisits >= 5 && (
+              <Card className="mb-8 border-t3rms-blue/20 bg-blue-50/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
+                        You've reached the free usage limit
+                      </h3>
+                      <p className="text-gray-600">
+                        Sign up for a free account to continue using the T3RMS Analyzer.
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Link to="/auth?signup=true">
+                        <Button className="bg-t3rms-blue hover:bg-t3rms-blue/90">
+                          Sign Up
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CardContent>

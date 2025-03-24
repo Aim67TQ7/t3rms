@@ -79,6 +79,11 @@ const Auth = () => {
 
         if (error) throw error;
         
+        // Ensure user profile exists in t3rms_users table
+        if (data.user) {
+          await ensureUserProfile(data.user.id, data.user.email);
+        }
+        
         toast({
           title: 'Account created successfully',
           description: "Welcome to T3RMS!",
@@ -98,6 +103,11 @@ const Auth = () => {
         });
 
         if (error) throw error;
+        
+        // Ensure user profile exists in t3rms_users table
+        if (data.user) {
+          await ensureUserProfile(data.user.id, data.user.email);
+        }
         
         toast({
           title: 'Signed in successfully',

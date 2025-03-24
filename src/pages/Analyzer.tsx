@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -105,16 +104,12 @@ const Analyzer = () => {
     mutationFn: async () => {
       if (!session || !analysisResult) return null;
       
-      // First, we need to create a table for analysis results if it doesn't exist
-      // This would be done in SQL migration separately
-
-      // Save the analysis result
+      // Save the analysis result to the analysis_results table
       const { data, error } = await supabase
         .from('analysis_results')
         .insert({
           user_id: session.user.id,
-          content: analysisResult,
-          created_at: new Date().toISOString()
+          content: analysisResult
         })
         .select();
         

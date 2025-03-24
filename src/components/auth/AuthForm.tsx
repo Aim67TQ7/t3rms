@@ -6,11 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Key } from 'lucide-react';
 import LoginTab from './LoginTab';
 import SignupTab from './SignupTab';
+import PasswordResetForm from './PasswordResetForm';
 
 const AuthForm = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('login');
   const [email, setEmail] = useState('');
+  const [isResetMode, setIsResetMode] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -18,6 +20,16 @@ const AuthForm = () => {
       setActiveTab('signup');
     }
   }, [location]);
+
+  if (isResetMode) {
+    return (
+      <PasswordResetForm 
+        email={email}
+        setEmail={setEmail}
+        onCancel={() => setIsResetMode(false)}
+      />
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto">
@@ -40,7 +52,12 @@ const AuthForm = () => {
           </TabsList>
           
           <TabsContent value="login">
-            <LoginTab email={email} setEmail={setEmail} />
+            <LoginTab 
+              email={email} 
+              setEmail={setEmail} 
+              onForgotPassword={() => setIsResetMode(true)}
+              onNoAccount={() => setActiveTab('signup')}
+            />
           </TabsContent>
           
           <TabsContent value="signup">

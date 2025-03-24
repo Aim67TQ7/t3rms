@@ -13,9 +13,11 @@ import PasswordInput from './PasswordInput';
 interface LoginTabProps {
   email: string;
   setEmail: (email: string) => void;
+  onForgotPassword: () => void;
+  onNoAccount: () => void;
 }
 
-const LoginTab = ({ email, setEmail }: LoginTabProps) => {
+const LoginTab = ({ email, setEmail, onForgotPassword, onNoAccount }: LoginTabProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [password, setPassword] = useState('');
@@ -39,44 +41,46 @@ const LoginTab = ({ email, setEmail }: LoginTabProps) => {
         password,
       });
 
-      if (error) throw error;
-      
-      if (data.user) {
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          // Check if user exists but password is wrong
+          const { data: userData } = await supabase.auth.admin.listUsers({ 
+            filter: { email: email }
+          });
+          
+          if (userData && userData.users && userData.users.length > 0) {
+            // User exists but password is wrong
+            toast({
+              title: "Incorrect password",
+              description: "The password you entered is incorrect. Please try again or reset your password.",
+              variant: "destructive"
+            });
+            setError('The password you entered is incorrect.');
+          } else {
+            // User doesn't exist
+            setError('This email is not registered. Would you like to create an account?');
+            toast({
+              title: "Account not found",
+              description: "This email is not registered. Would you like to create an account?",
+            });
+          }
+        } else {
+          throw error;
+        }
+      } else if (data.user) {
         await ensureUserProfile(data.user.id, data.user.email || '');
+        
+        toast({
+          title: 'Signed in successfully',
+          description: "Welcome back to T3RMS!",
+        });
+        
+        navigate('/analyzer');
       }
-      
-      toast({
-        title: 'Signed in successfully',
-        description: "Welcome back to T3RMS!",
-      });
-      
-      navigate('/analyzer');
     } catch (error: any) {
-      setError(error.message || 'Invalid email or password');
+      setError(error.message || 'Error signing in');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async () => {
-    if (!email) {
-      setError('Please enter your email address');
-      return;
-    }
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: 'Password reset email sent',
-        description: `Check ${email} for reset instructions`,
-      });
-    } catch (error: any) {
-      setError(error.message || 'Failed to send reset email');
     }
   };
 
@@ -86,7 +90,19 @@ const LoginTab = ({ email, setEmail }: LoginTabProps) => {
         {error && (
           <div className="bg-red-50 text-t3rms-danger p-3 rounded-md flex items-start gap-2 text-sm">
             <AlertCircle className="h-4 w-4 mt-0.5" />
-            <span>{error}</span>
+            <div className="flex-1">
+              <span>{error}</span>
+              {error.includes('not registered') && (
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="text-t3rms-blue p-0 h-auto text-sm" 
+                  onClick={onNoAccount}
+                >
+                  Create an account instead
+                </Button>
+              )}
+            </div>
           </div>
         )}
         
@@ -106,7 +122,7 @@ const LoginTab = ({ email, setEmail }: LoginTabProps) => {
             <Label htmlFor="password">Password</Label>
             <button
               type="button"
-              onClick={handlePasswordReset}
+              onClick={onForgotPassword}
               className="text-sm text-t3rms-blue hover:underline"
             >
               Forgot password?

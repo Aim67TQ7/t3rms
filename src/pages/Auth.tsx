@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
@@ -150,13 +149,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col page-transition">
-      <header className="border-b">
-        <div className="container flex h-16 items-center px-4">
-          <Link to="/" className="flex items-center justify-center">
-            <h1 className="text-xl font-bold">T3RMS</h1>
-          </Link>
-        </div>
-      </header>
+      <Navbar />
       
       <main className="flex-grow pt-20">
         <div className="container mx-auto px-4 md:px-6 py-12">
@@ -351,13 +344,7 @@ const Auth = () => {
         </div>
       </main>
       
-      <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-center gap-4 text-center">
-          <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} T3RMS. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

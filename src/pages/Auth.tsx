@@ -1,16 +1,14 @@
-
 import { useState, useEffect } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronLeft, ArrowRight, Key, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, ensureUserProfile } from '@/integrations/supabase/client';
+import { ChevronLeft, ArrowRight, Key, Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const location = useLocation();
@@ -26,7 +24,6 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    // Check for existing session
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
@@ -70,7 +67,6 @@ const Auth = () => {
           password,
           options: {
             emailRedirectTo: window.location.origin + '/analyzer',
-            // Skip email verification
             data: {
               email_confirmed: true
             }
@@ -79,7 +75,6 @@ const Auth = () => {
 
         if (error) throw error;
         
-        // Ensure user profile exists in t3rms_users table
         if (data.user) {
           await ensureUserProfile(data.user.id, data.user.email);
         }
@@ -104,7 +99,6 @@ const Auth = () => {
 
         if (error) throw error;
         
-        // Ensure user profile exists in t3rms_users table
         if (data.user) {
           await ensureUserProfile(data.user.id, data.user.email);
         }

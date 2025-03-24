@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCw, AlertTriangle, Star, Save } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Star, Save, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,8 @@ const Analyzer = () => {
   const [feedbackComments, setFeedbackComments] = useState('');
   const [anonymousVisits, setAnonymousVisits] = useState(0);
   const [analysisResult, setAnalysisResult] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -25,16 +27,59 @@ const Analyzer = () => {
       // Only accept messages from our iframe's domain
       if (event.origin !== "https://t3rms.replit.app") return;
       
-      // Check if the message contains analysis results
-      if (event.data && event.data.type === 'analysisResult') {
-        setAnalysisResult(event.data.content);
-        console.log('Received analysis result:', event.data.content);
+      console.log('Received message from iframe:', event.data);
+      
+      // Process the message based on type
+      switch (event.data.type) {
+        case 'analysisResult':
+          // Handle the analysis results
+          setAnalysisResult(event.data.content);
+          console.log('Received analysis results:', event.data.content);
+          break;
+          
+        case 'downloadComplete':
+          // Handle download completion
+          setIsDownloading(false);
+          toast({
+            title: "Document downloaded",
+            description: "The Terms document has been successfully downloaded.",
+          });
+          console.log('Download completed:', event.data.content);
+          break;
+          
+        case 'analysisComplete':
+          // Handle analysis completion
+          setIsAnalyzing(false);
+          toast({
+            title: "Analysis complete",
+            description: "Your document has been analyzed successfully.",
+          });
+          console.log('Analysis workflow complete:', event.data.content);
+          break;
+          
+        case 'analysisStarted':
+          // Handle analysis started
+          setIsAnalyzing(true);
+          toast({
+            title: "Analysis started",
+            description: "Analyzing your Terms document...",
+          });
+          break;
+          
+        case 'downloadStarted':
+          // Handle download started
+          setIsDownloading(true);
+          toast({
+            title: "Downloading document",
+            description: "Downloading your Terms document...",
+          });
+          break;
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [toast]);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -344,10 +389,22 @@ const Analyzer = () => {
                 </div>
                 <Button 
                   onClick={handleNewAnalysis}
-                  disabled={(session && userData?.monthly_remaining <= 0) || (!session && anonymousVisits >= 5)}
+                  disabled={(session && userData?.monthly_remaining <= 0) || (!session && anonymousVisits >= 5) || isAnalyzing}
                   className="bg-t3rms-blue hover:bg-t3rms-blue/90"
                 >
-                  <RefreshCw className="mr-2 h-4 w-4" /> New Analysis
+                  {isAnalyzing ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" /> New Analysis
+                    </>
+                  )}
                 </Button>
                 {session && (
                   <Button

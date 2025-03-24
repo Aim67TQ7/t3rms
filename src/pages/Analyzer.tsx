@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCw, AlertTriangle, Star } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Star, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,8 +16,26 @@ const Analyzer = () => {
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [anonymousVisits, setAnonymousVisits] = useState(0);
+  const [analysisResult, setAnalysisResult] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Iframe communication
+  useEffect(() => {
+    const handleMessage = (event) => {
+      // Only accept messages from our iframe's domain
+      if (event.origin !== "https://t3rms.replit.app") return;
+      
+      // Check if the message contains analysis results
+      if (event.data && event.data.type === 'analysisResult') {
+        setAnalysisResult(event.data.content);
+        console.log('Received analysis result:', event.data.content);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -80,6 +98,47 @@ const Analyzer = () => {
       return data;
     },
     enabled: !!session
+  });
+
+  // Save analysis result mutation
+  const saveAnalysis = useMutation({
+    mutationFn: async () => {
+      if (!session || !analysisResult) return null;
+      
+      // First, we need to create a table for analysis results if it doesn't exist
+      // This would be done in SQL migration separately
+
+      // Save the analysis result
+      const { data, error } = await supabase
+        .from('analysis_results')
+        .insert({
+          user_id: session.user.id,
+          content: analysisResult,
+          created_at: new Date().toISOString()
+        })
+        .select();
+        
+      if (error) {
+        console.error('Error saving analysis:', error);
+        throw error;
+      }
+      
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Analysis saved",
+        description: "Your analysis has been saved to your account.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error saving analysis:', error);
+      toast({
+        title: "Error saving analysis",
+        description: "There was a problem saving your analysis. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   // Increment usage mutation for authenticated users
@@ -201,6 +260,28 @@ const Analyzer = () => {
     setIframeKey(newKey);
   };
 
+  const handleSaveAnalysis = () => {
+    if (!session) {
+      toast({
+        title: "Login required",
+        description: "Please sign up or log in to save your analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!analysisResult) {
+      toast({
+        title: "No analysis to save",
+        description: "Please run an analysis first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    saveAnalysis.mutate();
+  };
+
   const handleProvideFeedback = () => {
     if (feedbackRating === 0) {
       toast({
@@ -256,7 +337,7 @@ const Analyzer = () => {
               <div>
                 <h1 className="text-3xl font-bold text-t3rms-charcoal mb-2">T3RMS Analyzer</h1>
                 <p className="text-gray-600">
-                  Upload any Terms & Conditions document to get an instant AI analysis
+                  Upload any Terms document to get an instant AI analysis
                 </p>
               </div>
               
@@ -273,6 +354,16 @@ const Analyzer = () => {
                 >
                   <RefreshCw className="mr-2 h-4 w-4" /> New Analysis
                 </Button>
+                {session && (
+                  <Button
+                    onClick={handleSaveAnalysis}
+                    disabled={!analysisResult || saveAnalysis.isPending}
+                    variant="outline"
+                    className="border-t3rms-blue text-t3rms-blue hover:bg-t3rms-blue/10"
+                  >
+                    <Save className="mr-2 h-4 w-4" /> Save Analysis
+                  </Button>
+                )}
               </div>
             </div>
             

@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, CreditCard, Building2, Lock, ArrowRight } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Pricing = () => {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
   
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -33,6 +33,12 @@ const Pricing = () => {
       <main className="flex-grow mt-20">
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
+            <Alert className="mb-8 max-w-3xl mx-auto bg-t3rms-blue/10 text-t3rms-blue border-t3rms-blue">
+              <AlertDescription className="text-center text-base">
+                🚀 T3RMS is currently in beta testing phase. Subscriptions will be available soon!
+              </AlertDescription>
+            </Alert>
+
             <div className="max-w-3xl mx-auto text-center mb-12">
               <h1 className="text-3xl md:text-4xl font-bold text-t3rms-charcoal mb-4">
                 Simple, Transparent Pricing
@@ -66,7 +72,6 @@ const Pricing = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {/* Free Tier */}
               <Card className="border border-gray-200 shadow-sm transition-all hover:shadow-md">
                 <CardHeader className="pb-8">
                   <div className="mb-2">
@@ -128,10 +133,9 @@ const Pricing = () => {
                 </CardFooter>
               </Card>
               
-              {/* Pro Tier */}
               <Card className="border-2 border-t3rms-blue shadow-md relative transition-all hover:shadow-lg">
                 <div className="absolute -top-4 inset-x-0 mx-auto w-max bg-t3rms-blue text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  MOST POPULAR
+                  COMING SOON
                 </div>
                 <CardHeader className="pb-8">
                   <div className="mb-2">
@@ -147,14 +151,8 @@ const Pricing = () => {
                   </CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold text-t3rms-charcoal">
-                      ${billing === 'monthly' ? '12' : '10'}
+                      Coming Soon
                     </span>
-                    <span className="text-gray-500 ml-2">/ month</span>
-                    {billing === 'annual' && (
-                      <span className="block text-t3rms-success text-sm mt-1">
-                        $120 billed annually (save $24)
-                      </span>
-                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -192,15 +190,12 @@ const Pricing = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Link to="/auth?signup=true&plan=pro" className="w-full">
-                    <Button className="w-full bg-t3rms-blue hover:bg-t3rms-blue/90">
-                      Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+                  <Button disabled className="w-full bg-t3rms-blue/50 cursor-not-allowed">
+                    Available Soon <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </CardFooter>
               </Card>
               
-              {/* Enterprise Tier */}
               <Card className="border border-gray-200 shadow-sm transition-all hover:shadow-md">
                 <CardHeader className="pb-8">
                   <div className="mb-2">
@@ -263,7 +258,6 @@ const Pricing = () => {
               </Card>
             </div>
             
-            {/* Features Table */}
             <div className="mt-20 max-w-6xl mx-auto overflow-hidden rounded-lg border border-gray-200">
               <table className="w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -315,7 +309,6 @@ const Pricing = () => {
               </table>
             </div>
             
-            {/* FAQ Section */}
             <div className="mt-20 max-w-3xl mx-auto">
               <h2 className="text-2xl font-bold text-t3rms-charcoal mb-8 text-center">
                 Frequently Asked Questions

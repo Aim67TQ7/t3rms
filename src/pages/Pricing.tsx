@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -5,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, CreditCard, Building2, Lock, ArrowRight } from 'lucide-react';
+import { Check, X, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Pricing = () => {
@@ -35,7 +36,15 @@ const Pricing = () => {
           <div className="container mx-auto px-4 md:px-6">
             <Alert className="mb-8 max-w-3xl mx-auto bg-t3rms-blue/10 text-t3rms-blue border-t3rms-blue">
               <AlertDescription className="text-center text-base">
-                🚀 T3RMS is currently in beta testing phase. Subscriptions will be available soon!
+                🚀 T3RMS is currently in beta testing phase. Subscriptions will be available soon on April 3rd! 
+                <br />
+                We'd love your feedback. Please test out our free tier and 
+                <a 
+                  href="mailto:hello@t3rms.com" 
+                  className="ml-1 underline font-semibold hover:text-t3rms-blue"
+                >
+                  contact us
+                </a> if you're interested in more access or want to provide insights.
               </AlertDescription>
             </Alert>
 

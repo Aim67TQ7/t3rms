@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, User } from 'lucide-react';
@@ -145,7 +146,7 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/beaa1c25-88be-497c-b837-1c65f2eab5ec.png" 
               alt="T3RMS Logo" 
-              className="h-20 w-auto" 
+              className="h-40 w-auto" 
             />
           </Link>
 

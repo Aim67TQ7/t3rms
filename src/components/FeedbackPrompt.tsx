@@ -26,6 +26,17 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
 
+  const getIPAddress = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Error fetching IP address:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
@@ -57,10 +68,13 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
           
         if (feedbackError) throw feedbackError;
       } else {
-        // For anonymous users, just save feedback in the anonymous_feedback table
+        // For anonymous users, save IP address with feedback
+        const ipAddress = await getIPAddress();
+        
         const { error } = await supabase
           .from('anonymous_feedback')
           .insert({
+            ip_address: ipAddress,
             rating,
             comment
           });

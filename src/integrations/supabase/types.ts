@@ -33,6 +33,30 @@ export type Database = {
         }
         Relationships: []
       }
+      anonymous_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          rating: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          rating?: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          rating?: number
+        }
+        Relationships: []
+      }
       anonymous_usage: {
         Row: {
           id: string

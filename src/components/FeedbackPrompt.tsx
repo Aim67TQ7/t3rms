@@ -44,20 +44,26 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
       if (userId) {
         // For authenticated users, update both tables
         
-        // 1. Update the user's feedback in t3rms_users table (for backward compatibility)
+        // 1. First, call the RPC function to increment analyses
+        const { data: incrementResult, error: rpcError } = await supabase.rpc(
+          'increment_remaining_analyses', 
+          { increment_amount: 2 }
+        );
+        
+        if (rpcError) throw rpcError;
+        
+        // 2. Update the user's feedback in t3rms_users table (for backward compatibility)
         const { error: userUpdateError } = await supabase
           .from('t3rms_users')
           .update({
             feedback_rating: rating,
-            feedback_comments: comment,
-            // Correctly call the RPC function
-            monthly_remaining: supabase.rpc('increment_remaining_analyses', { increment_amount: 2 })
+            feedback_comments: comment
           })
           .eq('user_id', userId);
 
         if (userUpdateError) throw userUpdateError;
         
-        // 2. Insert into the new feedback table
+        // 3. Insert into the new feedback table
         const { error: feedbackError } = await supabase
           .from('feedback')
           .insert({

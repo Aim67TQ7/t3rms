@@ -142,9 +142,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-mono text-lg md:text-xl font-bold text-t3rms-charcoal">
-              T<span className="text-red-500">3</span>RMS
-            </span>
+            <img 
+              src="/lovable-uploads/beaa1c25-88be-497c-b837-1c65f2eab5ec.png" 
+              alt="T3RMS Logo" 
+              className="h-8 w-auto" 
+            />
           </Link>
 
           <div className="hidden md:flex items-center space-x-1">

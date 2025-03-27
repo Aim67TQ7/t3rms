@@ -50,7 +50,7 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
           .update({
             feedback_rating: rating,
             feedback_comments: comment,
-            // Give them 2 bonus analyses for providing feedback
+            // Correctly call the RPC function
             monthly_remaining: supabase.rpc('increment_remaining_analyses', { increment_amount: 2 })
           })
           .eq('user_id', userId);

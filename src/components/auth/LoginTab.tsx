@@ -44,26 +44,14 @@ const LoginTab = ({ email, setEmail, onForgotPassword, onNoAccount }: LoginTabPr
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           // Check if user exists but password is wrong
-          const { data: userData } = await supabase.auth.admin.listUsers({ 
-            filter: { email: email }
+          // We can't use the admin.listUsers function from the client
+          // Instead, let's just handle the error directly
+          setError('The password you entered is incorrect or the account does not exist.');
+          toast({
+            title: "Login failed",
+            description: "Incorrect email or password. Please try again or create an account.",
+            variant: "destructive"
           });
-          
-          if (userData && userData.users && userData.users.length > 0) {
-            // User exists but password is wrong
-            toast({
-              title: "Incorrect password",
-              description: "The password you entered is incorrect. Please try again or reset your password.",
-              variant: "destructive"
-            });
-            setError('The password you entered is incorrect.');
-          } else {
-            // User doesn't exist
-            setError('This email is not registered. Would you like to create an account?');
-            toast({
-              title: "Account not found",
-              description: "This email is not registered. Would you like to create an account?",
-            });
-          }
         } else {
           throw error;
         }

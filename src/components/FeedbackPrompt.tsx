@@ -1,192 +1,174 @@
 
 import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Star } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 
-interface FeedbackPromptProps {
+type FeedbackPromptProps = {
   isOpen: boolean;
   onClose: () => void;
   userId?: string;
-}
+};
 
 const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
-  const [rating, setRating] = useState<number>(5); // Default to 5 stars
-  const [comment, setComment] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const getIPAddress = async () => {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      return data.ip;
-    } catch (error) {
-      console.error('Error fetching IP address:', error);
-      return null;
-    }
+  const resetState = () => {
+    setRating(0);
+    setComment('');
+    setIsSubmitting(false);
+  };
+
+  const handleClose = () => {
+    resetState();
+    onClose();
   };
 
   const handleSubmit = async () => {
+    if (rating === 0) {
+      toast({
+        title: 'Rating Required',
+        description: 'Please select a rating before submitting feedback.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       if (userId) {
-        // For authenticated users, update both tables
-        
-        // 1. First, call the RPC function to increment analyses
-        const { data: incrementResult, error: rpcError } = await supabase.rpc(
-          'increment_remaining_analyses', 
-          { increment_amount: 2 }
-        );
-        
-        if (rpcError) throw rpcError;
-        
-        // 2. Update the user's feedback in t3rms_users table (for backward compatibility)
-        const { error: userUpdateError } = await supabase
-          .from('t3rms_users')
-          .update({
-            feedback_rating: rating,
-            feedback_comments: comment
-          })
-          .eq('user_id', userId);
-
-        if (userUpdateError) throw userUpdateError;
-        
-        // 3. Insert into the new feedback table
-        const { error: feedbackError } = await supabase
+        // For logged in users
+        await supabase
           .from('feedback')
           .insert({
             user_id: userId,
             rating,
-            comment
+            comment: comment || null,
           });
-          
-        if (feedbackError) throw feedbackError;
+
+        // Increment the user's monthly_remaining by 2
+        await supabase
+          .rpc('increment_user_remaining', {
+            user_id: userId,
+            increment_amount: 2
+          });
       } else {
-        // For anonymous users, save IP address with feedback
-        const ipAddress = await getIPAddress();
-        
-        const { error } = await supabase
+        // For anonymous users
+        await supabase
           .from('anonymous_feedback')
           .insert({
-            ip_address: ipAddress,
             rating,
-            comment
+            comment: comment || null,
           });
-          
-        if (error) throw error;
       }
 
       toast({
-        title: "Thank you for your feedback!",
-        description: userId ? "You've received 2 bonus analyses." : "Your feedback helps us improve.",
+        title: 'Thank You!',
+        description: userId
+          ? 'Your feedback was submitted and you received 2 extra analyses.'
+          : 'Your feedback was submitted. Thank you!',
       });
 
-      onClose();
+      handleClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
       toast({
-        title: "Error submitting feedback",
-        description: "There was a problem saving your feedback. Please try again.",
-        variant: "destructive",
+        title: 'Submission Failed',
+        description: 'There was a problem submitting your feedback. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSkip = () => {
-    // Save a default 5-star rating with empty comment if user skips
-    if (userId) {
-      // Insert into feedback table with default values
-      void supabase
-        .from('feedback')
-        .insert({
-          user_id: userId,
-          rating: 5, // Default 5-star rating
-          comment: '' // Empty comment
-        })
-        .then(() => {
-          console.log('Default feedback saved on skip');
-        })
-        .catch(error => {
-          console.error('Error saving default feedback:', error);
-        });
-    }
+  const handleSkip = async () => {
+    handleClose();
     
-    onClose();
+    // Make sure we handle the promise properly
+    void supabase
+      .from('anonymous_feedback')
+      .insert({
+        rating: 0,
+        comment: 'Skipped feedback prompt',
+      })
+      .then(() => {
+        console.log('Recorded skipped feedback');
+      })
+      .catch(error => {
+        console.error('Error recording skipped feedback:', error);
+      });
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Help us improve T3RMS</DialogTitle>
+          <DialogTitle>How was your experience?</DialogTitle>
           <DialogDescription>
-            Your feedback helps us make T3RMS more valuable. Would you mind sharing your thoughts?
+            We'd love to hear your feedback! {userId && 'You'll get 2 bonus analyses for your input.'}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">How would you rate your experience? (1-5)</label>
+          <div className="mb-6">
+            <p className="text-sm font-medium mb-2">Rate your experience:</p>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
                   onClick={() => setRating(value)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    rating === value 
-                      ? 'bg-t3rms-blue text-white' 
-                      : 'bg-gray-100 hover:bg-gray-200'
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    rating === value
+                      ? 'bg-t3rms-blue text-white'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                   }`}
                 >
-                  <Star 
-                    className={`h-5 w-5 ${rating >= value ? 'fill-current' : ''}`} 
-                  />
+                  {value}
                 </button>
               ))}
             </div>
           </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Any suggestions to improve our service?</label>
-            <Textarea 
+
+          <div className="mb-6">
+            <p className="text-sm font-medium mb-2">Additional comments (optional):</p>
+            <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="w-full p-2 border rounded-md"
               rows={3}
-              placeholder="Tell us what you think..."
+              placeholder="Tell us about your experience..."
             />
           </div>
-        </div>
 
-        <DialogFooter className="flex justify-between sm:justify-between">
-          <Button 
-            variant="outline" 
-            onClick={handleSkip}
-          >
-            Skip
-          </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSubmitting}
-            className="bg-t3rms-blue hover:bg-t3rms-blue/90"
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
-          </Button>
-        </DialogFooter>
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleSkip} disabled={isSubmitting}>
+              Skip
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Star className="mr-2 h-4 w-4" /> Submit Feedback
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -27,7 +27,7 @@ export const ensureUserProfile = async (userId: string, email: string) => {
         user_id: userId,
         email: email,
         monthly_usage: 0,
-        monthly_remaining: 5,
+        monthly_remaining: 3,
         plan: 'free'
       });
     

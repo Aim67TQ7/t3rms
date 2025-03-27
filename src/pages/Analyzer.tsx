@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -35,6 +36,11 @@ const Analyzer = () => {
           // Handle the analysis results
           setAnalysisResult(event.data.content);
           console.log('Received analysis results:', event.data.content);
+          
+          // Save analysis result to database if user is authenticated
+          if (session) {
+            saveAnalysis.mutate();
+          }
           break;
           
         case 'downloadComplete':
@@ -79,7 +85,7 @@ const Analyzer = () => {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [toast]);
+  }, [toast, session, saveAnalysis]);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -127,7 +133,7 @@ const Analyzer = () => {
               user_id: session.user.id,
               email: session.user.email,
               monthly_usage: 0,
-              monthly_remaining: 5
+              monthly_remaining: 3
             })
             .select()
             .single();
@@ -276,7 +282,7 @@ const Analyzer = () => {
     } 
     // For anonymous users
     else {
-      if (anonymousVisits >= 5) {
+      if (anonymousVisits >= 3) {
         toast({
           title: "Usage limit reached",
           description: "Sign up for a free account to continue using the analyzer.",
@@ -290,7 +296,7 @@ const Analyzer = () => {
       
       toast({
         title: "New analysis started",
-        description: `${5 - anonymousVisits - 1} free analyses remaining. Sign up for more!`,
+        description: `${3 - anonymousVisits - 1} free analyses remaining. Sign up for more!`,
       });
     }
 
@@ -347,7 +353,7 @@ const Analyzer = () => {
     if (session && userData) {
       return userData.monthly_remaining;
     } else {
-      return 5 - anonymousVisits;
+      return 3 - anonymousVisits;
     }
   };
 
@@ -385,11 +391,11 @@ const Analyzer = () => {
                 <div className="bg-t3rms-blue/10 text-t3rms-blue rounded-full px-4 py-1 text-sm font-medium">
                   {getRemainingAnalyses() <= 0 
                     ? 'Limit reached' 
-                    : `${getRemainingAnalyses()}/${session && userData?.plan === 'free' ? '5' : '5'} analyses remaining`}
+                    : `${getRemainingAnalyses()}/${session && userData?.plan === 'free' ? '3' : '3'} analyses remaining`}
                 </div>
                 <Button 
                   onClick={handleNewAnalysis}
-                  disabled={(session && userData?.monthly_remaining <= 0) || (!session && anonymousVisits >= 5) || isAnalyzing}
+                  disabled={(session && userData?.monthly_remaining <= 0) || (!session && anonymousVisits >= 3) || isAnalyzing}
                   className="bg-t3rms-blue hover:bg-t3rms-blue/90"
                 >
                   {isAnalyzing ? (
@@ -494,7 +500,7 @@ const Analyzer = () => {
               </Card>
             )}
             
-            {!session && anonymousVisits >= 5 && (
+            {!session && anonymousVisits >= 3 && (
               <Card className="mb-8 border-t3rms-blue/20 bg-blue-50/50">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

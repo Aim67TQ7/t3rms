@@ -110,7 +110,7 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
     // Save a default 5-star rating with empty comment if user skips
     if (userId) {
       // Insert into feedback table with default values
-      supabase
+      void supabase
         .from('feedback')
         .insert({
           user_id: userId,

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface FeedbackPromptProps {
   isOpen: boolean;
@@ -20,28 +21,20 @@ interface FeedbackPromptProps {
 }
 
 const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
-  const [rating, setRating] = useState<number>(0);
+  const [rating, setRating] = useState<number>(5); // Default to 5 stars
   const [comment, setComment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
 
   const handleSubmit = async () => {
-    if (rating === 0) {
-      toast({
-        title: "Rating required",
-        description: "Please provide a rating before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Save anonymously if no user ID
       if (userId) {
-        // Update the user's feedback in the database
-        const { error } = await supabase
+        // For authenticated users, update both tables
+        
+        // 1. Update the user's feedback in t3rms_users table (for backward compatibility)
+        const { error: userUpdateError } = await supabase
           .from('t3rms_users')
           .update({
             feedback_rating: rating,
@@ -51,9 +44,20 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
           })
           .eq('user_id', userId);
 
-        if (error) throw error;
+        if (userUpdateError) throw userUpdateError;
+        
+        // 2. Insert into the new feedback table
+        const { error: feedbackError } = await supabase
+          .from('feedback')
+          .insert({
+            user_id: userId,
+            rating,
+            comment
+          });
+          
+        if (feedbackError) throw feedbackError;
       } else {
-        // For anonymous users, just save feedback without linking to a user
+        // For anonymous users, just save feedback in the anonymous_feedback table
         const { error } = await supabase
           .from('anonymous_feedback')
           .insert({
@@ -83,6 +87,24 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
   };
 
   const handleSkip = () => {
+    // Save a default 5-star rating with empty comment if user skips
+    if (userId) {
+      // Insert into feedback table with default values
+      supabase
+        .from('feedback')
+        .insert({
+          user_id: userId,
+          rating: 5, // Default 5-star rating
+          comment: '' // Empty comment
+        })
+        .then(() => {
+          console.log('Default feedback saved on skip');
+        })
+        .catch(error => {
+          console.error('Error saving default feedback:', error);
+        });
+    }
+    
     onClose();
   };
 
@@ -120,7 +142,7 @@ const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
           
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Any suggestions to improve our service?</label>
-            <textarea 
+            <Textarea 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="w-full p-2 border rounded-md"

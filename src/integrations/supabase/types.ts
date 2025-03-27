@@ -54,6 +54,30 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payment_history: {
         Row: {
           amount: number

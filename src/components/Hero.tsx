@@ -38,7 +38,7 @@ const Hero = () => {
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            AI Reads the Fine Print,{' '}
+            AI Reads the Fine Print,<br />{' '}
             <span className="text-t3rms-blue">So You Don't Have To</span>
           </h1>
 

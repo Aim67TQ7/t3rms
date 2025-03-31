@@ -144,7 +144,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img 
-              src="/lovable-uploads/beaa1c25-88be-497c-b837-1c65f2eab5ec.png" 
+              src="/lovable-uploads/f70c32a8-9a2e-4380-a180-d8dad3b5a397.png" 
               alt="T3RMS Logo" 
               className="h-40 w-auto" 
             />

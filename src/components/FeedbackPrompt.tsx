@@ -1,177 +1,143 @@
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState, Fragment } from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Star } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { X, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-type FeedbackPromptProps = {
+interface FeedbackPromptProps {
   isOpen: boolean;
   onClose: () => void;
   userId?: string;
-};
+}
 
-const FeedbackPrompt = ({ isOpen, onClose, userId }: FeedbackPromptProps) => {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
+export default function FeedbackPrompt({ isOpen, onClose, userId }: FeedbackPromptProps) {
+  const [step, setStep] = useState(1);
+  const [rating, setRating] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const resetState = () => {
-    setRating(0);
-    setComment('');
-    setIsSubmitting(false);
-  };
-
-  const handleClose = () => {
-    resetState();
-    onClose();
-  };
+  const RATING_OPTIONS = [
+    { value: 1, label: 'Very Dissatisfied' },
+    { value: 2, label: 'Dissatisfied' },
+    { value: 3, label: 'Neutral' },
+    { value: 4, label: 'Satisfied' },
+    { value: 5, label: 'Very Satisfied' },
+  ];
 
   const handleSubmit = async () => {
-    if (rating === 0) {
-      toast({
-        title: 'Rating Required',
-        description: 'Please select a rating before submitting feedback.',
-        variant: 'destructive',
-      });
+    if (step === 1 && rating === null) return;
+    
+    if (step === 1) {
+      setStep(2);
       return;
     }
-
-    setIsSubmitting(true);
-
+    
     try {
-      if (userId) {
-        // For logged in users
-        await supabase
-          .from('feedback')
-          .insert({
-            user_id: userId,
-            rating,
-            comment: comment || null,
-          });
-
-        // Increment the user's monthly_remaining by 2
-        await supabase
-          .rpc('increment_user_remaining', {
-            user_id: userId,
-            increment_amount: 2
-          });
-      } else {
-        // For anonymous users
-        await supabase
-          .from('anonymous_feedback')
-          .insert({
-            rating,
-            comment: comment || null,
-          });
-      }
-
+      setIsSubmitting(true);
+      
+      // Submit feedback to Supabase
+      await supabase
+        .from('feedback')
+        .insert({
+          user_id: userId || null,
+          rating,
+          feedback: feedback.trim() || null,
+        });
+      
       toast({
-        title: 'Thank You!',
-        description: userId
-          ? 'Your feedback was submitted and you received 2 extra analyses.'
-          : 'Your feedback was submitted. Thank you!',
+        title: "Feedback submitted",
+        description: "Thank you for your feedback!",
       });
-
-      handleClose();
+      
+      // Reset and close
+      setRating(null);
+      setFeedback('');
+      setStep(1);
+      onClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
       toast({
-        title: 'Submission Failed',
-        description: 'There was a problem submitting your feedback. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "There was an error submitting your feedback. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const handleSkip = async () => {
-    handleClose();
-    
-    // Make sure we handle the promise properly
-    void supabase
-      .from('anonymous_feedback')
-      .insert({
-        rating: 0,
-        comment: 'Skipped feedback prompt',
-      })
-      .then(() => {
-        console.log('Recorded skipped feedback');
-      })
-      .catch(error => {
-        console.error('Error recording skipped feedback:', error);
-      });
+  
+  const handleClose = () => {
+    // Reset state and close
+    setRating(null);
+    setFeedback('');
+    setStep(1);
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>How was your experience?</DialogTitle>
-          <DialogDescription>
-            We'd love to hear your feedback! {userId && 'You'll get 2 bonus analyses for your input.'}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="py-4">
-          <div className="mb-6">
-            <p className="text-sm font-medium mb-2">Rate your experience:</p>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  onClick={() => setRating(value)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    rating === value
-                      ? 'bg-t3rms-blue text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {value}
-                </button>
+      <DialogContent className="max-w-md">
+        <DialogTitle className="flex items-center justify-between">
+          {step === 1 ? "How was your experience?" : "Any additional feedback?"}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={handleClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogTitle>
+        
+        <DialogDescription className="text-center mb-4">
+          {step === 1 
+            ? "Your feedback helps us improve our service"
+            : "Please share any additional thoughts (optional)"
+          }
+        </DialogDescription>
+        
+        {step === 1 ? (
+          <RadioGroup value={rating?.toString()} onValueChange={(value) => setRating(parseInt(value))}>
+            <div className="flex flex-col space-y-3">
+              {RATING_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem id={`rating-${option.value}`} value={option.value.toString()} />
+                  <Label htmlFor={`rating-${option.value}`}>{option.label}</Label>
+                </div>
               ))}
             </div>
-          </div>
-
-          <div className="mb-6">
-            <p className="text-sm font-medium mb-2">Additional comments (optional):</p>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full p-2 border rounded-md"
-              rows={3}
-              placeholder="Tell us about your experience..."
-            />
-          </div>
-
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={handleSkip} disabled={isSubmitting}>
-              Skip
+          </RadioGroup>
+        ) : (
+          <Textarea 
+            placeholder="Your thoughts and suggestions..." 
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            className="min-h-[120px]"
+          />
+        )}
+        
+        <div className="flex justify-end mt-4">
+          {step === 2 && (
+            <Button variant="ghost" onClick={() => setStep(1)} className="mr-2">
+              Back
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Star className="mr-2 h-4 w-4" /> Submit Feedback
-                </>
-              )}
-            </Button>
-          </div>
+          )}
+          <Button 
+            onClick={handleSubmit} 
+            disabled={step === 1 && rating === null || isSubmitting}
+            className="flex items-center gap-2"
+          >
+            {isSubmitting ? "Submitting..." : step === 1 ? "Next" : "Submit"}
+            {!isSubmitting && <Send className="h-4 w-4" />}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default FeedbackPrompt;
+}

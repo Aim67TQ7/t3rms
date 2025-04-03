@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,8 @@ import {
   resetAnonymousAnalysisCount
 } from '@/utils/anonymousUsage';
 
+const MAX_ANONYMOUS_ANALYSES = 1;
+
 const Analyzer = () => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -37,14 +38,12 @@ const Analyzer = () => {
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
 
-  // Reset anonymous counter when user logs in
   useEffect(() => {
     if (isAuthenticated) {
       resetAnonymousAnalysisCount();
     }
   }, [isAuthenticated]);
 
-  // Check if anonymous user has reached limit
   useEffect(() => {
     if (!isAuthenticated && hasReachedAnonymousLimit()) {
       setShowAuthPrompt(true);
@@ -95,7 +94,6 @@ const Analyzer = () => {
   });
 
   const handleAnalyze = async () => {
-    // Check if anonymous user has reached the limit
     if (!isAuthenticated && hasReachedAnonymousLimit()) {
       setShowAuthPrompt(true);
       return;
@@ -129,18 +127,15 @@ const Analyzer = () => {
       const data = await response.json();
       setAnalysisResult(data);
 
-      // If anonymous user, increment their usage count
       if (!isAuthenticated) {
         const newCount = incrementAnonymousAnalysisCount();
         
         if (newCount >= MAX_ANONYMOUS_ANALYSES) {
           setTimeout(() => {
             setShowAuthPrompt(true);
-          }, 1000); // Show auth prompt after a delay so the user can see their analysis first
+          }, 1000);
         }
-      } 
-      // If authenticated, save to Supabase
-      else {
+      } else {
         const { error } = await supabase
           .from('analysis_results')
           .insert({
@@ -157,7 +152,7 @@ const Analyzer = () => {
             variant: "destructive",
           });
         } else {
-          refetch(); // Refresh the data
+          refetch();
           toast({
             title: "Success",
             description: "Analysis saved.",
@@ -189,7 +184,6 @@ const Analyzer = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Input Section */}
           <div>
             <Card>
               <CardHeader>
@@ -226,7 +220,6 @@ const Analyzer = () => {
             </Card>
           </div>
 
-          {/* Output Section */}
           <div>
             <Card>
               <CardHeader>
@@ -246,7 +239,6 @@ const Analyzer = () => {
         </div>
       )}
 
-      {/* History Section */}
       {isAuthenticated && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Analysis History</h2>

@@ -2,7 +2,7 @@
 import Cookies from 'js-cookie';
 
 const ANONYMOUS_ANALYSIS_COOKIE = 't3rms_anonymous_analysis';
-const MAX_ANONYMOUS_ANALYSES = 1;
+export const MAX_ANONYMOUS_ANALYSES = 1;
 
 export const getAnonymousAnalysisCount = (): number => {
   const count = Cookies.get(ANONYMOUS_ANALYSIS_COOKIE);

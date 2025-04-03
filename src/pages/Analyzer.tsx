@@ -1,84 +1,88 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/navbar/useAuth";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { format } from 'date-fns';
 
-// Fix the errors by making sure session and saveAnalysis are declared before use
 const Analyzer = () => {
   const [text, setText] = useState('');
-  const [analysis, setAnalysis] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Define session state
-  const [session, setSession] = useState<any>(null);
-  
-  // Function to save analysis
-  const saveAnalysis = async () => {
-    if (!session?.user?.id) {
-      toast({
-        title: "Not authenticated",
-        description: "You must be logged in to save analyses.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!analysis) {
-      toast({
-        title: "No analysis to save",
-        description: "Please generate an analysis before saving.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('analyses')
-        .insert([
-          { 
-            user_id: session.user.id, 
-            text: text, 
-            analysis: analysis 
-          }
-        ]);
-
-      if (error) {
-        console.error("Error saving analysis:", error);
-        toast({
-          title: "Error saving analysis",
-          description: "There was a problem saving your analysis. Please try again.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Analysis saved!",
-          description: "Your analysis has been saved successfully.",
-        });
-      }
-    } catch (err) {
-      console.error("Unexpected error saving analysis:", err);
-      toast({
-        title: "Unexpected error",
-        description: "An unexpected error occurred while saving. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-  
   const { toast } = useToast();
+  const { isAuthenticated, userId } = useAuth();
 
-  const analyzeText = async () => {
+  const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery({
+    queryKey: ['analysisResults'],
+    queryFn: async () => {
+      if (!isAuthenticated) return [];
+      
+      const { data, error } = await supabase
+        .from('analysis_results') // Changed from 'analyses' to 'analysis_results'
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching analysis results:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: isAuthenticated
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      refetch();
+    }
+  }, [isAuthenticated, refetch]);
+
+  const onDrop = (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    setFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (event: any) => {
+      setText(event.target.result);
+    };
+    reader.readAsText(file);
+  };
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: { 'text/*': ['.txt', '.csv'] } });
+
+  const handleAnalyze = async () => {
+    if (!text && !file) {
+      toast({
+        title: "Error",
+        description: "Please enter text or upload a file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
-    setError(null);
-    setAnalysis('');
+    setAnalysisResult(null);
 
     try {
-      const response = await fetch('/api/analyze', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,80 +91,135 @@ const Analyzer = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to analyze text');
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      setAnalysis(data.analysis);
-    } catch (err) {
-      console.error("Analysis error:", err);
-      setError('Failed to analyze text. Please try again.');
+      setAnalysisResult(data);
+
+      // Save to supabase
+      if (isAuthenticated) {
+        const { error } = await supabase
+          .from('analysis_results')
+          .insert({
+            user_id: userId,
+            input_text: text,
+            result: data,
+          });
+
+        if (error) {
+          console.error('Error saving analysis result:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save analysis result.",
+            variant: "destructive",
+          });
+        } else {
+          refetch(); // Refresh the data
+          toast({
+            title: "Success",
+            description: "Analysis saved.",
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("There was an error analyzing the text:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to analyze text.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
-  
-  // Now we can use them in the useEffect
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-  }, []);
-  
   return (
-    <div className="container mx-auto py-12 px-4 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">T3RMS Analyzer</h1>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Enter Text</CardTitle>
-          <CardDescription>Enter the text you want to analyze.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea 
-            value={text} 
-            onChange={(e) => setText(e.target.value)} 
-            placeholder="Paste your text here..." 
-            className="mb-4"
-          />
-        </CardContent>
-        <CardFooter>
-          <Button onClick={analyzeText} disabled={loading}>
-            {loading ? "Analyzing..." : "Analyze"}
-          </Button>
-        </CardFooter>
-      </Card>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      {error && (
-        <div className="text-red-500 mt-4">{error}</div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Input Section */}
+        <div>
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold">Enter Text</h2>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="Type or paste your text here..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="mb-4"
+              />
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Analysis</CardTitle>
-          <CardDescription>
-            {loading ? "Analyzing..." : "Analysis of the text."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <Skeleton className="min-h-[100px]" />
+              <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
+                <input {...getInputProps()} />
+                <p>Drag 'n' drop some files here, or click to select files</p>
+                {file && (
+                  <div className="mt-2">
+                    <p>Selected file: {file.name}</p>
+                  </div>
+                )}
+              </div>
+
+              <Button onClick={handleAnalyze} disabled={loading} className="w-full">
+                {loading ? "Analyzing..." : "Analyze"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Output Section */}
+        <div>
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold">Analysis Result</h2>
+            </CardHeader>
+            <CardContent>
+              {analysisResult ? (
+                <pre className="whitespace-pre-wrap break-words">
+                  {JSON.stringify(analysisResult, null, 2)}
+                </pre>
+              ) : (
+                <p>No analysis result yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* History Section */}
+      {isAuthenticated && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
+          {analysisLoading ? (
+            <p>Loading analysis history...</p>
+          ) : analysisResults && analysisResults.length > 0 ? (
+            <Table>
+              <TableCaption>A list of your previous analyses.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Date</TableHead>
+                  <TableHead>Input Text</TableHead>
+                  <TableHead>Result</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {analysisResults.map((result: any) => (
+                  <TableRow key={result.id}>
+                    <TableCell className="font-medium">{format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
+                    <TableCell>{result.input_text.substring(0, 50)}...</TableCell>
+                    <TableCell>{JSON.stringify(result.result).substring(0, 50)}...</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
-            <div className="whitespace-pre-line">{analysis || "No analysis available."}</div>
+            <p>No analysis history available.</p>
           )}
-        </CardContent>
-        <CardFooter>
-          <Button onClick={saveAnalysis} disabled={loading || !analysis}>
-            Save Analysis
-          </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      )}
     </div>
   );
 };

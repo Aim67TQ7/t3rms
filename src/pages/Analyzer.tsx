@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,8 @@ const Analyzer = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    // Only show auth prompt when user has reached limit AND tried to analyze something
+    // Don't show it immediately on page load
     if (!isAuthenticated && hasReachedAnonymousLimit()) {
       setShowAuthPrompt(true);
     }
@@ -175,67 +178,67 @@ const Analyzer = () => {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      {showAuthPrompt && !isAuthenticated ? (
-        <div className="mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold">Enter Text</h2>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="Type or paste your text here..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="mb-4"
+              />
+
+              <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
+                <input {...getInputProps()} />
+                <p>Drag 'n' drop some files here, or click to select files</p>
+                {file && (
+                  <div className="mt-2">
+                    <p>Selected file: {file.name}</p>
+                  </div>
+                )}
+              </div>
+
+              <Button onClick={handleAnalyze} disabled={loading} className="w-full">
+                {loading ? "Analyzing..." : "Analyze"}
+              </Button>
+
+              {!isAuthenticated && !hasReachedAnonymousLimit() && (
+                <div className="mt-4 text-sm text-gray-500 text-center">
+                  <p>You have 1 free analysis. Sign in to get more.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold">Analysis Result</h2>
+            </CardHeader>
+            <CardContent>
+              {analysisResult ? (
+                <pre className="whitespace-pre-wrap break-words">
+                  {JSON.stringify(analysisResult, null, 2)}
+                </pre>
+              ) : (
+                <p>No analysis result yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {showAuthPrompt && !isAuthenticated && (
+        <div className="mt-6">
           <AuthPrompt 
             onDismiss={() => setShowAuthPrompt(false)} 
             showDismiss={true}
           />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Card>
-              <CardHeader>
-                <h2 className="text-lg font-semibold">Enter Text</h2>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Type or paste your text here..."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  className="mb-4"
-                />
-
-                <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
-                  <input {...getInputProps()} />
-                  <p>Drag 'n' drop some files here, or click to select files</p>
-                  {file && (
-                    <div className="mt-2">
-                      <p>Selected file: {file.name}</p>
-                    </div>
-                  )}
-                </div>
-
-                <Button onClick={handleAnalyze} disabled={loading} className="w-full">
-                  {loading ? "Analyzing..." : "Analyze"}
-                </Button>
-
-                {!isAuthenticated && !hasReachedAnonymousLimit() && (
-                  <div className="mt-4 text-sm text-gray-500 text-center">
-                    <p>You have 1 free analysis. Sign in to get more.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <Card>
-              <CardHeader>
-                <h2 className="text-lg font-semibold">Analysis Result</h2>
-              </CardHeader>
-              <CardContent>
-                {analysisResult ? (
-                  <pre className="whitespace-pre-wrap break-words">
-                    {JSON.stringify(analysisResult, null, 2)}
-                  </pre>
-                ) : (
-                  <p>No analysis result yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       )}
 

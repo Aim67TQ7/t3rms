@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ const Analyzer = () => {
       if (!isAuthenticated) return [];
       
       const { data, error } = await supabase
-        .from('analysis_results') // Changed from 'analyses' to 'analysis_results'
+        .from('analysis_results')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
@@ -66,7 +67,10 @@ const Analyzer = () => {
     reader.readAsText(file);
   };
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: { 'text/*': ['.txt', '.csv'] } });
+  const { getRootProps, getInputProps } = useDropzone({ 
+    onDrop, 
+    accept: { 'text/*': ['.txt', '.csv'] } 
+  });
 
   const handleAnalyze = async () => {
     if (!text && !file) {
@@ -103,8 +107,7 @@ const Analyzer = () => {
           .from('analysis_results')
           .insert({
             user_id: userId,
-            input_text: text,
-            result: data,
+            content: text, // Changed from input_text to content to match the database schema
           });
 
         if (error) {
@@ -201,7 +204,7 @@ const Analyzer = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Date</TableHead>
-                  <TableHead>Input Text</TableHead>
+                  <TableHead>Content</TableHead>
                   <TableHead>Result</TableHead>
                 </TableRow>
               </TableHeader>
@@ -209,8 +212,8 @@ const Analyzer = () => {
                 {analysisResults.map((result: any) => (
                   <TableRow key={result.id}>
                     <TableCell className="font-medium">{format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
-                    <TableCell>{result.input_text.substring(0, 50)}...</TableCell>
-                    <TableCell>{JSON.stringify(result.result).substring(0, 50)}...</TableCell>
+                    <TableCell>{result.content.substring(0, 50)}...</TableCell>
+                    <TableCell>{JSON.stringify(result.result || {}).substring(0, 50)}...</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

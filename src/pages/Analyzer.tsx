@@ -108,6 +108,7 @@ const Analyzer = () => {
           .insert({
             user_id: userId,
             content: text, // Changed from input_text to content to match the database schema
+            result: data
           });
 
         if (error) {

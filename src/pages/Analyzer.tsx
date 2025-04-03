@@ -81,6 +81,9 @@ const Analyzer = () => {
   }, [isAuthenticated, refetch]);
 
   const onDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    
+    // Only allow one file
     const file = acceptedFiles[0];
     setFile(file);
 
@@ -93,7 +96,9 @@ const Analyzer = () => {
 
   const { getRootProps, getInputProps } = useDropzone({ 
     onDrop, 
-    accept: { 'text/*': ['.txt', '.csv'] } 
+    accept: { 'text/*': ['.txt', '.csv'] },
+    maxFiles: 1, // Limit to only one file
+    multiple: false // Disable multiple file selection
   });
 
   const handleAnalyze = async () => {
@@ -178,23 +183,16 @@ const Analyzer = () => {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
-              <h2 className="text-lg font-semibold">Enter Text</h2>
+              <h2 className="text-lg font-semibold">Upload File (Single File Only)</h2>
             </CardHeader>
             <CardContent>
-              <Textarea
-                placeholder="Type or paste your text here..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className="mb-4"
-              />
-
               <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
                 <input {...getInputProps()} />
-                <p>Drag 'n' drop some files here, or click to select files</p>
+                <p>Drag a file here, or click to select a file</p>
                 {file && (
                   <div className="mt-2">
                     <p>Selected file: {file.name}</p>
@@ -211,6 +209,22 @@ const Analyzer = () => {
                   <p>You have 1 free analysis.</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold">T3rms Analysis Tool</h2>
+            </CardHeader>
+            <CardContent>
+              <div className="iframe-container" style={{ width: '100%', height: '500px', overflow: 'hidden', borderRadius: '0.375rem' }}>
+                <iframe 
+                  src="https://T3rms.replit.app" 
+                  title="T3rms Analysis Tool"
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  allow="fullscreen"
+                ></iframe>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -230,17 +244,17 @@ const Analyzer = () => {
               )}
             </CardContent>
           </Card>
+          
+          {showAuthPrompt && !isAuthenticated && (
+            <div className="mt-6">
+              <AuthPrompt 
+                onDismiss={() => setShowAuthPrompt(false)} 
+                showDismiss={true}
+              />
+            </div>
+          )}
         </div>
       </div>
-
-      {showAuthPrompt && !isAuthenticated && (
-        <div className="mt-6">
-          <AuthPrompt 
-            onDismiss={() => setShowAuthPrompt(false)} 
-            showDismiss={true}
-          />
-        </div>
-      )}
 
       {isAuthenticated && (
         <div className="mt-12">

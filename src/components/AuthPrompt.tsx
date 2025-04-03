@@ -1,5 +1,4 @@
 
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -9,14 +8,12 @@ interface AuthPromptProps {
 }
 
 const AuthPrompt = ({ onDismiss, showDismiss = true }: AuthPromptProps) => {
-  const navigate = useNavigate();
-
   return (
     <Card className="w-full shadow-lg">
       <CardHeader>
         <CardTitle>Want to continue analyzing?</CardTitle>
         <CardDescription>
-          You've used your free analysis. Sign in or create an account to continue.
+          You've used your free analysis. Get more by registering.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -25,12 +22,6 @@ const AuthPrompt = ({ onDismiss, showDismiss = true }: AuthPromptProps) => {
         </p>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-        <Button 
-          onClick={() => navigate('/auth')}
-          className="w-full bg-t3rms-blue hover:bg-t3rms-blue/90"
-        >
-          Sign In / Sign Up
-        </Button>
         {showDismiss && (
           <Button 
             variant="outline" 

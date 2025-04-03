@@ -208,7 +208,7 @@ const Analyzer = () => {
 
               {!isAuthenticated && !hasReachedAnonymousLimit() && (
                 <div className="mt-4 text-sm text-gray-500 text-center">
-                  <p>You have 1 free analysis. Sign in to get more.</p>
+                  <p>You have 1 free analysis.</p>
                 </div>
               )}
             </CardContent>

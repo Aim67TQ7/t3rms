@@ -13,7 +13,6 @@ import { useExitFeedback } from "@/hooks/use-exit-feedback";
 import Index from "./pages/Index";
 import Analyzer from "./pages/Analyzer";
 import Pricing from "./pages/Pricing";
-import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,7 +50,6 @@ const AppContent = () => {
             <Route path="/" element={<Index />} />
             <Route path="/analyzer" element={<Analyzer />} />
             <Route path="/pricing" element={<Pricing />} />
-            <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

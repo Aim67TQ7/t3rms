@@ -1,6 +1,6 @@
 
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,6 @@ export const NavbarMobile = ({
   isOpen,
   setIsOpen
 }: NavbarMobileProps) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -35,8 +34,6 @@ export const NavbarMobile = ({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
-      
-      navigate('/');
     } catch (error) {
       toast({
         title: "Error logging out",
@@ -97,18 +94,8 @@ export const NavbarMobile = ({
                 </div>
               </>
             ) : (
-              <div className="pt-2 flex flex-col space-y-2">
-                <Link to="/auth" className="w-full">
-                  <Button variant="outline" className="w-full rounded-md">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth?signup=true" className="w-full">
-                  <Button className="w-full rounded-md bg-t3rms-blue hover:bg-t3rms-blue/90">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
+              // Remove auth links from mobile view
+              <></>
             )}
           </div>
         </div>

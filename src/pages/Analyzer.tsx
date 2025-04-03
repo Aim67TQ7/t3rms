@@ -18,16 +18,38 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import { format } from 'date-fns';
+import AuthPrompt from '@/components/AuthPrompt';
+import { 
+  getAnonymousAnalysisCount, 
+  incrementAnonymousAnalysisCount, 
+  hasReachedAnonymousLimit,
+  resetAnonymousAnalysisCount
+} from '@/utils/anonymousUsage';
 
 const Analyzer = () => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
+
+  // Reset anonymous counter when user logs in
+  useEffect(() => {
+    if (isAuthenticated) {
+      resetAnonymousAnalysisCount();
+    }
+  }, [isAuthenticated]);
+
+  // Check if anonymous user has reached limit
+  useEffect(() => {
+    if (!isAuthenticated && hasReachedAnonymousLimit()) {
+      setShowAuthPrompt(true);
+    }
+  }, [isAuthenticated]);
 
   const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery({
     queryKey: ['analysisResults'],
@@ -73,6 +95,12 @@ const Analyzer = () => {
   });
 
   const handleAnalyze = async () => {
+    // Check if anonymous user has reached the limit
+    if (!isAuthenticated && hasReachedAnonymousLimit()) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
     if (!text && !file) {
       toast({
         title: "Error",
@@ -101,13 +129,23 @@ const Analyzer = () => {
       const data = await response.json();
       setAnalysisResult(data);
 
-      // Save to supabase
-      if (isAuthenticated) {
+      // If anonymous user, increment their usage count
+      if (!isAuthenticated) {
+        const newCount = incrementAnonymousAnalysisCount();
+        
+        if (newCount >= MAX_ANONYMOUS_ANALYSES) {
+          setTimeout(() => {
+            setShowAuthPrompt(true);
+          }, 1000); // Show auth prompt after a delay so the user can see their analysis first
+        }
+      } 
+      // If authenticated, save to Supabase
+      else {
         const { error } = await supabase
           .from('analysis_results')
           .insert({
             user_id: userId,
-            content: text, // Changed from input_text to content to match the database schema
+            content: text,
             result: data
           });
 
@@ -142,56 +180,71 @@ const Analyzer = () => {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Input Section */}
-        <div>
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold">Enter Text</h2>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Type or paste your text here..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className="mb-4"
-              />
+      {showAuthPrompt && !isAuthenticated ? (
+        <div className="mb-6">
+          <AuthPrompt 
+            onDismiss={() => setShowAuthPrompt(false)} 
+            showDismiss={true}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Input Section */}
+          <div>
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg font-semibold">Enter Text</h2>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  placeholder="Type or paste your text here..."
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="mb-4"
+                />
 
-              <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
-                <input {...getInputProps()} />
-                <p>Drag 'n' drop some files here, or click to select files</p>
-                {file && (
-                  <div className="mt-2">
-                    <p>Selected file: {file.name}</p>
+                <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
+                  <input {...getInputProps()} />
+                  <p>Drag 'n' drop some files here, or click to select files</p>
+                  {file && (
+                    <div className="mt-2">
+                      <p>Selected file: {file.name}</p>
+                    </div>
+                  )}
+                </div>
+
+                <Button onClick={handleAnalyze} disabled={loading} className="w-full">
+                  {loading ? "Analyzing..." : "Analyze"}
+                </Button>
+
+                {!isAuthenticated && !hasReachedAnonymousLimit() && (
+                  <div className="mt-4 text-sm text-gray-500 text-center">
+                    <p>You have 1 free analysis. Sign in to get more.</p>
                   </div>
                 )}
-              </div>
+              </CardContent>
+            </Card>
+          </div>
 
-              <Button onClick={handleAnalyze} disabled={loading} className="w-full">
-                {loading ? "Analyzing..." : "Analyze"}
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Output Section */}
+          <div>
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg font-semibold">Analysis Result</h2>
+              </CardHeader>
+              <CardContent>
+                {analysisResult ? (
+                  <pre className="whitespace-pre-wrap break-words">
+                    {JSON.stringify(analysisResult, null, 2)}
+                  </pre>
+                ) : (
+                  <p>No analysis result yet.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Output Section */}
-        <div>
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold">Analysis Result</h2>
-            </CardHeader>
-            <CardContent>
-              {analysisResult ? (
-                <pre className="whitespace-pre-wrap break-words">
-                  {JSON.stringify(analysisResult, null, 2)}
-                </pre>
-              ) : (
-                <p>No analysis result yet.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      )}
 
       {/* History Section */}
       {isAuthenticated && (

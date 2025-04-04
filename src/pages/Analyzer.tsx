@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -96,9 +95,14 @@ const Analyzer = () => {
 
   const { getRootProps, getInputProps } = useDropzone({ 
     onDrop, 
-    accept: { 'text/*': ['.txt', '.csv'] },
-    maxFiles: 1, // Limit to only one file
-    multiple: false // Disable multiple file selection
+    accept: { 
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/plain': ['.txt']
+    },
+    maxFiles: 1,
+    multiple: false
   });
 
   const handleAnalyze = async () => {
@@ -120,20 +124,18 @@ const Analyzer = () => {
     setAnalysisResult(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
+      const formData = new FormData();
+      formData.append('contract', file!);
+
+      const response = await supabase.functions.invoke('analyze-contract', {
+        body: formData
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.error) {
+        throw new Error(response.error.message);
       }
 
-      const data = await response.json();
-      setAnalysisResult(data);
+      setAnalysisResult(response.data);
 
       if (!isAuthenticated) {
         const newCount = incrementAnonymousAnalysisCount();
@@ -149,7 +151,7 @@ const Analyzer = () => {
           .insert({
             user_id: userId,
             content: text,
-            result: data
+            result: response.data
           });
 
         if (error) {

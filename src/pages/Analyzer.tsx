@@ -22,6 +22,18 @@ import {
 import { format } from 'date-fns';
 import AuthPrompt from '@/components/AuthPrompt';
 
+// Define a type for the contract analysis result
+type ContractAnalysis = {
+  id: string;
+  user_id: string;
+  filename: string;
+  file_type: string;
+  status: string;
+  analysis_score?: number;
+  analysis_results?: any;
+  created_at: string;
+};
+
 const Analyzer = () => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -31,7 +43,7 @@ const Analyzer = () => {
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
 
-  const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery({
+  const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery<ContractAnalysis[]>({
     queryKey: ['analysisResults'],
     queryFn: async () => {
       if (!isAuthenticated) return [];
@@ -114,12 +126,22 @@ const Analyzer = () => {
         throw new Error(response.error.message);
       }
 
-      setAnalysisResult(response.data);
-      
-      toast({
-        title: "Success",
-        description: "Contract analysis completed.",
-      });
+      // Handle different response types for PDF and non-PDF files
+      if (response.data.status === 'processing') {
+        // For PDFs, show a processing message
+        toast({
+          title: "PDF Processing",
+          description: "Your PDF is being analyzed. Check the history for results.",
+        });
+      } else {
+        // For non-PDF files, set the immediate result
+        setAnalysisResult(response.data);
+        
+        toast({
+          title: "Success",
+          description: "Contract analysis completed.",
+        });
+      }
 
       refetch();
     } catch (error: any) {
@@ -222,9 +244,11 @@ const Analyzer = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {analysisResults.map((result: any) => (
+                {analysisResults.map((result) => (
                   <TableRow key={result.id}>
-                    <TableCell className="font-medium">{format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
+                    <TableCell className="font-medium">
+                      {format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}
+                    </TableCell>
                     <TableCell>{result.filename}</TableCell>
                     <TableCell>{result.status}</TableCell>
                     <TableCell>{result.analysis_score || 'N/A'}</TableCell>
@@ -242,3 +266,4 @@ const Analyzer = () => {
 };
 
 export default Analyzer;
+

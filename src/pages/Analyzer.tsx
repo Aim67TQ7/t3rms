@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -20,14 +21,6 @@ import {
 } from "@/components/ui/table";
 import { format } from 'date-fns';
 import AuthPrompt from '@/components/AuthPrompt';
-import { 
-  getAnonymousAnalysisCount, 
-  incrementAnonymousAnalysisCount, 
-  hasReachedAnonymousLimit,
-  resetAnonymousAnalysisCount
-} from '@/utils/anonymousUsage';
-
-const MAX_ANONYMOUS_ANALYSES = 1;
 
 const Analyzer = () => {
   const [text, setText] = useState('');
@@ -38,27 +31,13 @@ const Analyzer = () => {
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      resetAnonymousAnalysisCount();
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    // Only show auth prompt when user has reached limit AND tried to analyze something
-    // Don't show it immediately on page load
-    if (!isAuthenticated && hasReachedAnonymousLimit()) {
-      setShowAuthPrompt(true);
-    }
-  }, [isAuthenticated]);
-
   const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery({
     queryKey: ['analysisResults'],
     queryFn: async () => {
       if (!isAuthenticated) return [];
       
       const { data, error } = await supabase
-        .from('analysis_results')
+        .from('contract_analyses')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
@@ -106,7 +85,7 @@ const Analyzer = () => {
   });
 
   const handleAnalyze = async () => {
-    if (!isAuthenticated && hasReachedAnonymousLimit()) {
+    if (!isAuthenticated) {
       setShowAuthPrompt(true);
       return;
     }
@@ -136,39 +115,13 @@ const Analyzer = () => {
       }
 
       setAnalysisResult(response.data);
+      
+      toast({
+        title: "Success",
+        description: "Contract analysis completed.",
+      });
 
-      if (!isAuthenticated) {
-        const newCount = incrementAnonymousAnalysisCount();
-        
-        if (newCount >= MAX_ANONYMOUS_ANALYSES) {
-          setTimeout(() => {
-            setShowAuthPrompt(true);
-          }, 1000);
-        }
-      } else {
-        const { error } = await supabase
-          .from('analysis_results')
-          .insert({
-            user_id: userId,
-            content: text,
-            result: response.data
-          });
-
-        if (error) {
-          console.error('Error saving analysis result:', error);
-          toast({
-            title: "Error",
-            description: "Failed to save analysis result.",
-            variant: "destructive",
-          });
-        } else {
-          refetch();
-          toast({
-            title: "Success",
-            description: "Analysis saved.",
-          });
-        }
-      }
+      refetch();
     } catch (error: any) {
       console.error("There was an error analyzing the text:", error);
       toast({
@@ -205,12 +158,6 @@ const Analyzer = () => {
               <Button onClick={handleAnalyze} disabled={loading} className="w-full">
                 {loading ? "Analyzing..." : "Analyze"}
               </Button>
-
-              {!isAuthenticated && !hasReachedAnonymousLimit() && (
-                <div className="mt-4 text-sm text-gray-500 text-center">
-                  <p>You have 1 free analysis.</p>
-                </div>
-              )}
             </CardContent>
           </Card>
           
@@ -269,16 +216,18 @@ const Analyzer = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Date</TableHead>
-                  <TableHead>Content</TableHead>
-                  <TableHead>Result</TableHead>
+                  <TableHead>Filename</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Score</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {analysisResults.map((result: any) => (
                   <TableRow key={result.id}>
                     <TableCell className="font-medium">{format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}</TableCell>
-                    <TableCell>{result.content.substring(0, 50)}...</TableCell>
-                    <TableCell>{JSON.stringify(result.result || {}).substring(0, 50)}...</TableCell>
+                    <TableCell>{result.filename}</TableCell>
+                    <TableCell>{result.status}</TableCell>
+                    <TableCell>{result.analysis_score || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

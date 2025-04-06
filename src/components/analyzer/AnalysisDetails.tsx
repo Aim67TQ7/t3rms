@@ -1,6 +1,7 @@
 
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatAnalysisResults } from '@/utils/analysisFormatter';
 
 interface AnalysisDetailsProps {
@@ -9,17 +10,19 @@ interface AnalysisDetailsProps {
 
 const AnalysisDetails = ({ analysisResults }: AnalysisDetailsProps) => {
   return (
-    <Card className="max-h-[500px] overflow-y-auto">
+    <Card className="w-full overflow-hidden">
       <CardContent className="pt-6">
-        <div className="prose max-w-none break-words whitespace-pre-wrap">
-          {analysisResults ? (
-            <ReactMarkdown>
-              {formatAnalysisResults(analysisResults)}
-            </ReactMarkdown>
-          ) : (
-            <p className="text-muted-foreground">No detailed analysis results available for this entry.</p>
-          )}
-        </div>
+        <ScrollArea className="h-[500px] pr-4">
+          <div className="prose prose-sm max-w-none dark:prose-invert">
+            {analysisResults ? (
+              <ReactMarkdown className="break-words whitespace-normal">
+                {formatAnalysisResults(analysisResults)}
+              </ReactMarkdown>
+            ) : (
+              <p className="text-muted-foreground">No detailed analysis results available for this entry.</p>
+            )}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

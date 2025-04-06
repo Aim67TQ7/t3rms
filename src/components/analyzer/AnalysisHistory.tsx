@@ -46,7 +46,7 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
   };
 
   return (
-    <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+    <div className="space-y-4 max-h-[70vh] overflow-auto border rounded-md">
       <Table>
         <TableCaption>A list of your previous analyses.</TableCaption>
         <TableHeader>

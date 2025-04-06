@@ -66,7 +66,7 @@ export const formatAnalysisResults = (results: any) => {
           }
           
           if (point.reference.excerpt) {
-            markdown += `**Excerpt:**\n\`\`\`\n${point.reference.excerpt}\n\`\`\`\n\n\n`;
+            markdown += `**Excerpt:**\n\`\`\`\n${point.reference.excerpt}\n\`\`\`\n\n`;
           }
         }
       });
@@ -96,7 +96,7 @@ export const formatAnalysisResults = (results: any) => {
           }
           
           if (risk.reference.excerpt) {
-            markdown += `**Excerpt:**\n\`\`\`\n${risk.reference.excerpt}\n\`\`\`\n\n\n`;
+            markdown += `**Excerpt:**\n\`\`\`\n${risk.reference.excerpt}\n\`\`\`\n\n`;
           }
         }
       });
@@ -126,7 +126,7 @@ export const formatAnalysisResults = (results: any) => {
           }
           
           if (item.reference.excerpt) {
-            markdown += `**Excerpt:**\n\`\`\`\n${item.reference.excerpt}\n\`\`\`\n\n\n`;
+            markdown += `**Excerpt:**\n\`\`\`\n${item.reference.excerpt}\n\`\`\`\n\n`;
           }
         }
       });
@@ -158,7 +158,7 @@ export const formatAnalysisResults = (results: any) => {
               markdown += rec.reference.section ? `, Page ${rec.reference.page}` : `Page ${rec.reference.page}`;
             }
             
-            markdown += `)*\n\n\n`;
+            markdown += `)*\n\n`;
           }
         }
       });

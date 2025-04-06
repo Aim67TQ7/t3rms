@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { TableRow, TableCell } from "@/components/ui/table";
 import {
@@ -37,7 +36,7 @@ const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
         <TableCell className="font-medium">
           {format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}
         </TableCell>
-        <TableCell>{result.filename}</TableCell>
+        <TableCell className="max-w-[180px] truncate">{result.filename}</TableCell>
         <TableCell><AnalysisStatusBadge status={result.status} /></TableCell>
         <TableCell className="text-right">
           {result.analysis_score !== undefined ? result.analysis_score : 'N/A'}
@@ -46,7 +45,7 @@ const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
       <CollapsibleContent>
         <tr>
           <td colSpan={5} className="p-0">
-            <div className="py-2 px-4 bg-muted/20">
+            <div className="py-4 px-4 bg-muted/20">
               <AnalysisDetails analysisResults={result.analysis_results} />
             </div>
           </td>

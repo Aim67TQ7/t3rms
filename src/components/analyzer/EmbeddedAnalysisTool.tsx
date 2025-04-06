@@ -1,20 +1,27 @@
 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
-const EmbeddedAnalysisTool = () => {
+interface EmbeddedAnalysisToolProps {
+  height?: string;
+}
+
+const EmbeddedAnalysisTool = ({ height = "500px" }: EmbeddedAnalysisToolProps) => {
   return (
-    <Card>
+    <Card className="w-full h-full flex flex-col">
       <CardHeader>
         <h2 className="text-lg font-semibold">T3rms Analysis Tool</h2>
       </CardHeader>
-      <CardContent>
-        <div className="iframe-container" style={{ width: '100%', height: '500px', overflow: 'hidden', borderRadius: '0.375rem' }}>
+      <CardContent className="flex-1">
+        <div 
+          className="iframe-container w-full h-full min-h-[500px]" 
+          style={{ overflow: 'hidden', borderRadius: '0.375rem', height }}
+        >
           <iframe 
             src="https://T3rms.replit.app" 
             title="T3rms Analysis Tool"
-            style={{ width: '100%', height: '100%', border: 'none' }}
+            className="w-full h-full border-none"
             allow="fullscreen"
-          ></iframe>
+          />
         </div>
       </CardContent>
     </Card>

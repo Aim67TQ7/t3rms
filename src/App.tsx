@@ -14,8 +14,8 @@ import Index from "./pages/Index";
 import Analyzer from "./pages/Analyzer";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
-// New import
 import Auth from "./pages/Auth";
+import EmbeddedTool from "./pages/EmbeddedTool";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +53,7 @@ const AppContent = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/analyzer" element={<Analyzer />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/embedded-tool" element={<EmbeddedTool />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

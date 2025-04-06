@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
@@ -16,9 +15,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export type ContractAnalysis = {
@@ -65,7 +64,7 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
         return results;
       }
       
-      // Convert JSON object to markdown
+      // Convert JSON object to markdown with added blank lines
       let markdown = "# Contract Analysis Results\n\n";
       
       // Add score if available
@@ -102,11 +101,11 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
             }
             
             if (point.reference.section) {
-              markdown += `- Section: ${point.reference.section}\n`;
+              markdown += `- Section: ${point.reference.section}\n\n`;
             }
             
             if (point.reference.excerpt) {
-              markdown += `\n**Excerpt:**\n\`\`\`\n${point.reference.excerpt}\n\`\`\`\n\n`;
+              markdown += `**Excerpt:**\n\`\`\`\n${point.reference.excerpt}\n\`\`\`\n\n\n`;
             }
           }
         });
@@ -132,11 +131,11 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
             }
             
             if (risk.reference.section) {
-              markdown += `- Section: ${risk.reference.section}\n`;
+              markdown += `- Section: ${risk.reference.section}\n\n`;
             }
             
             if (risk.reference.excerpt) {
-              markdown += `\n**Excerpt:**\n\`\`\`\n${risk.reference.excerpt}\n\`\`\`\n\n`;
+              markdown += `**Excerpt:**\n\`\`\`\n${risk.reference.excerpt}\n\`\`\`\n\n\n`;
             }
           }
         });
@@ -162,11 +161,11 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
             }
             
             if (item.reference.section) {
-              markdown += `- Section: ${item.reference.section}\n`;
+              markdown += `- Section: ${item.reference.section}\n\n`;
             }
             
             if (item.reference.excerpt) {
-              markdown += `\n**Excerpt:**\n\`\`\`\n${item.reference.excerpt}\n\`\`\`\n\n`;
+              markdown += `**Excerpt:**\n\`\`\`\n${item.reference.excerpt}\n\`\`\`\n\n\n`;
             }
           }
         });
@@ -178,12 +177,12 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
         
         results.recommendations.forEach((rec: any, index: number) => {
           if (typeof rec === 'string') {
-            markdown += `${index + 1}. ${rec}\n`;
+            markdown += `${index + 1}. ${rec}\n\n`;
           } else if (typeof rec === 'object') {
             if (rec.text) {
-              markdown += `${index + 1}. ${rec.text}\n`;
+              markdown += `${index + 1}. ${rec.text}\n\n`;
             } else if (rec.description) {
-              markdown += `${index + 1}. ${rec.description}\n`;
+              markdown += `${index + 1}. ${rec.description}\n\n`;
             }
             
             // Add reference if available
@@ -198,7 +197,7 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
                 markdown += rec.reference.section ? `, Page ${rec.reference.page}` : `Page ${rec.reference.page}`;
               }
               
-              markdown += `)*\n`;
+              markdown += `)*\n\n\n`;
             }
           }
         });
@@ -240,7 +239,7 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[70vh] overflow-y-auto">
       <Table>
         <TableCaption>A list of your previous analyses.</TableCaption>
         <TableHeader>
@@ -281,9 +280,9 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
                 <tr>
                   <td colSpan={5} className="p-0">
                     <div className="py-2 px-4 bg-muted/20">
-                      <Card>
+                      <Card className="max-h-[500px] overflow-y-auto">
                         <CardContent className="pt-6">
-                          <div className="prose max-w-none">
+                          <div className="prose max-w-none break-words whitespace-pre-wrap">
                             {result.analysis_results ? (
                               <ReactMarkdown>
                                 {formatAnalysisResults(result.analysis_results)}

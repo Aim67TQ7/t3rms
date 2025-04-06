@@ -25,8 +25,8 @@ const AnalysisDetails = ({ analysisResults }: AnalysisDetailsProps) => {
                   ul: ({ node, ...props }) => <ul className="my-2 pl-6 list-disc" {...props} />,
                   ol: ({ node, ...props }) => <ol className="my-2 pl-6 list-decimal" {...props} />,
                   li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-                  code: ({ node, inline, ...props }) => 
-                    inline ? 
+                  code: ({ node, className, ...props }) => 
+                    props.className?.includes('inline') ? 
                       <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> : 
                       <code className="block p-2 my-2 bg-muted rounded-md text-sm overflow-x-auto whitespace-pre-wrap" {...props} />
                 }}

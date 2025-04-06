@@ -145,12 +145,14 @@ const Analyzer = () => {
       )}
 
       {isAuthenticated && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
-          <AnalysisHistory 
-            analysisResults={analysisResults}
-            isLoading={analysisLoading}
-          />
+        <div className="mt-8 flex justify-center">
+          <div className="w-full">
+            <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
+            <AnalysisHistory 
+              analysisResults={analysisResults}
+              isLoading={analysisLoading}
+            />
+          </div>
         </div>
       )}
     </div>

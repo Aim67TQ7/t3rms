@@ -1,22 +1,27 @@
+
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/navbar/useAuth";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import AuthPrompt from '@/components/AuthPrompt';
 import DropzoneUploader from '@/components/analyzer/DropzoneUploader';
-import AnalysisResult from '@/components/analyzer/AnalysisResult';
 import AnalysisHistory from '@/components/analyzer/AnalysisHistory';
 import { ContractAnalysis } from '@/components/analyzer/AnalysisHistory';
+import { 
+  hasReachedAnonymousLimit, 
+  incrementAnonymousAnalysisCount 
+} from '@/utils/anonymousUsage';
 
 const Analyzer = () => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
+  const navigate = useNavigate();
 
   const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery<ContractAnalysis[]>({
     queryKey: ['analysisResults'],
@@ -47,8 +52,18 @@ const Analyzer = () => {
 
   const handleAnalyze = async () => {
     if (!isAuthenticated) {
+      // Check if anonymous user has reached the limit
+      if (hasReachedAnonymousLimit()) {
+        toast({
+          title: "Analysis Limit Reached",
+          description: "You've reached the limit of free analyses. Please subscribe to continue.",
+          variant: "destructive",
+        });
+        navigate('/pricing');
+        return;
+      }
+      
       setShowAuthPrompt(true);
-      return;
     }
 
     if (!text && !file) {
@@ -61,7 +76,6 @@ const Analyzer = () => {
     }
 
     setLoading(true);
-    setAnalysisResult(null);
 
     try {
       const formData = new FormData();
@@ -75,14 +89,17 @@ const Analyzer = () => {
         throw new Error(response.error.message);
       }
 
+      if (!isAuthenticated) {
+        // Increment the counter for anonymous users
+        incrementAnonymousAnalysisCount();
+      }
+
       if (response.data.status === 'processing') {
         toast({
           title: "PDF Processing",
           description: "Your PDF is being analyzed. Check the history for results.",
         });
       } else {
-        setAnalysisResult(response.data);
-        
         toast({
           title: "Success",
           description: "Contract analysis completed.",
@@ -106,7 +123,7 @@ const Analyzer = () => {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div>
           <DropzoneUploader 
             file={file}
@@ -116,20 +133,16 @@ const Analyzer = () => {
             loading={loading}
           />
         </div>
-
-        <div>
-          <AnalysisResult analysisResult={analysisResult} />
-          
-          {showAuthPrompt && !isAuthenticated && (
-            <div className="mt-6">
-              <AuthPrompt 
-                onDismiss={() => setShowAuthPrompt(false)} 
-                showDismiss={true}
-              />
-            </div>
-          )}
-        </div>
       </div>
+
+      {showAuthPrompt && !isAuthenticated && (
+        <div className="mt-6">
+          <AuthPrompt 
+            onDismiss={() => setShowAuthPrompt(false)} 
+            showDismiss={true}
+          />
+        </div>
+      )}
 
       {isAuthenticated && (
         <div className="mt-8">

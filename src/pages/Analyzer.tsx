@@ -1,38 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/navbar/useAuth";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { format } from 'date-fns';
 import AuthPrompt from '@/components/AuthPrompt';
-
-// Define a type for the contract analysis result
-type ContractAnalysis = {
-  id: string;
-  user_id: string;
-  filename: string;
-  file_type: string;
-  status: string;
-  analysis_score?: number;
-  analysis_results?: any;
-  created_at: string;
-};
+import DropzoneUploader from '@/components/analyzer/DropzoneUploader';
+import AnalysisResult from '@/components/analyzer/AnalysisResult';
+import AnalysisHistory from '@/components/analyzer/AnalysisHistory';
+import EmbeddedAnalysisTool from '@/components/analyzer/EmbeddedAnalysisTool';
+import { ContractAnalysis } from '@/components/analyzer/AnalysisHistory';
 
 const Analyzer = () => {
   const [text, setText] = useState('');
@@ -69,32 +46,6 @@ const Analyzer = () => {
       refetch();
     }
   }, [isAuthenticated, refetch]);
-
-  const onDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-    
-    // Only allow one file
-    const file = acceptedFiles[0];
-    setFile(file);
-
-    const reader = new FileReader();
-    reader.onload = (event: any) => {
-      setText(event.target.result);
-    };
-    reader.readAsText(file);
-  };
-
-  const { getRootProps, getInputProps } = useDropzone({ 
-    onDrop, 
-    accept: { 
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/plain': ['.txt']
-    },
-    maxFiles: 1,
-    multiple: false
-  });
 
   const handleAnalyze = async () => {
     if (!isAuthenticated) {
@@ -162,59 +113,19 @@ const Analyzer = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <Card className="mb-6">
-            <CardHeader>
-              <h2 className="text-lg font-semibold">Upload File (Single File Only)</h2>
-            </CardHeader>
-            <CardContent>
-              <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
-                <input {...getInputProps()} />
-                <p>Drag a file here, or click to select a file</p>
-                {file && (
-                  <div className="mt-2">
-                    <p>Selected file: {file.name}</p>
-                  </div>
-                )}
-              </div>
-
-              <Button onClick={handleAnalyze} disabled={loading} className="w-full">
-                {loading ? "Analyzing..." : "Analyze"}
-              </Button>
-            </CardContent>
-          </Card>
+          <DropzoneUploader 
+            file={file}
+            setFile={setFile}
+            setText={setText}
+            onAnalyze={handleAnalyze}
+            loading={loading}
+          />
           
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold">T3rms Analysis Tool</h2>
-            </CardHeader>
-            <CardContent>
-              <div className="iframe-container" style={{ width: '100%', height: '500px', overflow: 'hidden', borderRadius: '0.375rem' }}>
-                <iframe 
-                  src="https://T3rms.replit.app" 
-                  title="T3rms Analysis Tool"
-                  style={{ width: '100%', height: '100%', border: 'none' }}
-                  allow="fullscreen"
-                ></iframe>
-              </div>
-            </CardContent>
-          </Card>
+          <EmbeddedAnalysisTool />
         </div>
 
         <div>
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold">Analysis Result</h2>
-            </CardHeader>
-            <CardContent>
-              {analysisResult ? (
-                <pre className="whitespace-pre-wrap break-words">
-                  {JSON.stringify(analysisResult, null, 2)}
-                </pre>
-              ) : (
-                <p>No analysis result yet.</p>
-              )}
-            </CardContent>
-          </Card>
+          <AnalysisResult analysisResult={analysisResult} />
           
           {showAuthPrompt && !isAuthenticated && (
             <div className="mt-6">
@@ -230,35 +141,10 @@ const Analyzer = () => {
       {isAuthenticated && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
-          {analysisLoading ? (
-            <p>Loading analysis history...</p>
-          ) : analysisResults && analysisResults.length > 0 ? (
-            <Table>
-              <TableCaption>A list of your previous analyses.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">Date</TableHead>
-                  <TableHead>Filename</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Score</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {analysisResults.map((result) => (
-                  <TableRow key={result.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}
-                    </TableCell>
-                    <TableCell>{result.filename}</TableCell>
-                    <TableCell>{result.status}</TableCell>
-                    <TableCell>{result.analysis_score || 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p>No analysis history available.</p>
-          )}
+          <AnalysisHistory 
+            analysisResults={analysisResults}
+            isLoading={analysisLoading}
+          />
         </div>
       )}
     </div>
@@ -266,4 +152,3 @@ const Analyzer = () => {
 };
 
 export default Analyzer;
-

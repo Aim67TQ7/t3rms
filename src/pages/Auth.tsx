@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from "@/components/navbar/useAuth";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,14 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/analyzer');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +43,7 @@ const Auth = () => {
           description: "Welcome back!",
         });
 
-        navigate('/');
+        navigate('/analyzer');
       } else {
         // Sign Up
         const { error } = await supabase.auth.signUp({
@@ -49,7 +58,7 @@ const Auth = () => {
           description: "Please check your email to verify your account.",
         });
 
-        navigate('/');
+        navigate('/analyzer');
       }
     } catch (error: any) {
       toast({

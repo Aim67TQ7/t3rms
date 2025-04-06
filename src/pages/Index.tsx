@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -17,12 +18,6 @@ const Index = () => {
       <Navbar />
       
       <main className="flex-grow">
-        <div className="text-right p-4">
-          <Link to="/auth">
-            <Button variant="outline">Login / Sign Up</Button>
-          </Link>
-        </div>
-        
         <Hero />
         <Features />
         

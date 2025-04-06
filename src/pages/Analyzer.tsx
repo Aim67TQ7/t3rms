@@ -24,7 +24,7 @@ const Analyzer = () => {
   const navigate = useNavigate();
 
   const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery<ContractAnalysis[]>({
-    queryKey: ['analysisResults'],
+    queryKey: ['analysisResults', userId],
     queryFn: async () => {
       if (!isAuthenticated) return [];
       

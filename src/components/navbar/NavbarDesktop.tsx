@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -19,6 +19,7 @@ interface NavbarDesktopProps {
 
 export const NavbarDesktop = ({ isAuthenticated, userData, userEmail }: NavbarDesktopProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -29,6 +30,8 @@ export const NavbarDesktop = ({ isAuthenticated, userData, userEmail }: NavbarDe
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
+      
+      navigate('/');
     } catch (error) {
       toast({
         title: "Error logging out",
@@ -79,8 +82,11 @@ export const NavbarDesktop = ({ isAuthenticated, userData, userEmail }: NavbarDe
             </DropdownMenu>
           </div>
         ) : (
-          // Remove auth links
-          <></>
+          <Link to="/auth">
+            <Button variant="default" size="sm">
+              Login / Sign Up
+            </Button>
+          </Link>
         )}
       </div>
     </div>

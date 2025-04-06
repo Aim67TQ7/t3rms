@@ -1,5 +1,5 @@
 
-import { EmbeddedAnalysisTool } from "@/components/analyzer/EmbeddedAnalysisTool";
+import EmbeddedAnalysisTool from "@/components/analyzer/EmbeddedAnalysisTool";
 import Navbar from "@/components/navbar";
 
 const EmbeddedTool = () => {

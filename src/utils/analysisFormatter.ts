@@ -25,7 +25,7 @@ export const formatAnalysisResults = (results: any) => {
       return results;
     }
     
-    // Convert JSON object to markdown with added blank lines
+    // Convert JSON object to markdown with improved formatting
     let markdown = "# Contract Analysis Results\n\n";
     
     // Add score if available
@@ -48,25 +48,37 @@ export const formatAnalysisResults = (results: any) => {
       
       results.criticalPoints.forEach((point: any, index: number) => {
         const severityIcon = getSeverityIcon(point.severity);
-        markdown += `### ${severityIcon} ${point.title}\n\n`;
+        markdown += `### ${index + 1}. ${severityIcon} ${point.title}\n\n`;
         
         if (point.description) {
-          markdown += `${point.description}\n\n`;
+          // Split description into smaller paragraphs if it's long
+          const paragraphs = point.description.split(/\n{2,}/);
+          paragraphs.forEach(para => {
+            markdown += `${para}\n\n`;
+          });
         }
         
         if (point.reference) {
-          markdown += "**Location:**\n";
+          markdown += "**Location:** ";
           
+          const locationParts = [];
           if (point.reference.page) {
-            markdown += `- Page: ${point.reference.page}\n`;
+            locationParts.push(`Page ${point.reference.page}`);
           }
           
           if (point.reference.section) {
-            markdown += `- Section: ${point.reference.section}\n\n`;
+            locationParts.push(`Section ${point.reference.section}`);
           }
           
+          markdown += locationParts.join(', ') + "\n\n";
+          
           if (point.reference.excerpt) {
-            markdown += `**Excerpt:**\n\`\`\`\n${point.reference.excerpt}\n\`\`\`\n\n`;
+            // Format excerpt with line breaks to ensure it wraps properly
+            const formattedExcerpt = point.reference.excerpt
+              .replace(/(.{80})/g, "$1\n")
+              .trim();
+            
+            markdown += `**Excerpt:**\n\`\`\`\n${formattedExcerpt}\n\`\`\`\n\n`;
           }
         }
       });
@@ -78,25 +90,37 @@ export const formatAnalysisResults = (results: any) => {
       
       results.financialRisks.forEach((risk: any, index: number) => {
         const severityIcon = getSeverityIcon(risk.severity);
-        markdown += `### ${severityIcon} ${risk.title}\n\n`;
+        markdown += `### ${index + 1}. ${severityIcon} ${risk.title}\n\n`;
         
         if (risk.description) {
-          markdown += `${risk.description}\n\n`;
+          // Split description into smaller paragraphs
+          const paragraphs = risk.description.split(/\n{2,}/);
+          paragraphs.forEach(para => {
+            markdown += `${para}\n\n`;
+          });
         }
         
         if (risk.reference) {
-          markdown += "**Location:**\n";
+          markdown += "**Location:** ";
           
+          const locationParts = [];
           if (risk.reference.page) {
-            markdown += `- Page: ${risk.reference.page}\n`;
+            locationParts.push(`Page ${risk.reference.page}`);
           }
           
           if (risk.reference.section) {
-            markdown += `- Section: ${risk.reference.section}\n\n`;
+            locationParts.push(`Section ${risk.reference.section}`);
           }
           
+          markdown += locationParts.join(', ') + "\n\n";
+          
           if (risk.reference.excerpt) {
-            markdown += `**Excerpt:**\n\`\`\`\n${risk.reference.excerpt}\n\`\`\`\n\n`;
+            // Format excerpt with line breaks to ensure it wraps properly
+            const formattedExcerpt = risk.reference.excerpt
+              .replace(/(.{80})/g, "$1\n")
+              .trim();
+            
+            markdown += `**Excerpt:**\n\`\`\`\n${formattedExcerpt}\n\`\`\`\n\n`;
           }
         }
       });
@@ -108,25 +132,37 @@ export const formatAnalysisResults = (results: any) => {
       
       results.unusualLanguage.forEach((item: any, index: number) => {
         const severityIcon = getSeverityIcon(item.severity);
-        markdown += `### ${severityIcon} ${item.title}\n\n`;
+        markdown += `### ${index + 1}. ${severityIcon} ${item.title}\n\n`;
         
         if (item.description) {
-          markdown += `${item.description}\n\n`;
+          // Split description into smaller paragraphs
+          const paragraphs = item.description.split(/\n{2,}/);
+          paragraphs.forEach(para => {
+            markdown += `${para}\n\n`;
+          });
         }
         
         if (item.reference) {
-          markdown += "**Location:**\n";
+          markdown += "**Location:** ";
           
+          const locationParts = [];
           if (item.reference.page) {
-            markdown += `- Page: ${item.reference.page}\n`;
+            locationParts.push(`Page ${item.reference.page}`);
           }
           
           if (item.reference.section) {
-            markdown += `- Section: ${item.reference.section}\n\n`;
+            locationParts.push(`Section ${item.reference.section}`);
           }
           
+          markdown += locationParts.join(', ') + "\n\n";
+          
           if (item.reference.excerpt) {
-            markdown += `**Excerpt:**\n\`\`\`\n${item.reference.excerpt}\n\`\`\`\n\n`;
+            // Format excerpt with line breaks to ensure it wraps properly
+            const formattedExcerpt = item.reference.excerpt
+              .replace(/(.{80})/g, "$1\n")
+              .trim();
+            
+            markdown += `**Excerpt:**\n\`\`\`\n${formattedExcerpt}\n\`\`\`\n\n`;
           }
         }
       });
@@ -137,28 +173,34 @@ export const formatAnalysisResults = (results: any) => {
       markdown += "## Recommendations\n\n";
       
       results.recommendations.forEach((rec: any, index: number) => {
+        let recText = "";
         if (typeof rec === 'string') {
-          markdown += `${index + 1}. ${rec}\n\n`;
+          recText = rec;
         } else if (typeof rec === 'object') {
           if (rec.text) {
-            markdown += `${index + 1}. ${rec.text}\n\n`;
+            recText = rec.text;
           } else if (rec.description) {
-            markdown += `${index + 1}. ${rec.description}\n\n`;
+            recText = rec.description;
           }
+        }
+        
+        if (recText) {
+          markdown += `${index + 1}. ${recText}\n\n`;
           
           // Add reference if available
           if (rec.reference) {
-            markdown += `   *(Ref: `;
-            
+            const locationParts = [];
             if (rec.reference.section) {
-              markdown += `Section ${rec.reference.section}`;
+              locationParts.push(`Section ${rec.reference.section}`);
             }
             
             if (rec.reference.page) {
-              markdown += rec.reference.section ? `, Page ${rec.reference.page}` : `Page ${rec.reference.page}`;
+              locationParts.push(`Page ${rec.reference.page}`);
             }
             
-            markdown += `)*\n\n`;
+            if (locationParts.length > 0) {
+              markdown += `   *(Ref: ${locationParts.join(', ')})*\n\n`;
+            }
           }
         }
       });

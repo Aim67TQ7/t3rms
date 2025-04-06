@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/navbar/useAuth";
@@ -8,7 +7,6 @@ import AuthPrompt from '@/components/AuthPrompt';
 import DropzoneUploader from '@/components/analyzer/DropzoneUploader';
 import AnalysisResult from '@/components/analyzer/AnalysisResult';
 import AnalysisHistory from '@/components/analyzer/AnalysisHistory';
-import EmbeddedAnalysisTool from '@/components/analyzer/EmbeddedAnalysisTool';
 import { ContractAnalysis } from '@/components/analyzer/AnalysisHistory';
 
 const Analyzer = () => {
@@ -77,15 +75,12 @@ const Analyzer = () => {
         throw new Error(response.error.message);
       }
 
-      // Handle different response types for PDF and non-PDF files
       if (response.data.status === 'processing') {
-        // For PDFs, show a processing message
         toast({
           title: "PDF Processing",
           description: "Your PDF is being analyzed. Check the history for results.",
         });
       } else {
-        // For non-PDF files, set the immediate result
         setAnalysisResult(response.data);
         
         toast({
@@ -120,8 +115,6 @@ const Analyzer = () => {
             onAnalyze={handleAnalyze}
             loading={loading}
           />
-          
-          <EmbeddedAnalysisTool />
         </div>
 
         <div>
@@ -139,7 +132,7 @@ const Analyzer = () => {
       </div>
 
       {isAuthenticated && (
-        <div className="mt-12">
+        <div className="mt-8">
           <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
           <AnalysisHistory 
             analysisResults={analysisResults}

@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,7 +8,6 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, FileText, ShieldCheck, Zap } from 'lucide-react';
 
 const Index = () => {
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -19,10 +17,15 @@ const Index = () => {
       <Navbar />
       
       <main className="flex-grow">
+        <div className="text-right p-4">
+          <Link to="/auth">
+            <Button variant="outline">Login / Sign Up</Button>
+          </Link>
+        </div>
+        
         <Hero />
         <Features />
         
-        {/* How It Works Section */}
         <section className="bg-gray-50 py-16 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center mb-16">
@@ -83,7 +86,6 @@ const Index = () => {
           </div>
         </section>
         
-        {/* CTA Section */}
         <section className="py-16 md:py-24 bg-white">
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-6xl mx-auto bg-gradient-to-r from-t3rms-blue/10 to-blue-100/30 rounded-2xl p-8 md:p-16">

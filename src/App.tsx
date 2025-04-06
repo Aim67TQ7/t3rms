@@ -14,6 +14,8 @@ import Index from "./pages/Index";
 import Analyzer from "./pages/Analyzer";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+// New import
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,7 @@ const AppContent = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/analyzer" element={<Analyzer />} />
             <Route path="/pricing" element={<Pricing />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

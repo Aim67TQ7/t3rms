@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -143,7 +144,6 @@ const TermsConditionsGenerator = () => {
     }
     
     if (activeStep === 2) {
-      const formValues = form.getValues();
       handleAnalyze();
     }
     
@@ -856,4 +856,139 @@ const TermsConditionsGenerator = () => {
                 <TabsTrigger value="text">Plain Text</TabsTrigger>
                 <TabsTrigger value="markdown">Markdown</TabsTrigger>
               </TabsList>
-              <TabsContent value="html
+              <TabsContent value="html" className="mt-4">
+                {generatedTC ? (
+                  <div className="border rounded-md p-4 bg-white max-h-[600px] overflow-auto">
+                    <div dangerouslySetInnerHTML={{ __html: generatedTC }} />
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No content generated yet. Fill out the form and click "Generate" to create your document.
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="text" className="mt-4">
+                {generatedTC ? (
+                  <div className="border rounded-md p-4 bg-white font-mono whitespace-pre-wrap max-h-[600px] overflow-auto">
+                    {generatedTC.replace(/<[^>]*>/g, '')}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No content generated yet. Fill out the form and click "Generate" to create your document.
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="markdown" className="mt-4">
+                {generatedTC ? (
+                  <div className="border rounded-md p-4 bg-white font-mono whitespace-pre-wrap max-h-[600px] overflow-auto">
+                    {generatedTC
+                      .replace(/<h1>(.*?)<\/h1>/g, '# $1')
+                      .replace(/<h2>(.*?)<\/h2>/g, '## $1')
+                      .replace(/<p>(.*?)<\/p>/g, '$1\n\n')
+                      .replace(/<br>/g, '\n')
+                      .replace(/<ul>(.*?)<\/ul>/gs, '$1')
+                      .replace(/<li>(.*?)<\/li>/g, '- $1\n')
+                      .replace(/<[^>]*>/g, '')}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No content generated yet. Fill out the form and click "Generate" to create your document.
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+            
+            {isAuthenticated && (
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-4">Your Saved Terms</h3>
+                <SavedTermsList />
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-8 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Terms & Conditions Generator</h1>
+        <p className="text-gray-600">
+          Generate professional terms and conditions documents for your business.
+        </p>
+      </div>
+      
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex space-x-1">
+          {steps.map((step) => (
+            <div
+              key={step.id}
+              className={`flex items-center ${
+                step.id === activeStep
+                  ? "text-primary"
+                  : step.id < activeStep
+                  ? "text-gray-500"
+                  : "text-gray-300"
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
+                  step.id === activeStep
+                    ? "bg-primary text-white"
+                    : step.id < activeStep
+                    ? "bg-gray-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                {step.id < activeStep ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  step.id + 1
+                )}
+              </div>
+              <span className="hidden md:inline">{step.name}</span>
+              {step.id < steps.length - 1 && (
+                <div className="w-10 h-1 mx-2 bg-gray-200">
+                  <div
+                    className={`h-full ${
+                      step.id < activeStep ? "bg-primary" : "bg-gray-200"
+                    }`}
+                  ></div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
+        {renderStepContent()}
+      </div>
+      
+      <div className="flex justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          disabled={activeStep === 0}
+        >
+          Back
+        </Button>
+        
+        {activeStep < steps.length - 1 ? (
+          <Button onClick={handleNext}>
+            {activeStep === 2 ? "Generate" : "Next"}
+          </Button>
+        ) : !isAuthenticated ? (
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">Login to save your terms for future use</span>
+            <AuthPrompt buttonText="Login to Save" />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+export default TermsConditionsGenerator;

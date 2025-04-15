@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, AlertTriangle, Check } from 'lucide-react';
+import { ArrowRight, Shield, AlertTriangle, Check, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -28,7 +28,7 @@ const Hero = () => {
             }`}
           >
             <span className="flex items-center">
-              <Shield className="h-3.5 w-3.5 mr-1.5" /> AI-powered contract analysis
+              <Shield className="h-3.5 w-3.5 mr-1.5" /> AI-powered T3RMS tools
             </span>
           </div>
 
@@ -38,8 +38,8 @@ const Hero = () => {
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            AI Reads the Fine Print,<br />{' '}
-            <span className="text-t3rms-blue">So You Don't Have To</span>
+            Analyze & Create T3RMS<br />{' '}
+            <span className="text-t3rms-blue">With AI Precision</span>
           </h1>
 
           {/* Subheadline */}
@@ -48,7 +48,7 @@ const Hero = () => {
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            T3RMS uses advanced AI to analyze your Terms & Conditions, highlighting potential risks and translating legal jargon into plain language.
+            Try our AI-powered analysis for free or create custom Terms & Conditions tailored to your needs.
           </p>
 
           {/* CTA Buttons */}
@@ -57,47 +57,49 @@ const Hero = () => {
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            <Link to="/auth?signup=true">
+            <Link to="/analyzer">
               <Button className="hero-button-primary">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                Try Analysis Free <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link to="/pricing">
+            <Link to="/tcgenerator">
               <Button variant="outline" className="hero-button-secondary">
-                View Pricing
+                Create T3RMS <FileText className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
 
-          {/* Features Card */}
+          {/* Features Cards */}
           <div 
-            className={`glass rounded-2xl border border-gray-200 p-8 max-w-4xl w-full transition-all duration-700 delay-400 ${
+            className={`grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full transition-all duration-700 delay-400 ${
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
-              <div className="flex flex-col items-center text-center p-2">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                  <Check className="h-6 w-6 text-t3rms-success" />
-                </div>
-                <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">Risk Detection</h3>
-                <p className="text-gray-600 text-sm">Identifies potentially harmful clauses in legal documents</p>
-              </div>
-              
-              <div className="flex flex-col items-center text-center p-2">
+            {/* Analysis Card */}
+            <div className="glass rounded-2xl border border-gray-200 p-8">
+              <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
                   <Shield className="h-6 w-6 text-t3rms-blue" />
                 </div>
-                <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">Instant Analysis</h3>
-                <p className="text-gray-600 text-sm">Analyze lengthy contracts in seconds, not hours</p>
+                <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">Analyze T3RMS</h3>
+                <p className="text-gray-600 text-sm mb-4">Instantly analyze any Terms & Conditions document with our AI. Try 3 free analyses.</p>
+                <Link to="/analyzer" className="text-t3rms-blue hover:underline text-sm">
+                  Start analyzing →
+                </Link>
               </div>
-              
-              <div className="flex flex-col items-center text-center p-2">
-                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                  <AlertTriangle className="h-6 w-6 text-t3rms-warning" />
+            </div>
+
+            {/* Creation Card */}
+            <div className="glass rounded-2xl border border-gray-200 p-8">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                  <FileText className="h-6 w-6 text-t3rms-success" />
                 </div>
-                <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">Plain Language</h3>
-                <p className="text-gray-600 text-sm">Translates complex legal terms into easy-to-understand language</p>
+                <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">Create T3RMS</h3>
+                <p className="text-gray-600 text-sm mb-4">Generate custom Terms & Conditions documents tailored to your specific needs.</p>
+                <Link to="/tcgenerator" className="text-t3rms-blue hover:underline text-sm">
+                  Start creating →
+                </Link>
               </div>
             </div>
           </div>

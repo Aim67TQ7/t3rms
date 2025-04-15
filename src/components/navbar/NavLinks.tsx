@@ -30,7 +30,7 @@ export const NavLinks = ({ isAuthenticated }: NavLinksProps) => {
                 : 'text-gray-600 hover:text-t3rms-charcoal'
             }`}
           >
-            Analyzer
+            Analyze T3RMS
           </Link>
           <Link
             to="/tcgenerator"

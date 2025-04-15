@@ -30,7 +30,7 @@ export const MobileNavLinks = ({ isAuthenticated }: MobileNavLinksProps) => {
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            Analyzer
+            Analyze T3RMS
           </Link>
           <Link
             to="/tcgenerator"

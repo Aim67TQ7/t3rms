@@ -50,11 +50,11 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
         <TableCaption>A list of your previous analyses.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-[48px]"></TableHead>
             <TableHead className="w-[180px]">Date</TableHead>
             <TableHead>Filename</TableHead>
-            <TableHead className="w-[150px]">Status</TableHead>
-            <TableHead className="w-[100px] text-right">Score</TableHead>
+            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="w-[80px] text-right">Score</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

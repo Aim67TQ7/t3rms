@@ -162,19 +162,23 @@ const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
       className="w-full"
     >
       <TableRow className="cursor-pointer hover:bg-muted/60" onClick={onToggle}>
-        <TableCell>
+        <TableCell className="w-[48px]">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           </CollapsibleTrigger>
         </TableCell>
-        <TableCell className="font-medium">
+        <TableCell className="w-[180px] whitespace-nowrap">
           {format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}
         </TableCell>
-        <TableCell className="max-w-[180px] truncate">{result.filename}</TableCell>
-        <TableCell><AnalysisStatusBadge status={result.status} /></TableCell>
-        <TableCell className="text-right">
+        <TableCell className="max-w-[200px] truncate">
+          {result.filename}
+        </TableCell>
+        <TableCell className="w-[120px]">
+          <AnalysisStatusBadge status={result.status} />
+        </TableCell>
+        <TableCell className="w-[80px] text-right">
           {result.analysis_score !== undefined ? result.analysis_score : 'N/A'}
         </TableCell>
       </TableRow>

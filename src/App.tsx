@@ -1,22 +1,14 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import { useExitFeedback } from "@/hooks/use-exit-feedback";
-
-// Pages
-import Index from "./pages/Index";
-import Analyzer from "./pages/Analyzer";
-import Pricing from "./pages/Pricing";
-import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
-import EmbeddedTool from "./pages/EmbeddedTool";
-import TermsConditionsGenerator from "./pages/TermsConditionsGenerator";
+import Seo from "@/components/Seo";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +16,6 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const { showFeedbackPrompt, closeFeedbackPrompt, userId } = useExitFeedback();
 
-  // Just check session for loading state (we no longer redirect from protected routes)
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -50,19 +41,17 @@ const AppContent = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/analyzer" element={<Analyzer />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/embedded-tool" element={<EmbeddedTool />} />
-            <Route path="/tcgenerator" element={<TermsConditionsGenerator />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<><Seo /><Index /></>} />
+            <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
+            <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} />
+            <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
+            <Route path="/embedded-tool" element={<><Seo title="Embedded Analysis Tool - T3RMS" /><EmbeddedTool /></>} />
+            <Route path="/tcgenerator" element={<><Seo title="Terms & Conditions Generator - T3RMS" description="Generate compliant terms & conditions documents" /><TermsConditionsGenerator /></>} />
+            <Route path="*" element={<><Seo title="404 - Page Not Found" /><NotFound /></>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
       
-      {/* Feedback prompt */}
       <FeedbackPrompt 
         isOpen={showFeedbackPrompt} 
         onClose={closeFeedbackPrompt}
@@ -74,9 +63,11 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 

@@ -21,31 +21,37 @@ interface AnalysisRowProps {
 const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
   const handleExportPDF = async () => {
     const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      format: 'letter',
+      unit: 'pt'
+    });
+    
     const pageWidth = doc.internal.pageSize.getWidth();
+    const marginX = 50;
+    const contentWidth = pageWidth - (marginX * 2);
     
     // Title and Document info
     doc.setFontSize(16);
-    doc.text("AI Analysis of Terms and Conditions - Report", pageWidth/2, 20, { align: 'center' });
+    doc.text("AI Analysis of Terms and Conditions - Report", pageWidth/2, 50, { align: 'center' });
     doc.setFontSize(10);
-    doc.text(`Document: ${result.filename}`, pageWidth/2, 30, { align: 'center' });
-    doc.line(20, 35, pageWidth-20, 35);
+    doc.text(`Document: ${result.filename}`, pageWidth/2, 70, { align: 'center' });
+    doc.line(marginX, 85, pageWidth - marginX, 85);
 
     // Analysis Summary section
     doc.setFontSize(12);
-    doc.text("Analysis Summary", 20, 45);
+    doc.text("Analysis Summary", marginX, 105);
     
     // Summary box with scores
-    const summaryY = 55;
-    doc.rect(20, summaryY, pageWidth-40, 15);
-    doc.line(pageWidth/3, summaryY, pageWidth/3, summaryY+15);
-    doc.line(2*pageWidth/3, summaryY, 2*pageWidth/3, summaryY+15);
+    const summaryY = 120;
+    doc.rect(marginX, summaryY, contentWidth, 40);
+    doc.line(pageWidth/3, summaryY, pageWidth/3, summaryY+40);
+    doc.line(2*pageWidth/3, summaryY, 2*pageWidth/3, summaryY+40);
     
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     const scoreText = result.analysis_score ? `${result.analysis_score}%` : 'N/A';
-    doc.text(`Complexity Score: ${scoreText}`, 25, summaryY+10);
-    doc.text(`Financial Impact: ${scoreText}`, pageWidth/3 + 5, summaryY+10);
-    doc.text(`Unusual Terms: ${scoreText}`, 2*pageWidth/3 + 5, summaryY+10);
+    doc.text(`Complexity Score: ${scoreText}`, marginX + 10, summaryY + 25);
+    doc.text(`Financial Impact: ${scoreText}`, pageWidth/3 + 10, summaryY + 25);
+    doc.text(`Unusual Terms: ${scoreText}`, 2*pageWidth/3 + 10, summaryY + 25);
 
     // Format and add analysis content
     if (result.analysis_results) {
@@ -54,130 +60,98 @@ const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
         .split('\n')
         .filter(line => line.trim()); // Remove empty lines
       
-      let y = 85;
+      let y = 180;
       let currentSection = '';
       
-      // Process each line of the content
       content.forEach(line => {
-        if (y > 270) {
+        if (y > doc.internal.pageSize.getHeight() - 50) {
           doc.addPage();
-          y = 20;
+          y = 50;
         }
         
-        // Clean special characters that might appear in the output
+        // Clean special characters
         line = line.replace(/Ø=ßá|[^\x00-\x7F]/g, '');
         
-        doc.setFontSize(9);
+        doc.setFontSize(10);
         
-        // Check if line indicates a section or finding
         if (line.includes('Findings:') || line.includes('Terms:') || 
-            /^\d+\.\s/.test(line) || // Numbered items
+            /^\d+\.\s/.test(line) || 
             line.includes('Critical Points') || 
             line.includes('Financial Risks') || 
             line.includes('Unusual Language') ||
             line.includes('Recommendations')) {
           
-          // Handle section headers
           if (line.includes('Critical Points') || 
               line.includes('Financial Risks') || 
               line.includes('Unusual Language') ||
               line.includes('Recommendations')) {
             doc.setFont(undefined, 'bold');
-            doc.text(line, 20, y);
-            y += 7;
+            doc.text(line, marginX, y);
+            y += 20;
             doc.setFont(undefined, 'normal');
             return;
           }
           
-          // Handle numbered items (like "1. High Risk Term")
           if (/^\d+\.\s/.test(line)) {
             doc.setFont(undefined, 'bold');
-            doc.text(line, 20, y);
-            y += 5;
+            doc.text(line, marginX, y);
+            y += 15;
             doc.setFont(undefined, 'normal');
             return;
           }
           
-          // Handle finding lines
           if (line.includes('Findings:')) {
             if (line.indexOf('Findings:') > 0) {
               currentSection = line.substring(0, line.indexOf('Findings:')).trim();
               doc.setFont(undefined, 'bold');
-              doc.text(`[${currentSection}]`, 20, y);
-              y += 5;
+              doc.text(`[${currentSection}]`, marginX, y);
+              y += 15;
               doc.setFont(undefined, 'normal');
               line = line.substring(line.indexOf('Findings:'));
             }
-            doc.text(line, 25, y);
-            y += 5;
-          } else {
-            doc.text(line, 25, y);
-            y += 5;
+            doc.text(line, marginX + 10, y);
+            y += 15;
           }
         } else if (line.includes('Location:') || line.includes('Excerpt:')) {
-          // Handle location and excerpt lines
           if (line.includes('Location:')) {
             doc.setFont(undefined, 'italic');
-            doc.text(line, 25, y);
-            y += 5;
+            doc.text(line, marginX + 10, y);
+            y += 15;
             doc.setFont(undefined, 'normal');
-          } else if (line.includes('Excerpt:')) {
-            // Just the "Excerpt:" label
+          } else {
             doc.setFont(undefined, 'italic');
-            doc.text('Excerpt:', 25, y);
-            y += 5;
+            doc.text('Excerpt:', marginX + 10, y);
+            y += 15;
             doc.setFont(undefined, 'normal');
           }
         } else if (line.startsWith('```') || line.endsWith('```')) {
-          // Skip markdown code block markers
           return;
         } else {
-          // Regular content - wrap long lines appropriately
-          const maxCharsPerLine = 85;
+          const maxWidth = contentWidth - 20;
+          const words = line.split(' ');
+          let currentLine = '';
           
-          // If inside a code block (excerpt), use a different formatting
-          if (currentSection === 'Excerpt' || line.startsWith('    ')) {
-            doc.setFontSize(8);
+          words.forEach(word => {
+            const testLine = currentLine + word + ' ';
+            const testWidth = doc.getStringUnitWidth(testLine) * doc.getFontSize();
             
-            // Format with smaller indentation for code blocks
-            if (line.length > maxCharsPerLine) {
-              let remainingText = line.trim();
-              while (remainingText.length > 0) {
-                const chunk = remainingText.substring(0, maxCharsPerLine);
-                remainingText = remainingText.substring(maxCharsPerLine);
-                doc.text(chunk, 30, y);
-                y += 4; // Smaller line spacing for excerpts
-              }
+            if (testWidth > maxWidth) {
+              doc.text(currentLine.trim(), marginX + 10, y);
+              y += 12;
+              currentLine = word + ' ';
             } else {
-              doc.text(line.trim(), 30, y);
-              y += 4;
+              currentLine = testLine;
             }
-            doc.setFontSize(9);
-          } else {
-            // Normal paragraph text
-            if (line.length > maxCharsPerLine) {
-              // Split long lines
-              let remainingText = line;
-              while (remainingText.length > 0) {
-                const chunk = remainingText.substring(0, maxCharsPerLine);
-                remainingText = remainingText.substring(maxCharsPerLine);
-                doc.text(chunk, 25, y);
-                y += 5;
-              }
-            } else {
-              doc.text(line, 25, y);
-              y += 5;
-            }
+          });
+          
+          if (currentLine.trim()) {
+            doc.text(currentLine.trim(), marginX + 10, y);
+            y += 15;
           }
         }
       });
-      
-      // Add legend at the bottom of the last page
-      doc.setFontSize(8);
-      doc.text("Legend: [!] High Risk, [?] Medium Risk, [F] Financial Term, [-] Non-Financial Term", 20, 280);
     }
     
-    // Save the PDF
     doc.save(`analysis-${result.filename}.pdf`);
   };
 

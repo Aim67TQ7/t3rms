@@ -123,7 +123,7 @@ const Analyzer = () => {
     <div className="container mx-auto py-6 px-4">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="w-full">
           <DropzoneUploader 
             file={file}
@@ -144,7 +144,7 @@ const Analyzer = () => {
         </div>
 
         {isAuthenticated && (
-          <div className="w-full">
+          <div className="col-span-2">
             <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
             <AnalysisHistory 
               analysisResults={analysisResults}

@@ -36,7 +36,7 @@ const Pricing = () => {
           <div className="container mx-auto px-4 md:px-6">
             <Alert className="mb-8 max-w-3xl mx-auto bg-t3rms-blue/10 text-t3rms-blue border-t3rms-blue">
               <AlertDescription className="text-center text-base">
-                🚀 T3RMS is currently in beta testing phase. Subscriptions will be available soon on April 3rd! 
+                🚀 T3RMS is currently in beta testing phase. Subscriptions will be available soon. 
                 <br />
                 We'd love your feedback. Please test out our free tier and 
                 <a 

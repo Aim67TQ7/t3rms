@@ -38,7 +38,6 @@ const formSchema = z.object({
   businessDescription: z.string().min(10, { message: "Please provide a brief description of your business" }),
   jurisdiction: z.string().min(2, { message: "Jurisdiction is required" }),
   
-  // Optional clauses
   includeDisputeResolution: z.boolean().default(true),
   includeIntellectualProperty: z.boolean().default(true),
   includeLimitations: z.boolean().default(true),
@@ -47,16 +46,14 @@ const formSchema = z.object({
   includeTermination: z.boolean().default(true),
   includeUserContent: z.boolean().default(false),
   
-  // New policy type selection
   policyType: z.enum(["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"]),
-  
-  // Additional fields for different policies
   dataRetentionPeriod: z.string().optional(),
   dataCollectionMethods: z.array(z.string()).default([]),
   thirdPartyServices: z.array(z.string()).default([]),
   cookieTypes: z.array(z.string()).default([]),
   medicalDataHandling: z.boolean().default(false),
   securityMeasures: z.array(z.string()).default([]),
+  customRequirements: z.string().optional(),
 });
 
 const policyTypeOptions = [
@@ -100,6 +97,7 @@ const TermsConditionsGenerator = () => {
       includeProhibitedActivities: true,
       includeTermination: true,
       includeUserContent: false,
+      customRequirements: "",
     },
   });
 
@@ -113,7 +111,6 @@ const TermsConditionsGenerator = () => {
   const handleNext = () => {
     form.trigger();
     
-    // Check validation based on current step
     if (activeStep === 0) {
       const { businessName, email } = form.getValues();
       if (!businessName || !email || form.formState.errors.businessName || form.formState.errors.email) {
@@ -130,7 +127,6 @@ const TermsConditionsGenerator = () => {
     }
     
     if (activeStep === 2) {
-      // Generate T&C document
       const formValues = form.getValues();
       generateDocument(formValues);
     }
@@ -169,10 +165,14 @@ const TermsConditionsGenerator = () => {
   };
 
   const generateTermsAndConditions = (formData: z.infer<typeof formSchema>) => {
-    // In a real application, this would call an API to generate the document
-    // For demo purposes, we'll create a simple template
-    
     const currentDate = new Date().toISOString().split('T')[0];
+    
+    let customRequirementsSection = '';
+    if (formData.customRequirements) {
+      customRequirementsSection = `
+      <h2>8. ADDITIONAL TERMS AND CONDITIONS</h2>
+      <p>${processCustomRequirements(formData.customRequirements)}</p>`;
+    }
     
     const tcTemplate = `
       <h1>TERMS AND CONDITIONS</h1>
@@ -216,6 +216,8 @@ const TermsConditionsGenerator = () => {
       <h2>6. LIMITATIONS OF LIABILITY</h2>
       <p>IN NO EVENT WILL WE OR OUR DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY DIRECT, INDIRECT, CONSEQUENTIAL, EXEMPLARY, INCIDENTAL, SPECIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFIT, LOST REVENUE, LOSS OF DATA, OR OTHER DAMAGES ARISING FROM YOUR USE OF THE ${getReadablePlatformType(formData.platformType).toUpperCase()}, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</p>
       ` : ''}
+      
+      ${customRequirementsSection}
       
       <h2>7. CONTACT US</h2>
       <p>To resolve a complaint regarding the ${getReadablePlatformType(formData.platformType)} or to receive further information regarding use of the ${getReadablePlatformType(formData.platformType)}, please contact us at:</p>
@@ -401,9 +403,6 @@ const TermsConditionsGenerator = () => {
     let mimeType = 'text/html';
     let fileExtension = 'html';
     
-    // In a real app, we would convert to different formats
-    // For this demo, we'll just download the HTML
-    
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -580,7 +579,29 @@ const TermsConditionsGenerator = () => {
       case 2:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Select Clauses to Include</h3>
+            <h3 className="text-lg font-medium">Custom Requirements and Clauses</h3>
+            <FormField
+              control={form.control}
+              name="customRequirements"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custom Requirements</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter your specific requirements or policies (e.g., payment terms, credit holds, service-specific conditions)..."
+                      className="min-h-[150px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Add any custom requirements, policies, or conditions specific to your business. Our AI will convert these into professional legal language.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <h3 className="text-lg font-medium mt-8">Standard Clauses</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -832,6 +853,34 @@ const TermsConditionsGenerator = () => {
       default:
         return null;
     }
+  };
+
+  const processCustomRequirements = (requirements: string): string => {
+    const lines = requirements.split('\n').filter(line => line.trim());
+    
+    const processedLines = lines.map(line => {
+      let processed = line.trim()
+        .replace(/^[-*•]/g, '')
+        .trim();
+      
+      if (!processed.endsWith('.')) {
+        processed += '.';
+      }
+      
+      processed = processed
+        .replace(/must pay/gi, "shall be required to remit payment")
+        .replace(/need to/gi, "shall be required to")
+        .replace(/have to/gi, "shall be obligated to")
+        .replace(/(\d+)%/g, "$1 percent")
+        .replace(/payment/gi, "monetary compensation")
+        .replace(/before/gi, "prior to")
+        .replace(/cancel/gi, "terminate")
+        .replace(/refund/gi, "reimbursement");
+      
+      return processed;
+    });
+    
+    return processedLines.join(' ');
   };
 
   return (

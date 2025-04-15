@@ -33,6 +33,16 @@ export const MobileNavLinks = ({ isAuthenticated }: MobileNavLinksProps) => {
             Analyzer
           </Link>
           <Link
+            to="/embedded-tool"
+            className={`px-4 py-3 rounded-md ${
+              location.pathname === '/embedded-tool' 
+                ? 'bg-t3rms-lightblue/30 text-t3rms-charcoal font-medium' 
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            T3rms Tool
+          </Link>
+          <Link
             to="/pricing"
             className={`px-4 py-3 rounded-md ${
               location.pathname === '/pricing' 

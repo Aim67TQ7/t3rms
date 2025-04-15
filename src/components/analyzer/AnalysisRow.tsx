@@ -6,11 +6,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnalysisStatusBadge from './AnalysisStatusBadge';
 import AnalysisDetails from './AnalysisDetails';
 import { ContractAnalysis } from './AnalysisHistory';
+import { formatAnalysisResults } from '@/utils/analysisFormatter';
 
 interface AnalysisRowProps {
   result: ContractAnalysis;

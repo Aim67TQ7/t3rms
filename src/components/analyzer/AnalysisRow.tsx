@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 import { TableRow, TableCell } from "@/components/ui/table";
 import {
@@ -23,50 +22,87 @@ const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
   const handleExportPDF = async () => {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
     
-    // Set title
+    // Title and Document info
     doc.setFontSize(16);
-    doc.text("Contract Analysis Report", 20, 20);
-    
-    // Add basic information
+    doc.text("AI Analysis of Terms and Conditions - Report", pageWidth/2, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`Document: ${result.filename}`, pageWidth/2, 30, { align: 'center' });
+    doc.line(20, 35, pageWidth-20, 35);
+
+    // Analysis Summary section
     doc.setFontSize(12);
-    doc.text(`File: ${result.filename}`, 20, 35);
-    doc.text(`Date: ${format(new Date(result.created_at), 'yyyy-MM-dd HH:mm')}`, 20, 45);
-    doc.text(`Score: ${result.analysis_score || 'N/A'}`, 20, 55);
+    doc.text("Analysis Summary", 20, 45);
     
-    // Add analysis content
+    // Summary box with scores
+    const summaryY = 55;
+    doc.rect(20, summaryY, pageWidth-40, 15);
+    doc.line(pageWidth/3, summaryY, pageWidth/3, summaryY+15);
+    doc.line(2*pageWidth/3, summaryY, 2*pageWidth/3, summaryY+15);
+    
+    doc.setFontSize(9);
+    const scoreText = result.analysis_score ? `${result.analysis_score}%` : 'N/A';
+    doc.text(`Complexity Score: ${scoreText}`, 25, summaryY+10);
+    doc.text(`Financial Impact: ${scoreText}`, pageWidth/3 + 5, summaryY+10);
+    doc.text(`Unusual Terms: ${scoreText}`, 2*pageWidth/3 + 5, summaryY+10);
+
+    // Format and add analysis content
     if (result.analysis_results) {
       const content = formatAnalysisResults(result.analysis_results)
         .replace(/#{1,6}\s/g, '') // Remove markdown headers
         .split('\n')
         .filter(line => line.trim()); // Remove empty lines
       
-      let y = 70;
+      let y = 85;
+      let currentSection = '';
+      
       content.forEach(line => {
-        if (y > 270) { // Check if we need a new page
+        if (y > 270) {
           doc.addPage();
           y = 20;
         }
         
-        // Split long lines
-        const words = line.split(' ');
-        let currentLine = '';
+        doc.setFontSize(9);
         
-        words.forEach(word => {
-          if ((currentLine + ' ' + word).length > 80) {
-            doc.text(currentLine, 20, y);
-            y += 10;
-            currentLine = word;
-          } else {
-            currentLine += (currentLine ? ' ' : '') + word;
+        // Check if line is a section header
+        if (line.includes('Findings:') || line.includes('Terms:')) {
+          if (line.includes('Findings:')) {
+            doc.setFont(undefined, 'bold');
+            currentSection = line.substring(0, line.indexOf('Findings:')).trim();
+            doc.text(`[${currentSection}]`, 20, y);
+            y += 5;
+            doc.setFont(undefined, 'normal');
+            line = line.substring(line.indexOf('Findings:'));
           }
-        });
-        
-        if (currentLine) {
-          doc.text(currentLine, 20, y);
-          y += 10;
+          doc.setFont(undefined, 'normal');
+          doc.text(line, 25, y);
+          y += 5;
+        } else {
+          // Regular content
+          const words = line.split(' ');
+          let currentLine = '';
+          
+          words.forEach(word => {
+            if ((currentLine + ' ' + word).length > 90) {
+              doc.text(currentLine, 25, y);
+              y += 5;
+              currentLine = word;
+            } else {
+              currentLine += (currentLine ? ' ' : '') + word;
+            }
+          });
+          
+          if (currentLine) {
+            doc.text(currentLine, 25, y);
+            y += 5;
+          }
         }
       });
+      
+      // Add legend at the bottom of the last page
+      doc.setFontSize(8);
+      doc.text("Legend: [!] High Risk, [?] Medium Risk, [F] Financial Term, [-] Non-Financial Term", 20, 280);
     }
     
     // Save the PDF

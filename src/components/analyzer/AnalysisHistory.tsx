@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Table,
@@ -46,7 +45,7 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
   };
 
   return (
-    <div className="space-y-4 max-h-[70vh] overflow-auto border rounded-md w-full">
+    <div className="w-full border rounded-md overflow-hidden">
       <Table>
         <TableCaption>A list of your previous analyses.</TableCaption>
         <TableHeader>

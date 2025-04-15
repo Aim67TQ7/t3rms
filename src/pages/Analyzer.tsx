@@ -120,11 +120,11 @@ const Analyzer = () => {
   };
 
   return (
-    <div className="container mx-auto py-10 max-w-4xl">
+    <div className="container mx-auto py-6 px-4">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      <div className="space-y-8 flex flex-col items-center">
-        <div className="w-full md:w-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="w-full">
           <DropzoneUploader 
             file={file}
             setFile={setFile}
@@ -132,20 +132,20 @@ const Analyzer = () => {
             onAnalyze={handleAnalyze}
             loading={loading}
           />
+          
+          {showAuthPrompt && !isAuthenticated && (
+            <div className="mt-4">
+              <AuthPrompt 
+                onDismiss={() => setShowAuthPrompt(false)} 
+                showDismiss={true}
+              />
+            </div>
+          )}
         </div>
 
-        {showAuthPrompt && !isAuthenticated && (
-          <div className="w-full md:w-[600px]">
-            <AuthPrompt 
-              onDismiss={() => setShowAuthPrompt(false)} 
-              showDismiss={true}
-            />
-          </div>
-        )}
-
         {isAuthenticated && (
-          <div className="w-full md:w-[600px]">
-            <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
+          <div className="w-full">
+            <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
             <AnalysisHistory 
               analysisResults={analysisResults}
               isLoading={analysisLoading}

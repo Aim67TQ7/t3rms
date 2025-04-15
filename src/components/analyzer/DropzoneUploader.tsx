@@ -40,22 +40,28 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
   });
 
   return (
-    <Card className="mb-6">
+    <Card className="w-full">
       <CardHeader>
         <h2 className="text-lg font-semibold">Upload File (Single File Only)</h2>
       </CardHeader>
       <CardContent>
-        <div {...getRootProps()} className="dropzone mb-4 border-2 border-dashed rounded-md p-4 text-center cursor-pointer">
+        <div {...getRootProps()} className="dropzone border-2 border-dashed rounded-md p-6 text-center cursor-pointer mb-4 min-h-[120px] flex items-center justify-center">
           <input {...getInputProps()} />
-          <p>Drag a file here, or click to select a file</p>
-          {file && (
-            <div className="mt-2">
-              <p>Selected file: {file.name}</p>
-            </div>
-          )}
+          <div>
+            <p>Drag a file here, or click to select a file</p>
+            {file && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Selected file: {file.name}
+              </p>
+            )}
+          </div>
         </div>
 
-        <Button onClick={onAnalyze} disabled={loading} className="w-full">
+        <Button 
+          onClick={onAnalyze} 
+          disabled={loading} 
+          className="w-full"
+        >
           {loading ? "Analyzing..." : "Analyze"}
         </Button>
       </CardContent>

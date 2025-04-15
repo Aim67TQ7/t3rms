@@ -46,7 +46,15 @@ const formSchema = z.object({
   includeTermination: z.boolean().default(true),
   includeUserContent: z.boolean().default(false),
   
-  policyType: z.enum(["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"]),
+  policyTypes: z.array(z.enum([
+    "terms",
+    "privacy",
+    "cookie",
+    "gdpr",
+    "hipaa",
+    "acceptable-use"
+  ])).default([]),
+  
   dataRetentionPeriod: z.string().optional(),
   dataCollectionMethods: z.array(z.string()).default([]),
   thirdPartyServices: z.array(z.string()).default([]),
@@ -98,6 +106,7 @@ const TermsConditionsGenerator = () => {
       includeTermination: true,
       includeUserContent: false,
       customRequirements: "",
+      policyTypes: ["terms"],
     },
   });
 
@@ -141,27 +150,32 @@ const TermsConditionsGenerator = () => {
   const generateDocument = (formData: z.infer<typeof formSchema>) => {
     let template = '';
     
-    switch(formData.policyType) {
-      case 'privacy':
-        template = generatePrivacyPolicy(formData);
-        break;
-      case 'cookie':
-        template = generateCookiePolicy(formData);
-        break;
-      case 'gdpr':
-        template = generateGDPRStatement(formData);
-        break;
-      case 'hipaa':
-        template = generateHIPAAPolicy(formData);
-        break;
-      case 'acceptable-use':
-        template = generateAcceptableUsePolicy(formData);
-        break;
-      default:
-        template = generateTermsAndConditions(formData);
-    }
+    formData.policyTypes.forEach(policyType => {
+      switch(policyType) {
+        case 'privacy':
+          template += generatePrivacyPolicy(formData);
+          break;
+        case 'cookie':
+          template += generateCookiePolicy(formData);
+          break;
+        case 'gdpr':
+          template += generateGDPRStatement(formData);
+          break;
+        case 'hipaa':
+          template += generateHIPAAPolicy(formData);
+          break;
+        case 'acceptable-use':
+          template += generateAcceptableUsePolicy(formData);
+          break;
+        default:
+          template += generateTermsAndConditions(formData);
+      }
+      
+      template += '<hr class="my-8" />';
+    });
     
     setGeneratedTC(template);
+    return template;
   };
 
   const generateTermsAndConditions = (formData: z.infer<typeof formSchema>) => {
@@ -426,31 +440,45 @@ const TermsConditionsGenerator = () => {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="policyType"
+              name="policyTypes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Policy Type *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select policy type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {policyTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Policy Types *</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {policyTypeOptions.map((option) => (
+                      <FormItem
+                        key={option.value}
+                        className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(option.value)}
+                            onCheckedChange={(checked) => {
+                              const currentValue = field.value || [];
+                              const newValue = checked
+                                ? [...currentValue, option.value]
+                                : currentValue.filter((value) => value !== option.value);
+                              field.onChange(newValue);
+                            }}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>{option.label}</FormLabel>
+                          <FormDescription>
+                            Include {option.label.toLowerCase()} in your document
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    ))}
+                  </div>
                   <FormDescription>
-                    Choose the type of legal document you want to generate
+                    Select all the policies you want to include in your document
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="businessName"

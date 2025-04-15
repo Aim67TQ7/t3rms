@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import AuthPrompt from '@/components/AuthPrompt';
+import { SavedTermsList } from '@/components/terms/SavedTermsList';
 
 // Define policy types as a constant to ensure type safety
 const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
@@ -84,7 +85,7 @@ const TermsConditionsGenerator = () => {
   const [generatedTC, setGeneratedTC] = useState<string | null>(null);
   const [previewFormat, setPreviewFormat] = useState("html");
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userId } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -174,7 +175,6 @@ const TermsConditionsGenerator = () => {
       template += '<hr class="my-8" />';
     });
     
-    setGeneratedTC(template);
     return template;
   };
 
@@ -241,7 +241,7 @@ const TermsConditionsGenerator = () => {
       ${formData.website ? `Website: ${formData.website}` : ''}</p>
     `;
     
-    setGeneratedTC(tcTemplate);
+    return tcTemplate;
   };
 
   const generatePrivacyPolicy = (formData: z.infer<typeof formSchema>) => {
@@ -431,6 +431,49 @@ const TermsConditionsGenerator = () => {
       title: "Download Started",
       description: `Your Terms & Conditions have been downloaded in ${format.toUpperCase()} format.`,
     });
+  };
+
+  const handleAnalyze = async () => {
+    if (!generatedTC) {
+      toast({
+        title: "Error",
+        description: "Please fill out the form and generate the document first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = form.getValues();
+      const generatedContent = generateDocument(formData);
+
+      if (isAuthenticated) {
+        // Save the generated terms to the database
+        const { error } = await supabase
+          .from('generated_terms')
+          .insert({
+            user_id: userId,
+            business_name: formData.businessName,
+            policy_types: formData.policyTypes,
+            form_data: formData,
+            generated_content: generatedContent
+          });
+
+        if (error) {
+          throw new Error('Failed to save terms');
+        }
+      }
+
+      setGeneratedTC(generatedContent);
+      setActiveStep(3); // Move to the preview step
+    } catch (error: any) {
+      console.error("Error generating terms:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate terms.",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderStepContent = () => {
@@ -815,179 +858,4 @@ const TermsConditionsGenerator = () => {
               </TabsList>
               <TabsContent value="html" className="mt-4">
                 {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white max-h-[60vh] overflow-auto">
-                    <div dangerouslySetInnerHTML={{ __html: generatedTC }}></div>
-                  </div>
-                ) : (
-                  <div className="border rounded-md p-4 text-center">
-                    No document generated yet
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="text" className="mt-4">
-                {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white font-mono text-sm max-h-[60vh] overflow-auto">
-                    {generatedTC.replace(/<[^>]*>/g, '')}
-                  </div>
-                ) : (
-                  <div className="border rounded-md p-4 text-center">
-                    No document generated yet
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="markdown" className="mt-4">
-                {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white font-mono text-sm max-h-[60vh] overflow-auto">
-                    {generatedTC
-                      .replace(/<h1>(.*?)<\/h1>/g, '# $1')
-                      .replace(/<h2>(.*?)<\/h2>/g, '## $1')
-                      .replace(/<p>(.*?)<\/p>/g, '$1\n\n')
-                      .replace(/<br>/g, '\n')
-                      .replace(/<ul>(.*?)<\/ul>/g, '$1')
-                      .replace(/<li>(.*?)<\/li>/g, '- $1\n')
-                      .replace(/<[^>]*>/g, '')}
-                  </div>
-                ) : (
-                  <div className="border rounded-md p-4 text-center">
-                    No document generated yet
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-            
-            <div className="mt-8">
-              <h3 className="text-lg font-medium mb-2">Analysis & Recommendations</h3>
-              <div className="border rounded-md p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  <p>Your Terms & Conditions include all essential elements required for your platform type.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  <p>Legal jurisdiction and governing law are clearly specified.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  <p>Contact information is complete and properly formatted.</p>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Note: This is a generated template. We recommend having your Terms & Conditions 
-                  reviewed by a legal professional before implementing.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const processCustomRequirements = (requirements: string): string => {
-    const lines = requirements.split('\n').filter(line => line.trim());
-    
-    const processedLines = lines.map(line => {
-      let processed = line.trim()
-        .replace(/^[-*•]/g, '')
-        .trim();
-      
-      if (!processed.endsWith('.')) {
-        processed += '.';
-      }
-      
-      processed = processed
-        .replace(/must pay/gi, "shall be required to remit payment")
-        .replace(/need to/gi, "shall be required to")
-        .replace(/have to/gi, "shall be obligated to")
-        .replace(/(\d+)%/g, "$1 percent")
-        .replace(/payment/gi, "monetary compensation")
-        .replace(/before/gi, "prior to")
-        .replace(/cancel/gi, "terminate")
-        .replace(/refund/gi, "reimbursement");
-      
-      return processed;
-    });
-    
-    return processedLines.join(' ');
-  };
-
-  return (
-    <div className="container mx-auto py-6 px-4 max-w-5xl">
-      <Seo 
-        title="Create Terms & Conditions - T3RMS" 
-        description="Generate custom terms & conditions documents with our AI-powered generator. Create legal documents tailored to your specific business needs."
-      />
-      <h1 className="text-3xl font-bold mb-6">Terms & Conditions Generator</h1>
-      
-      {!isAuthenticated && (
-        <div className="mb-6">
-          <AuthPrompt showDismiss={false} />
-        </div>
-      )}
-      
-      <div className="mb-8">
-        <ol className="flex items-center w-full text-sm font-medium text-center bg-white rounded-lg">
-          {steps.map((step, index) => (
-            <li 
-              key={step.id}
-              className={`flex items-center ${
-                index < steps.length - 1 
-                  ? "after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:mx-4" 
-                  : ""
-              } ${
-                index < activeStep 
-                  ? "text-primary" 
-                  : index === activeStep 
-                  ? "text-primary" 
-                  : "text-gray-500"
-              }`}
-            >
-              <span className={`flex items-center justify-center w-8 h-8 rounded-full lg:h-10 lg:w-10 shrink-0 border ${
-                index < activeStep 
-                  ? "border-primary bg-primary text-white" 
-                  : index === activeStep 
-                  ? "border-primary text-primary" 
-                  : "border-gray-300"
-              }`}>
-                {index < activeStep ? (
-                  <Check className="w-5 h-5" />
-                ) : (
-                  index + 1
-                )}
-              </span>
-              <span className="hidden md:inline-flex md:ml-2">{step.name}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
-      
-      <Form {...form}>
-        <form className="space-y-8">
-          <div className="bg-white p-6 rounded-lg border">
-            {renderStepContent()}
-          </div>
-          
-          <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleBack}
-              disabled={activeStep === 0}
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              onClick={handleNext}
-              disabled={activeStep === steps.length - 1}
-            >
-              {activeStep === steps.length - 2 ? "Generate Document" : "Next"}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
-  );
-};
-
-export default TermsConditionsGenerator;
+                  <div className="border rounded-md p-4 bg-white max-h

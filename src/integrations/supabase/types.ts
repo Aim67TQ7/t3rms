@@ -147,6 +147,36 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_terms: {
+        Row: {
+          business_name: string
+          created_at: string | null
+          form_data: Json
+          generated_content: string
+          id: string
+          policy_types: string[]
+          user_id: string | null
+        }
+        Insert: {
+          business_name: string
+          created_at?: string | null
+          form_data: Json
+          generated_content: string
+          id?: string
+          policy_types: string[]
+          user_id?: string | null
+        }
+        Update: {
+          business_name?: string
+          created_at?: string | null
+          form_data?: Json
+          generated_content?: string
+          id?: string
+          policy_types?: string[]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payment_history: {
         Row: {
           amount: number

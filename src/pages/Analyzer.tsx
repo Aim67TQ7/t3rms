@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -122,8 +123,8 @@ const Analyzer = () => {
     <div className="container mx-auto py-10 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
 
-      <div className="space-y-8">
-        <div className="w-full">
+      <div className="space-y-8 flex flex-col items-center">
+        <div className="w-full md:w-[600px]">
           <DropzoneUploader 
             file={file}
             setFile={setFile}
@@ -134,7 +135,7 @@ const Analyzer = () => {
         </div>
 
         {showAuthPrompt && !isAuthenticated && (
-          <div className="w-full">
+          <div className="w-full md:w-[600px]">
             <AuthPrompt 
               onDismiss={() => setShowAuthPrompt(false)} 
               showDismiss={true}
@@ -143,7 +144,7 @@ const Analyzer = () => {
         )}
 
         {isAuthenticated && (
-          <div className="w-full">
+          <div className="w-full md:w-[600px]">
             <h2 className="text-2xl font-bold mb-6">Analysis History</h2>
             <AnalysisHistory 
               analysisResults={analysisResults}

@@ -33,14 +33,14 @@ export const NavLinks = ({ isAuthenticated }: NavLinksProps) => {
             Analyzer
           </Link>
           <Link
-            to="/embedded-tool"
+            to="/tcgenerator"
             className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/embedded-tool' 
+              location.pathname === '/tcgenerator' 
                 ? 'text-t3rms-charcoal font-medium' 
                 : 'text-gray-600 hover:text-t3rms-charcoal'
             }`}
           >
-            T3rms Tool
+            Create T3RMS
           </Link>
           <Link
             to="/pricing"

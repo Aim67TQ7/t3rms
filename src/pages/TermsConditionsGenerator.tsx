@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/navbar/useAuth";
+import Seo from "@/components/Seo";
 import { 
   Form,
   FormControl,
@@ -29,6 +31,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import AuthPrompt from '@/components/AuthPrompt';
 
+// Define policy types as a constant to ensure type safety
+const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
+// Create a type from the constant array
+type PolicyType = typeof POLICY_TYPES[number];
+
 const formSchema = z.object({
   businessName: z.string().min(2, { message: "Business name is required" }),
   website: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
@@ -46,14 +53,7 @@ const formSchema = z.object({
   includeTermination: z.boolean().default(true),
   includeUserContent: z.boolean().default(false),
   
-  policyTypes: z.array(z.enum([
-    "terms",
-    "privacy",
-    "cookie",
-    "gdpr",
-    "hipaa",
-    "acceptable-use"
-  ])).default([]),
+  policyTypes: z.array(z.enum(POLICY_TYPES)).default([]),
   
   dataRetentionPeriod: z.string().optional(),
   dataCollectionMethods: z.array(z.string()).default([]),
@@ -106,7 +106,7 @@ const TermsConditionsGenerator = () => {
       includeTermination: true,
       includeUserContent: false,
       customRequirements: "",
-      policyTypes: ["terms"],
+      policyTypes: ["terms"] as PolicyType[],
     },
   });
 
@@ -167,6 +167,7 @@ const TermsConditionsGenerator = () => {
         case 'acceptable-use':
           template += generateAcceptableUsePolicy(formData);
           break;
+        case 'terms':
         default:
           template += generateTermsAndConditions(formData);
       }
@@ -913,6 +914,10 @@ const TermsConditionsGenerator = () => {
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl">
+      <Seo 
+        title="Create Terms & Conditions - T3RMS" 
+        description="Generate custom terms & conditions documents with our AI-powered generator. Create legal documents tailored to your specific business needs."
+      />
       <h1 className="text-3xl font-bold mb-6">Terms & Conditions Generator</h1>
       
       {!isAuthenticated && (

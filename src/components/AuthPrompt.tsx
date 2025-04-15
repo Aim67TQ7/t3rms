@@ -5,9 +5,10 @@ import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription }
 interface AuthPromptProps {
   onDismiss?: () => void;
   showDismiss?: boolean;
+  buttonText?: string; // Added buttonText prop
 }
 
-const AuthPrompt = ({ onDismiss, showDismiss = true }: AuthPromptProps) => {
+const AuthPrompt = ({ onDismiss, showDismiss = true, buttonText = "Get Started" }: AuthPromptProps) => {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader>
@@ -31,6 +32,9 @@ const AuthPrompt = ({ onDismiss, showDismiss = true }: AuthPromptProps) => {
             Maybe Later
           </Button>
         )}
+        <Button className="w-full">
+          {buttonText}
+        </Button>
       </CardFooter>
     </Card>
   );

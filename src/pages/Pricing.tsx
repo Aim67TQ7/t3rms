@@ -55,29 +55,6 @@ const Pricing = () => {
               <p className="text-xl text-gray-600">
                 Choose the plan that fits your needs
               </p>
-              
-              <div className="mt-8 inline-flex items-center p-1 bg-gray-100 rounded-full">
-                <button
-                  onClick={() => setBilling('monthly')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    billing === 'monthly' 
-                      ? 'bg-white shadow-sm text-t3rms-charcoal' 
-                      : 'text-gray-500'
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBilling('annual')}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    billing === 'annual' 
-                      ? 'bg-white shadow-sm text-t3rms-charcoal' 
-                      : 'text-gray-500'
-                  }`}
-                >
-                  Annual <Badge variant="outline" className="ml-1 bg-t3rms-blue/10 text-t3rms-blue border-none">Save 20%</Badge>
-                </button>
-              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -96,7 +73,7 @@ const Pricing = () => {
                   </CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold text-t3rms-charcoal">$0</span>
-                    <span className="text-gray-500 ml-2">/ month</span>
+                    <span className="text-gray-500 ml-2">/ forever</span>
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -105,7 +82,7 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">3 document analyses/month</span>
+                      <span className="text-gray-600">3 free analyses</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
@@ -149,19 +126,18 @@ const Pricing = () => {
                 <CardHeader className="pb-8">
                   <div className="mb-2">
                     <Badge className="bg-t3rms-blue text-white hover:bg-t3rms-blue/90 border-none">
-                      Pro Tier
+                      Single Document
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
-                    Professional
+                    Document Finalization
                   </CardTitle>
                   <CardDescription className="text-gray-500">
-                    For individuals and small teams
+                    For one-time document creation
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-t3rms-charcoal">
-                      Coming Soon
-                    </span>
+                    <span className="text-4xl font-bold text-t3rms-charcoal">$4.99</span>
+                    <span className="text-gray-500 ml-2">/ document</span>
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -170,7 +146,7 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">100 document analyses/month</span>
+                      <span className="text-gray-600">Single document finalization</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
@@ -188,13 +164,13 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">30-day document history</span>
+                      <span className="text-gray-600">Downloadable PDFs</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Downloadable PDFs</span>
+                      <span className="text-gray-600">30-day document access</span>
                     </div>
                   </div>
                 </CardContent>
@@ -209,18 +185,18 @@ const Pricing = () => {
                 <CardHeader className="pb-8">
                   <div className="mb-2">
                     <Badge variant="outline" className="bg-gray-900 text-white border-none">
-                      Enterprise
+                      Credit Bundle
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
-                    Enterprise
+                    Credit Pack
                   </CardTitle>
                   <CardDescription className="text-gray-500">
-                    For organizations with advanced needs
+                    For regular document analysis and creation
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-t3rms-charcoal">Custom</span>
-                    <span className="text-gray-500 block mt-1">Contact for pricing</span>
+                    <span className="text-4xl font-bold text-t3rms-charcoal">$9.99</span>
+                    <span className="text-gray-500 block mt-1">50 credits</span>
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -229,40 +205,38 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Unlimited document analyses</span>
+                      <span className="text-gray-600">50 analysis or document creations</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Custom AI training</span>
+                      <span className="text-gray-600">Advanced document options</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">API access</span>
+                      <span className="text-gray-600">60-day document history</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Unlimited document history</span>
+                      <span className="text-gray-600">Unlimited downloads</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Unlimited team members</span>
+                      <span className="text-gray-600">Priority support</span>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Link to="/contact" className="w-full">
-                    <Button variant="outline" className="w-full">
-                      Contact Sales <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+                  <Button disabled className="w-full bg-gray-900/50 cursor-not-allowed">
+                    Coming Soon <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </CardFooter>
               </Card>
             </div>
@@ -275,13 +249,13 @@ const Pricing = () => {
                       Features
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
-                      Free
+                      Basic
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
-                      Pro
+                      Document Finalization
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
-                      Enterprise
+                      Credit Pack
                     </th>
                   </tr>
                 </thead>
@@ -326,28 +300,29 @@ const Pricing = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    Can I upgrade or downgrade my plan later?
+                    How do the credits work?
                   </h3>
                   <p className="text-gray-600">
-                    Yes, you can upgrade, downgrade, or cancel your subscription at any time. If you downgrade, your new plan will take effect at the end of your current billing cycle.
+                    Each credit can be used for either analyzing a document or finalizing a terms and conditions document. 
+                    Credits never expire, so you can use them whenever you need to.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    What happens if I exceed my document analysis limit?
+                    What happens when I use all my free analyses?
                   </h3>
                   <p className="text-gray-600">
-                    Free users who exceed their limit can provide feedback to receive additional analyses or upgrade to our Pro plan. Pro users who exceed their limit will be notified, and any additional analyses will be counted toward the next billing cycle.
+                    Once you've used your 3 free analyses, you can purchase a single document finalization for $4.99 or buy a credit pack of 50 uses for $9.99, depending on your needs.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    How does team sharing work?
+                    Can I use credits for both analysis and document creation?
                   </h3>
                   <p className="text-gray-600">
-                    Enterprise users can add unlimited team members to their workspace with customizable permission levels.
+                    Yes, credits are flexible and can be used for either analyzing existing documents or creating new terms and conditions.
                   </p>
                 </div>
                 

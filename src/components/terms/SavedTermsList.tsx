@@ -81,8 +81,8 @@ export function SavedTermsList() {
                 </Button>
               </TableCell>
             </TableRow>
-          </TableBody>
-        </Table>
+          ))}
+        </TableBody>
       </Table>
     </div>
   );

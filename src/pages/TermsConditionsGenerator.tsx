@@ -30,6 +30,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import AuthPrompt from '@/components/AuthPrompt';
 import { SavedTermsList } from '@/components/terms/SavedTermsList';
+import { supabase } from "@/integrations/supabase/client";
 
 // Define policy types as a constant to ensure type safety
 const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
@@ -79,6 +80,12 @@ const platformOptions = [
   { value: "ecommerce", label: "E-Commerce Platform" },
   { value: "saas", label: "SaaS Platform" },
 ];
+
+// Function to process custom requirements (needed by generateTermsAndConditions)
+const processCustomRequirements = (requirements: string) => {
+  // Simple processing - in a real app, this might use NLP or other advanced processing
+  return requirements.replace(/\n/g, '<br>');
+};
 
 const TermsConditionsGenerator = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -137,7 +144,7 @@ const TermsConditionsGenerator = () => {
     
     if (activeStep === 2) {
       const formValues = form.getValues();
-      generateDocument(formValues);
+      handleAnalyze();
     }
     
     setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -435,44 +442,37 @@ const TermsConditionsGenerator = () => {
 
   const handleAnalyze = async () => {
     if (!generatedTC) {
-      toast({
-        title: "Error",
-        description: "Please fill out the form and generate the document first.",
-        variant: "destructive",
-      });
-      return;
-    }
+      try {
+        const formData = form.getValues();
+        const generatedContent = generateDocument(formData);
 
-    try {
-      const formData = form.getValues();
-      const generatedContent = generateDocument(formData);
+        if (isAuthenticated) {
+          // Save the generated terms to the database
+          const { error } = await supabase
+            .from('generated_terms')
+            .insert({
+              user_id: userId,
+              business_name: formData.businessName,
+              policy_types: formData.policyTypes,
+              form_data: formData,
+              generated_content: generatedContent
+            });
 
-      if (isAuthenticated) {
-        // Save the generated terms to the database
-        const { error } = await supabase
-          .from('generated_terms')
-          .insert({
-            user_id: userId,
-            business_name: formData.businessName,
-            policy_types: formData.policyTypes,
-            form_data: formData,
-            generated_content: generatedContent
-          });
-
-        if (error) {
-          throw new Error('Failed to save terms');
+          if (error) {
+            throw new Error('Failed to save terms');
+          }
         }
-      }
 
-      setGeneratedTC(generatedContent);
-      setActiveStep(3); // Move to the preview step
-    } catch (error: any) {
-      console.error("Error generating terms:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate terms.",
-        variant: "destructive",
-      });
+        setGeneratedTC(generatedContent);
+        setActiveStep(3); // Move to the preview step
+      } catch (error: any) {
+        console.error("Error generating terms:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to generate terms.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -856,6 +856,4 @@ const TermsConditionsGenerator = () => {
                 <TabsTrigger value="text">Plain Text</TabsTrigger>
                 <TabsTrigger value="markdown">Markdown</TabsTrigger>
               </TabsList>
-              <TabsContent value="html" className="mt-4">
-                {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white max-h
+              <TabsContent value="html

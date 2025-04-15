@@ -57,45 +57,117 @@ const AnalysisRow = ({ result, isExpanded, onToggle }: AnalysisRowProps) => {
       let y = 85;
       let currentSection = '';
       
+      // Process each line of the content
       content.forEach(line => {
         if (y > 270) {
           doc.addPage();
           y = 20;
         }
         
+        // Clean special characters that might appear in the output
+        line = line.replace(/Ø=ßá|[^\x00-\x7F]/g, '');
+        
         doc.setFontSize(9);
         
-        // Check if line is a section header
-        if (line.includes('Findings:') || line.includes('Terms:')) {
-          if (line.includes('Findings:')) {
+        // Check if line indicates a section or finding
+        if (line.includes('Findings:') || line.includes('Terms:') || 
+            /^\d+\.\s/.test(line) || // Numbered items
+            line.includes('Critical Points') || 
+            line.includes('Financial Risks') || 
+            line.includes('Unusual Language') ||
+            line.includes('Recommendations')) {
+          
+          // Handle section headers
+          if (line.includes('Critical Points') || 
+              line.includes('Financial Risks') || 
+              line.includes('Unusual Language') ||
+              line.includes('Recommendations')) {
             doc.setFont(undefined, 'bold');
-            currentSection = line.substring(0, line.indexOf('Findings:')).trim();
-            doc.text(`[${currentSection}]`, 20, y);
+            doc.text(line, 20, y);
+            y += 7;
+            doc.setFont(undefined, 'normal');
+            return;
+          }
+          
+          // Handle numbered items (like "1. High Risk Term")
+          if (/^\d+\.\s/.test(line)) {
+            doc.setFont(undefined, 'bold');
+            doc.text(line, 20, y);
             y += 5;
             doc.setFont(undefined, 'normal');
-            line = line.substring(line.indexOf('Findings:'));
+            return;
           }
-          doc.setFont(undefined, 'normal');
-          doc.text(line, 25, y);
-          y += 5;
-        } else {
-          // Regular content
-          const words = line.split(' ');
-          let currentLine = '';
           
-          words.forEach(word => {
-            if ((currentLine + ' ' + word).length > 90) {
-              doc.text(currentLine, 25, y);
+          // Handle finding lines
+          if (line.includes('Findings:')) {
+            if (line.indexOf('Findings:') > 0) {
+              currentSection = line.substring(0, line.indexOf('Findings:')).trim();
+              doc.setFont(undefined, 'bold');
+              doc.text(`[${currentSection}]`, 20, y);
               y += 5;
-              currentLine = word;
-            } else {
-              currentLine += (currentLine ? ' ' : '') + word;
+              doc.setFont(undefined, 'normal');
+              line = line.substring(line.indexOf('Findings:'));
             }
-          });
-          
-          if (currentLine) {
-            doc.text(currentLine, 25, y);
+            doc.text(line, 25, y);
             y += 5;
+          } else {
+            doc.text(line, 25, y);
+            y += 5;
+          }
+        } else if (line.includes('Location:') || line.includes('Excerpt:')) {
+          // Handle location and excerpt lines
+          if (line.includes('Location:')) {
+            doc.setFont(undefined, 'italic');
+            doc.text(line, 25, y);
+            y += 5;
+            doc.setFont(undefined, 'normal');
+          } else if (line.includes('Excerpt:')) {
+            // Just the "Excerpt:" label
+            doc.setFont(undefined, 'italic');
+            doc.text('Excerpt:', 25, y);
+            y += 5;
+            doc.setFont(undefined, 'normal');
+          }
+        } else if (line.startsWith('```') || line.endsWith('```')) {
+          // Skip markdown code block markers
+          return;
+        } else {
+          // Regular content - wrap long lines appropriately
+          const maxCharsPerLine = 85;
+          
+          // If inside a code block (excerpt), use a different formatting
+          if (currentSection === 'Excerpt' || line.startsWith('    ')) {
+            doc.setFontSize(8);
+            
+            // Format with smaller indentation for code blocks
+            if (line.length > maxCharsPerLine) {
+              let remainingText = line.trim();
+              while (remainingText.length > 0) {
+                const chunk = remainingText.substring(0, maxCharsPerLine);
+                remainingText = remainingText.substring(maxCharsPerLine);
+                doc.text(chunk, 30, y);
+                y += 4; // Smaller line spacing for excerpts
+              }
+            } else {
+              doc.text(line.trim(), 30, y);
+              y += 4;
+            }
+            doc.setFontSize(9);
+          } else {
+            // Normal paragraph text
+            if (line.length > maxCharsPerLine) {
+              // Split long lines
+              let remainingText = line;
+              while (remainingText.length > 0) {
+                const chunk = remainingText.substring(0, maxCharsPerLine);
+                remainingText = remainingText.substring(maxCharsPerLine);
+                doc.text(chunk, 25, y);
+                y += 5;
+              }
+            } else {
+              doc.text(line, 25, y);
+              y += 5;
+            }
           }
         }
       });

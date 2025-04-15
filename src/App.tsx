@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,15 @@ import FeedbackPrompt from "@/components/FeedbackPrompt";
 import { useExitFeedback } from "@/hooks/use-exit-feedback";
 import Seo from "@/components/Seo";
 import Navbar from "@/components/Navbar";
+
+// Import page components
+import Index from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import Analyzer from "@/pages/Analyzer";
+import Pricing from "@/pages/Pricing";
+import EmbeddedTool from "@/pages/EmbeddedTool";
+import TermsConditionsGenerator from "@/pages/TermsConditionsGenerator";
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 

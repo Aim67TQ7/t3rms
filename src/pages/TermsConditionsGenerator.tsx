@@ -68,6 +68,13 @@ const policyTypeOptions = [
   { value: "acceptable-use", label: "Acceptable Use Policy" },
 ];
 
+const platformOptions = [
+  { value: "website", label: "Website" },
+  { value: "mobile-app", label: "Mobile App" },
+  { value: "ecommerce", label: "E-Commerce Platform" },
+  { value: "saas", label: "SaaS Platform" },
+];
+
 const TermsConditionsGenerator = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [generatedTC, setGeneratedTC] = useState<string | null>(null);
@@ -202,7 +209,7 @@ const TermsConditionsGenerator = () => {
       ${formData.includeDisputeResolution ? `
       <h2>5. DISPUTE RESOLUTION</h2>
       <p>Any legal action of whatever nature brought by either you or us shall be commenced or prosecuted in the courts located in ${formData.jurisdiction}, and you and we hereby consent to, and waive all defenses of lack of personal jurisdiction and forum non conveniens with respect to venue and jurisdiction in such courts.</p>
-      <p>These Terms and Conditions and your use of the ${getReadablePlatformType(formData.platformType)} are governed by and construed in accordance with the laws of ${formData.jurisdiction}.</p>
+      <p>These Terms and Conditions and your use of the ${getReadablePlatformType(formData.platformType).toUpperCase()} are governed by and construed in accordance with the laws of ${formData.jurisdiction}.</p>
       ` : ''}
       
       ${formData.includeLimitations ? `

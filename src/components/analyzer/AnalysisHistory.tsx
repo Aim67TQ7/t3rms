@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Table,
@@ -51,9 +52,9 @@ const AnalysisHistory = ({ analysisResults, isLoading }: AnalysisHistoryProps) =
         <TableHeader>
           <TableRow>
             <TableHead className="w-[48px]"></TableHead>
-            <TableHead className="w-[180px]">Date</TableHead>
-            <TableHead>Filename</TableHead>
-            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="w-[180px] text-left">Date</TableHead>
+            <TableHead className="text-left">Filename</TableHead>
+            <TableHead className="w-[120px] text-left">Status</TableHead>
             <TableHead className="w-[80px] text-right">Score</TableHead>
           </TableRow>
         </TableHeader>

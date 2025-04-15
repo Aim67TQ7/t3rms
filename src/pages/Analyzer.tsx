@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/navbar/useAuth";
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +13,8 @@ import {
   hasReachedAnonymousLimit, 
   incrementAnonymousAnalysisCount 
 } from '@/utils/anonymousUsage';
+import { Button } from "@/components/ui/button";
+import { FileText, Plus } from 'lucide-react';
 
 const Analyzer = () => {
   const [text, setText] = useState('');
@@ -121,10 +123,20 @@ const Analyzer = () => {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      <h1 className="text-3xl font-bold mb-6">Text Analyzer</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Text Analyzer</h1>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/tcgenerator")}
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Create Terms & Conditions
+        </Button>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-2">
           <DropzoneUploader 
             file={file}
             setFile={setFile}
@@ -144,7 +156,7 @@ const Analyzer = () => {
         </div>
 
         {isAuthenticated && (
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-10">
             <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
             <AnalysisHistory 
               analysisResults={analysisResults}

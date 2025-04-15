@@ -16,6 +16,7 @@ import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import EmbeddedTool from "./pages/EmbeddedTool";
+import TermsConditionsGenerator from "./pages/TermsConditionsGenerator";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const AppContent = () => {
             <Route path="/analyzer" element={<Analyzer />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/embedded-tool" element={<EmbeddedTool />} />
+            <Route path="/tcgenerator" element={<TermsConditionsGenerator />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

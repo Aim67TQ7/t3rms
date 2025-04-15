@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -47,13 +46,26 @@ const formSchema = z.object({
   includeProhibitedActivities: z.boolean().default(true),
   includeTermination: z.boolean().default(true),
   includeUserContent: z.boolean().default(false),
+  
+  // New policy type selection
+  policyType: z.enum(["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"]),
+  
+  // Additional fields for different policies
+  dataRetentionPeriod: z.string().optional(),
+  dataCollectionMethods: z.array(z.string()).default([]),
+  thirdPartyServices: z.array(z.string()).default([]),
+  cookieTypes: z.array(z.string()).default([]),
+  medicalDataHandling: z.boolean().default(false),
+  securityMeasures: z.array(z.string()).default([]),
 });
 
-const platformOptions = [
-  { value: "website", label: "Website" },
-  { value: "mobile-app", label: "Mobile App" },
-  { value: "ecommerce", label: "E-commerce Site" },
-  { value: "saas", label: "SaaS Product" },
+const policyTypeOptions = [
+  { value: "terms", label: "Terms & Conditions" },
+  { value: "privacy", label: "Privacy Policy" },
+  { value: "cookie", label: "Cookie Policy" },
+  { value: "gdpr", label: "GDPR Compliance Statement" },
+  { value: "hipaa", label: "HIPAA Compliance Policy" },
+  { value: "acceptable-use", label: "Acceptable Use Policy" },
 ];
 
 const TermsConditionsGenerator = () => {
@@ -113,7 +125,7 @@ const TermsConditionsGenerator = () => {
     if (activeStep === 2) {
       // Generate T&C document
       const formValues = form.getValues();
-      generateTermsAndConditions(formValues);
+      generateDocument(formValues);
     }
     
     setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -121,6 +133,32 @@ const TermsConditionsGenerator = () => {
 
   const handleBack = () => {
     setActiveStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const generateDocument = (formData: z.infer<typeof formSchema>) => {
+    let template = '';
+    
+    switch(formData.policyType) {
+      case 'privacy':
+        template = generatePrivacyPolicy(formData);
+        break;
+      case 'cookie':
+        template = generateCookiePolicy(formData);
+        break;
+      case 'gdpr':
+        template = generateGDPRStatement(formData);
+        break;
+      case 'hipaa':
+        template = generateHIPAAPolicy(formData);
+        break;
+      case 'acceptable-use':
+        template = generateAcceptableUsePolicy(formData);
+        break;
+      default:
+        template = generateTermsAndConditions(formData);
+    }
+    
+    setGeneratedTC(template);
   };
 
   const generateTermsAndConditions = (formData: z.infer<typeof formSchema>) => {
@@ -183,6 +221,162 @@ const TermsConditionsGenerator = () => {
     setGeneratedTC(tcTemplate);
   };
 
+  const generatePrivacyPolicy = (formData: z.infer<typeof formSchema>) => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    return `
+      <h1>PRIVACY POLICY</h1>
+      <p>Last updated: ${currentDate}</p>
+      
+      <h2>1. INTRODUCTION</h2>
+      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
+      
+      <h2>2. DATA WE COLLECT</h2>
+      <p>We collect and process the following types of personal data:</p>
+      <ul>
+        <li>Contact information (name, email, phone number)</li>
+        <li>Usage data</li>
+        <li>Device information</li>
+      </ul>
+      
+      <h2>3. CONTACT US</h2>
+      <p>For privacy-related inquiries, please contact us at:</p>
+      <p>${formData.businessName}<br>
+      Email: ${formData.email}<br>
+      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
+      ${formData.website ? `Website: ${formData.website}` : ''}</p>
+    `;
+  };
+
+  const generateCookiePolicy = (formData: z.infer<typeof formSchema>) => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    return `
+      <h1>COOKIE POLICY</h1>
+      <p>Last updated: ${currentDate}</p>
+      
+      <h2>1. INTRODUCTION</h2>
+      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
+      
+      <h2>2. WHAT ARE COOKIES</h2>
+      <p>Cookies are small text files that are stored on your device when you visit a website. They are widely used to remember user preferences, to provide personalized content, and to track user behavior.</p>
+      
+      <h2>3. HOW WE USE COOKIES</h2>
+      <p>We use cookies to:</p>
+      <ul>
+        <li>Remember your preferences</li>
+        <li>Provide personalized content</li>
+        <li>Track user behavior</li>
+      </ul>
+      
+      <h2>4. TYPES OF COOKIES WE USE</h2>
+      <p>We use the following types of cookies:</p>
+      <ul>
+        <li>Strictly necessary cookies</li>
+        <li>Performance cookies</li>
+        <li>Functionality cookies</li>
+        <li>Targeting cookies</li>
+      </ul>
+      
+      <h2>5. HOW TO MANAGE COOKIES</h2>
+      <p>You can manage your cookie preferences by adjusting your browser settings. Most browsers allow you to block cookies or to delete cookies that have already been set.</p>
+      
+      <h2>6. CONTACT US</h2>
+      <p>For privacy-related inquiries, please contact us at:</p>
+      <p>${formData.businessName}<br>
+      Email: ${formData.email}<br>
+      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
+      ${formData.website ? `Website: ${formData.website}` : ''}</p>
+    `;
+  };
+
+  const generateGDPRStatement = (formData: z.infer<typeof formSchema>) => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    return `
+      <h1>GDPR COMPLIANCE STATEMENT</h1>
+      <p>Last updated: ${currentDate}</p>
+      
+      <h2>1. INTRODUCTION</h2>
+      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
+      
+      <h2>2. WHAT IS GDPR</h2>
+      <p>The General Data Protection Regulation (GDPR) is a set of rules that govern the collection, use, and protection of personal data in the European Union.</p>
+      
+      <h2>3. HOW WE COMPLY WITH GDPR</h2>
+      <p>We comply with GDPR by:</p>
+      <ul>
+        <li>Obtaining consent from users</li>
+        <li>Ensuring the accuracy of personal data</li>
+        <li>Providing users with access to their personal data</li>
+        <li>Notifying users of data breaches</li>
+      </ul>
+      
+      <h2>4. CONTACT US</h2>
+      <p>For privacy-related inquiries, please contact us at:</p>
+      <p>${formData.businessName}<br>
+      Email: ${formData.email}<br>
+      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
+      ${formData.website ? `Website: ${formData.website}` : ''}</p>
+    `;
+  };
+
+  const generateHIPAAPolicy = (formData: z.infer<typeof formSchema>) => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    return `
+      <h1>HIPAA COMPLIANCE POLICY</h1>
+      <p>Last updated: ${currentDate}</p>
+      
+      <h2>1. INTRODUCTION</h2>
+      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
+      
+      <h2>2. WHAT IS HIPAA</h2>
+      <p>The Health Insurance Portability and Accountability Act (HIPAA) is a set of rules that govern the collection, use, and protection of personal health information in the United States.</p>
+      
+      <h2>3. HOW WE COMPLY WITH HIPAA</h2>
+      <p>We comply with HIPAA by:</p>
+      <ul>
+        <li>Obtaining consent from users</li>
+        <li>Ensuring the accuracy of personal data</li>
+        <li>Providing users with access to their personal data</li>
+        <li>Notifying users of data breaches</li>
+      </ul>
+      
+      <h2>4. CONTACT US</h2>
+      <p>For privacy-related inquiries, please contact us at:</p>
+      <p>${formData.businessName}<br>
+      Email: ${formData.email}<br>
+      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
+      ${formData.website ? `Website: ${formData.website}` : ''}</p>
+    `;
+  };
+
+  const generateAcceptableUsePolicy = (formData: z.infer<typeof formSchema>) => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    return `
+      <h1>ACCEPTABLE USE POLICY</h1>
+      <p>Last updated: ${currentDate}</p>
+      
+      <h2>1. INTRODUCTION</h2>
+      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
+      
+      <h2>2. WHAT IS ACCEPTABLE USE</h2>
+      <p>Acceptable use is the use of our ${getReadablePlatformType(formData.platformType)} in a manner that is consistent with our policies and laws.</p>
+      
+      <h2>3. WHAT IS NOT ACCEPTABLE USE</h2>
+      <p>Not acceptable use includes:</p>
+      <ul>
+        <li>Using our ${getReadablePlatformType(formData.platformType)} for illegal activities</li>
+        <li>Using our ${getReadablePlatformType(formData.platformType)} to harm others</li>
+        <li>Using our ${getReadablePlatformType(formData.platformType)} to violate our policies</li>
+      </ul>
+      
+      <h2>4. CONTACT US</h2>
+      <p>For privacy-related inquiries, please contact us at:</p>
+      <p>${formData.businessName}<br>
+      Email: ${formData.email}<br>
+      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
+      ${formData.website ? `Website: ${formData.website}` : ''}</p>
+    `;
+  };
+
   const getReadablePlatformType = (type: string) => {
     switch (type) {
       case 'website': return 'website';
@@ -224,6 +418,33 @@ const TermsConditionsGenerator = () => {
       case 0:
         return (
           <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="policyType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Policy Type *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select policy type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {policyTypeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Choose the type of legal document you want to generate
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="businessName"

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,15 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import FeedbackPrompt from "@/components/FeedbackPrompt";
 import { useExitFeedback } from "@/hooks/use-exit-feedback";
 import Seo from "@/components/Seo";
-
-// Import page components 
-import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-import Analyzer from "@/pages/Analyzer";
-import Pricing from "@/pages/Pricing";
-import EmbeddedTool from "@/pages/EmbeddedTool";
-import TermsConditionsGenerator from "@/pages/TermsConditionsGenerator";
-import NotFound from "@/pages/NotFound";
+import Navbar from "@/components/Navbar";
 
 const queryClient = new QueryClient();
 
@@ -50,15 +41,18 @@ const AppContent = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<><Seo /><Index /></>} />
-            <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
-            <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} />
-            <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
-            <Route path="/embedded-tool" element={<><Seo title="Embedded Analysis Tool - T3RMS" /><EmbeddedTool /></>} />
-            <Route path="/tcgenerator" element={<><Seo title="Terms & Conditions Generator - T3RMS" description="Generate compliant terms & conditions documents" /><TermsConditionsGenerator /></>} />
-            <Route path="*" element={<><Seo title="404 - Page Not Found" /><NotFound /></>} />
-          </Routes>
+          <Navbar />
+          <div className="pt-24">
+            <Routes>
+              <Route path="/" element={<><Seo /><Index /></>} />
+              <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
+              <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} />
+              <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
+              <Route path="/embedded-tool" element={<><Seo title="Embedded Analysis Tool - T3RMS" /><EmbeddedTool /></>} />
+              <Route path="/tcgenerator" element={<><Seo title="Terms & Conditions Generator - T3RMS" description="Generate compliant terms & conditions documents" /><TermsConditionsGenerator /></>} />
+              <Route path="*" element={<><Seo title="404 - Page Not Found" /><NotFound /></>} />
+            </Routes>
+          </div>
         </BrowserRouter>
       </TooltipProvider>
       

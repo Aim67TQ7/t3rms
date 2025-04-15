@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -65,12 +64,12 @@ const formSchema = z.object({
 });
 
 const policyTypeOptions = [
-  { value: "terms", label: "Terms & Conditions" },
-  { value: "privacy", label: "Privacy Policy" },
-  { value: "cookie", label: "Cookie Policy" },
-  { value: "gdpr", label: "GDPR Compliance Statement" },
-  { value: "hipaa", label: "HIPAA Compliance Policy" },
-  { value: "acceptable-use", label: "Acceptable Use Policy" },
+  { value: "terms" as PolicyType, label: "Terms & Conditions" },
+  { value: "privacy" as PolicyType, label: "Privacy Policy" },
+  { value: "cookie" as PolicyType, label: "Cookie Policy" },
+  { value: "gdpr" as PolicyType, label: "GDPR Compliance Statement" },
+  { value: "hipaa" as PolicyType, label: "HIPAA Compliance Policy" },
+  { value: "acceptable-use" as PolicyType, label: "Acceptable Use Policy" },
 ];
 
 const platformOptions = [
@@ -151,7 +150,7 @@ const TermsConditionsGenerator = () => {
     let template = '';
     
     formData.policyTypes.forEach(policyType => {
-      switch(policyType) {
+      switch(policyType as PolicyType) {
         case 'privacy':
           template += generatePrivacyPolicy(formData);
           break;

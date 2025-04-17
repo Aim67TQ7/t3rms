@@ -19,10 +19,10 @@ export const processCustomRequirements = (requirements: string): string => {
   return processedContent;
 };
 
-type PolicyType = 'terms' | 'privacy' | 'cookie' | 'gdpr' | 'hipaa' | 'acceptable-use';
+export type PolicyType = 'terms' | 'privacy' | 'cookie' | 'gdpr' | 'hipaa' | 'acceptable-use';
 
 // Define interface for form data
-interface FormData {
+export interface FormData {
   businessName: string;
   website?: string;
   email: string;
@@ -57,8 +57,39 @@ export const getReadablePlatformType = (type: string): string => {
   }
 };
 
+// Generate a document based on form data
+export const generateDocument = (formData: FormData): string => {
+  let template = '';
+  
+  formData.policyTypes.forEach(policyType => {
+    switch(policyType) {
+      case 'privacy':
+        template += generatePrivacyPolicy(formData);
+        break;
+      case 'cookie':
+        template += generateCookiePolicy(formData);
+        break;
+      case 'gdpr':
+        template += generateGDPRStatement(formData);
+        break;
+      case 'hipaa':
+        template += generateHIPAAPolicy(formData);
+        break;
+      case 'acceptable-use':
+        template += generateAcceptableUsePolicy(formData);
+        break;
+      case 'terms':
+      default:
+        template += generateTermsAndConditions(formData);
+    }
+    
+    template += '<hr class="my-8" />';
+  });
+  
+  return template;
+};
+
 export const generateTermsAndConditions = (formData: FormData): string => {
-  const currentDate = new Date().toISOString().split('T')[0];
   const legalClauses = generateExtendedLegalClauses();
   
   // Process custom requirements with legal enhancement
@@ -182,7 +213,6 @@ export const generateTermsAndConditions = (formData: FormData): string => {
 };
 
 export const generatePrivacyPolicy = (formData: FormData): string => {
-  const currentDate = new Date().toISOString().split('T')[0];
   const legalClauses = generateExtendedLegalClauses();
   
   const policy = `
@@ -274,9 +304,7 @@ export const generatePrivacyPolicy = (formData: FormData): string => {
   return wrapInVerbosePreamble(formData.businessName, policy);
 };
 
-// Additional generator functions for other policy types (cookie, gdpr, hipaa, acceptable-use)
 export const generateCookiePolicy = (formData: FormData): string => {
-  // Implementation similar to other generators
   return wrapInVerbosePreamble(formData.businessName, `
     <h2>1. INTRODUCTION</h2>
     <p>This Cookie Policy explains how ${formData.businessName} ("we", "us", or "our") uses cookies and similar technologies to recognize and track your usage of our ${getReadablePlatformType(formData.platformType)}. It explains what these technologies are and why we use them, as well as your rights to control our use of them.</p>
@@ -316,13 +344,52 @@ export const generateCookiePolicy = (formData: FormData): string => {
   `);
 };
 
-// Export all generator functions
-export { 
-  generateDocument,
-  generateTermsAndConditions,
-  generatePrivacyPolicy,
-  generateCookiePolicy,
-  generateGDPRStatement,
-  generateHIPAAPolicy,
-  generateAcceptableUsePolicy 
-} from '../pages/TermsConditionsGenerator';
+// Placeholder implementations for other policy types
+export const generateGDPRStatement = (formData: FormData): string => {
+  return wrapInVerbosePreamble(formData.businessName, `
+    <h2>GDPR COMPLIANCE STATEMENT</h2>
+    <p>This GDPR Compliance Statement (this "Statement") describes how ${formData.businessName} ("we", "us", or "our") processes personal data in compliance with the European Union's General Data Protection Regulation ("GDPR"). This Statement applies to all personal data we process regardless of the media on which that data is stored.</p>
+    
+    <h2>1. DATA CONTROLLER</h2>
+    <p>${formData.businessName} is the data controller for the personal data we process, and can be contacted at:</p>
+    <p>Email: ${formData.email}<br>
+    ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
+    ${formData.website ? `Website: ${formData.website}` : ''}</p>
+    
+    <h2>2. LEGAL BASIS FOR PROCESSING</h2>
+    <p>We process personal data only on a lawful basis under Article 6 of the GDPR. Our primary basis for processing is consent, but we may also process data based on contractual necessity, legal obligation, vital interests, public interest, or legitimate interests as appropriate.</p>
+    
+    ${generateLegalDisclaimers('gdpr')}
+  `);
+};
+
+export const generateHIPAAPolicy = (formData: FormData): string => {
+  return wrapInVerbosePreamble(formData.businessName, `
+    <h2>HIPAA COMPLIANCE POLICY</h2>
+    <p>This HIPAA Compliance Policy (this "Policy") describes how ${formData.businessName} ("we", "us", or "our") handles protected health information ("PHI") in compliance with the Health Insurance Portability and Accountability Act of 1996 and its implementing regulations ("HIPAA").</p>
+    
+    <h2>1. SAFEGUARDS</h2>
+    <p>We employ appropriate administrative, technical, and physical safeguards to protect the privacy of PHI.</p>
+    
+    ${generateLegalDisclaimers('hipaa')}
+  `);
+};
+
+export const generateAcceptableUsePolicy = (formData: FormData): string => {
+  return wrapInVerbosePreamble(formData.businessName, `
+    <h2>ACCEPTABLE USE POLICY</h2>
+    <p>This Acceptable Use Policy (this "Policy") describes prohibited uses of the services offered by ${formData.businessName} ("we", "us", or "our") and the ${getReadablePlatformType(formData.platformType)} (the "Service"). By using the Service, you agree to comply with this Policy.</p>
+    
+    <h2>1. PROHIBITED ACTIVITIES</h2>
+    <p>You agree not to engage in any of the following prohibited activities when using the Service:</p>
+    <ol type="a">
+      <li>Violating any applicable laws, regulations, or third-party rights.</li>
+      <li>Distributing malware or engaging in hacking activities.</li>
+      <li>Sending unsolicited communications or spam.</li>
+      <li>Storing, distributing, or transmitting material that is obscene, harmful to minors, or otherwise objectionable.</li>
+      <li>Interfering with the proper functioning of the Service.</li>
+    </ol>
+    
+    ${generateLegalDisclaimers('acceptable-use')}
+  `);
+};

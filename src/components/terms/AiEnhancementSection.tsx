@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { convertToLegalClause } from '@/utils/legalLanguageGenerator';
+import { Loader2 } from "lucide-react";
 
 interface AiEnhancementSectionProps {
   onAddToDocument: (enhancedText: string) => void;
@@ -68,7 +69,14 @@ const AiEnhancementSection = ({ onAddToDocument }: AiEnhancementSectionProps) =>
           onClick={handleEnhanceText}
           disabled={!userInput.trim() || isProcessing}
         >
-          {isProcessing ? "Enhancing..." : "Convert to Legal Language"}
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Enhancing...
+            </>
+          ) : (
+            "Convert to Legal Language"
+          )}
         </Button>
       </div>
       

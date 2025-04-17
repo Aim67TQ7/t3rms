@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Download, Check } from "lucide-react";
+import { FileText, Download, Check, AlertCircle } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -39,6 +39,8 @@ import {
   PolicyType,
   generateDocument 
 } from '@/utils/termsGenerator';
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Define policy types as a constant to ensure type safety
 const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
@@ -69,6 +71,7 @@ const formSchema = z.object({
   medicalDataHandling: z.boolean().default(false),
   securityMeasures: z.array(z.string()).default([]),
   customRequirements: z.string().optional(),
+  specialConditions: z.string().optional(),
 });
 
 // Ensure the form schema matches our FormData interface
@@ -94,6 +97,12 @@ const TermsConditionsGenerator = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [generatedTC, setGeneratedTC] = useState<string | null>(null);
   const [aiEnhancedText, setAiEnhancedText] = useState<string[]>([]);
+  const [generatedPolicies, setGeneratedPolicies] = useState<Record<string, string>>({});
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentPolicyIndex, setCurrentPolicyIndex] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
   const navigate = useNavigate();
@@ -116,6 +125,7 @@ const TermsConditionsGenerator = () => {
       includeTermination: true,
       includeUserContent: false,
       customRequirements: "",
+      specialConditions: "",
       policyTypes: ["terms"] as PolicyType[],
     },
   });
@@ -124,8 +134,9 @@ const TermsConditionsGenerator = () => {
     { id: 0, name: "Business Information" },
     { id: 1, name: "Platform Details" },
     { id: 2, name: "Legal Clauses" },
-    { id: 3, name: "AI Enhancement" },
-    { id: 4, name: "Preview & Download" },
+    { id: 3, name: "Special Conditions" },
+    { id: 4, name: "AI Enhancement" },
+    { id: 5, name: "Preview & Download" },
   ];
 
   const handleNext = () => {
@@ -146,11 +157,11 @@ const TermsConditionsGenerator = () => {
       }
     }
     
-    if (activeStep === 3) {
-      handleAnalyze();
+    if (activeStep === 4) {
+      handleGeneratePolicies();
+    } else {
+      setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
-    
-    setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const handleBack = () => {
@@ -180,78 +191,148 @@ const TermsConditionsGenerator = () => {
     });
   };
 
-  const handleAnalyze = async () => {
-    if (!generatedTC) {
-      try {
-        const formData = form.getValues();
-        
-        // Ensure all required fields are set correctly for FormData interface
-        const formDataForGeneration: FormData = {
+  const generatePolicyWithClaude = async (policyType: PolicyType) => {
+    try {
+      const formData = form.getValues();
+      
+      const requestData = {
+        policyType,
+        businessInfo: {
           businessName: formData.businessName,
+          website: formData.website,
           email: formData.email,
-          platformType: formData.platformType,
+          phone: formData.phone,
           businessDescription: formData.businessDescription,
           jurisdiction: formData.jurisdiction,
-          policyTypes: formData.policyTypes as PolicyType[],
+          platformType: formData.platformType
+        },
+        options: {
           includeDisputeResolution: formData.includeDisputeResolution,
           includeIntellectualProperty: formData.includeIntellectualProperty,
           includeLimitations: formData.includeLimitations,
           includePrivacyPolicy: formData.includePrivacyPolicy,
           includeProhibitedActivities: formData.includeProhibitedActivities,
           includeTermination: formData.includeTermination,
-          includeUserContent: formData.includeUserContent,
-          website: formData.website,
-          phone: formData.phone,
-          customRequirements: formData.customRequirements || '',
-          dataRetentionPeriod: formData.dataRetentionPeriod,
-          dataCollectionMethods: formData.dataCollectionMethods,
-          thirdPartyServices: formData.thirdPartyServices,
-          cookieTypes: formData.cookieTypes,
-          medicalDataHandling: formData.medicalDataHandling,
-          securityMeasures: formData.securityMeasures
-        };
-        
-        // Combine any AI-enhanced text with the custom requirements
-        let customRequirements = formData.customRequirements || '';
-        if (aiEnhancedText.length > 0) {
-          customRequirements += '\n\n' + aiEnhancedText.join('\n\n');
-        }
-        
-        // Create a new form data object with the combined custom requirements
-        const enhancedFormData: FormData = {
-          ...formDataForGeneration,
-          customRequirements
-        };
-        
-        const generatedContent = generateDocument(enhancedFormData);
+          includeUserContent: formData.includeUserContent
+        },
+        specialConditions: formData.specialConditions
+      };
+      
+      const response = await supabase.functions.invoke('claude-legal-generator', {
+        body: requestData
+      });
+      
+      if (response.error) {
+        throw new Error(`Error generating ${policyType}: ${response.error.message}`);
+      }
+      
+      return response.data.content;
+    } catch (error) {
+      console.error(`Error generating ${policyType}:`, error);
+      throw error;
+    }
+  };
 
-        if (isAuthenticated) {
-          // Save the generated terms to the database
+  const handleGeneratePolicies = async () => {
+    const selectedPolicyTypes = form.getValues().policyTypes;
+    
+    if (selectedPolicyTypes.length === 0) {
+      toast({
+        title: "No Policy Types Selected",
+        description: "Please select at least one policy type to generate.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsGenerating(true);
+    setGenerationError(null);
+    setCurrentPolicyIndex(0);
+    setGenerationProgress(0);
+    
+    const policies: Record<string, string> = {};
+    
+    try {
+      for (let i = 0; i < selectedPolicyTypes.length; i++) {
+        const policyType = selectedPolicyTypes[i];
+        setCurrentPolicyIndex(i);
+        
+        // Update progress
+        const progressPerPolicy = 100 / selectedPolicyTypes.length;
+        setGenerationProgress((i / selectedPolicyTypes.length) * 100);
+        
+        toast({
+          title: `Generating ${policyTypeOptions.find(p => p.value === policyType)?.label}`,
+          description: `Progress: ${i + 1} of ${selectedPolicyTypes.length} policies`,
+        });
+        
+        // Generate policy with Claude
+        const policyContent = await generatePolicyWithClaude(policyType);
+        policies[policyType] = policyContent;
+        
+        // Update progress
+        setGenerationProgress(((i + 1) / selectedPolicyTypes.length) * 100);
+      }
+      
+      setGeneratedPolicies(policies);
+      
+      // Combine all generated policies into one document
+      let combinedContent = "";
+      for (const policyType of selectedPolicyTypes) {
+        combinedContent += policies[policyType] + '\n\n';
+      }
+      
+      // Add any AI enhanced text
+      if (aiEnhancedText.length > 0) {
+        combinedContent += '<div class="additional-clauses">\n';
+        combinedContent += '<h2>ADDITIONAL CLAUSES</h2>\n';
+        combinedContent += aiEnhancedText.join('\n\n');
+        combinedContent += '\n</div>';
+      }
+      
+      setGeneratedTC(combinedContent);
+      
+      // Save the generated terms to the database
+      if (isAuthenticated) {
+        try {
+          const formData = form.getValues();
+          
           const { error } = await supabase
             .from('generated_terms')
             .insert({
               user_id: userId,
               business_name: formData.businessName,
               policy_types: formData.policyTypes,
-              form_data: enhancedFormData as any, // Type assertion to handle JSON compatibility
-              generated_content: generatedContent
+              form_data: formData,
+              generated_content: combinedContent
             });
 
           if (error) {
-            throw new Error('Failed to save terms');
+            console.error("Error saving to database:", error);
+            toast({
+              title: "Warning",
+              description: "Generated document was created but could not be saved to your account.",
+              variant: "destructive",
+            });
           }
+        } catch (error) {
+          console.error("Error saving to database:", error);
         }
-
-        setGeneratedTC(generatedContent);
-        setActiveStep(4); // Move to the preview step
-      } catch (error: any) {
-        console.error("Error generating terms:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to generate terms.",
-          variant: "destructive",
-        });
       }
+      
+      // Move to the preview step
+      setActiveStep(5);
+    } catch (error) {
+      console.error("Error generating policies:", error);
+      setGenerationError(error.message || "Failed to generate policies. Please try again.");
+      
+      toast({
+        title: "Error",
+        description: "Failed to generate policies. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
   
@@ -609,6 +690,45 @@ const TermsConditionsGenerator = () => {
         return (
           <div className="space-y-6">
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+              <h3 className="text-lg font-medium text-blue-800">Special Conditions</h3>
+              <p className="text-sm text-blue-600 mt-1">
+                Add any special conditions that should be included in your legal documents, such as:
+                <ul className="list-disc ml-5 mt-2">
+                  <li>Payment terms (e.g., "40% down payment required")</li>
+                  <li>Financial penalties for late payments</li>
+                  <li>Quality standards and requirements</li>
+                  <li>Communication protocols</li>
+                  <li>Delivery timeframes</li>
+                </ul>
+              </p>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="specialConditions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Special Conditions</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter any special conditions (e.g., '40% down payment required before work begins', 'All deliverables must meet ISO 9001 standards', etc.)"
+                      className="min-h-[200px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    These special conditions will be converted into formal legal clauses and included in your document.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
               <h3 className="text-lg font-medium text-blue-800">AI Language Enhancement</h3>
               <p className="text-sm text-blue-600 mt-1">
                 Add custom requirements in plain language, and our AI will convert them into formal legal language.
@@ -632,9 +752,29 @@ const TermsConditionsGenerator = () => {
                 </div>
               </div>
             )}
+            
+            {isGenerating && (
+              <div className="space-y-4 mt-6">
+                <h4 className="font-medium">Generating Policy Documents</h4>
+                <Progress value={generationProgress} className="w-full h-2" />
+                <p className="text-sm text-gray-500">
+                  Generating {currentPolicyIndex + 1} of {form.getValues().policyTypes.length} policies...
+                </p>
+              </div>
+            )}
+            
+            {generationError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  {generationError}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         );
-      case 4:
+      case 5:
         return (
           <div className="space-y-4">
             {generatedTC ? (
@@ -651,7 +791,7 @@ const TermsConditionsGenerator = () => {
                 <p className="text-gray-500 mb-4">
                   Complete all the previous steps and click "Generate Document" to create your legal document.
                 </p>
-                <Button onClick={handleAnalyze}>Generate Document</Button>
+                <Button onClick={handleGeneratePolicies}>Generate Document</Button>
               </div>
             )}
             
@@ -737,14 +877,14 @@ const TermsConditionsGenerator = () => {
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={activeStep === 0}
+          disabled={activeStep === 0 || isGenerating}
         >
           Back
         </Button>
         
         {activeStep < steps.length - 1 ? (
-          <Button onClick={handleNext}>
-            {activeStep === 3 ? "Generate Document" : "Next"}
+          <Button onClick={handleNext} disabled={isGenerating}>
+            {activeStep === 4 ? "Generate Documents" : "Next"}
           </Button>
         ) : !isAuthenticated ? (
           <div className="flex items-center gap-4">

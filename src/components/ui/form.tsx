@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
@@ -42,15 +43,30 @@ const FormField = <
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
-  const { getFieldState, formState } = useFormContext()
+  const formContext = useFormContext()
 
-  const fieldState = getFieldState(fieldContext.name, formState)
-
+  // Check if we're inside a form context before trying to destructure
   if (!fieldContext) {
     throw new Error("useFormField should be used within <FormField>")
   }
 
-  const { id } = itemContext
+  // Return a safe version of the form field data that won't throw if used outside a form
+  if (!formContext) {
+    return {
+      id: itemContext?.id || "",
+      name: fieldContext.name,
+      formItemId: itemContext?.id ? `${itemContext.id}-form-item` : "",
+      formDescriptionId: itemContext?.id ? `${itemContext.id}-form-item-description` : "",
+      formMessageId: itemContext?.id ? `${itemContext.id}-form-item-message` : "",
+      error: undefined,
+    }
+  }
+  
+  // Normal case when inside a form
+  const { getFieldState, formState } = formContext
+  const fieldState = getFieldState(fieldContext.name, formState)
+
+  const { id } = itemContext || { id: "" }
 
   return {
     id,
@@ -66,9 +82,7 @@ type FormItemContextValue = {
   id: string
 }
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
-)
+const FormItemContext = React.createContext<FormItemContextValue | undefined>(undefined)
 
 const FormItem = React.forwardRef<
   HTMLDivElement,

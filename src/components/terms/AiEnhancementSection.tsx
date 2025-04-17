@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { convertToLegalClause } from '@/utils/legalLanguageGenerator';
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AiEnhancementSectionProps {
   onAddToDocument: (enhancedText: string) => void;
@@ -15,11 +16,20 @@ const AiEnhancementSection = ({ onAddToDocument }: AiEnhancementSectionProps) =>
   const [enhancedText, setEnhancedText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const { toast } = useToast();
 
   const handleEnhanceText = () => {
-    if (!userInput.trim()) return;
+    if (!userInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter some text to enhance.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsProcessing(true);
+    setShowPreview(false);
     
     try {
       // Generate a title based on the content
@@ -31,8 +41,18 @@ const AiEnhancementSection = ({ onAddToDocument }: AiEnhancementSectionProps) =>
       const enhanced = convertToLegalClause(userInput, clauseTitle);
       setEnhancedText(enhanced);
       setShowPreview(true);
+      
+      toast({
+        title: "Text Enhanced",
+        description: "Your text has been converted to legal language.",
+      });
     } catch (error) {
       console.error("Error enhancing text:", error);
+      toast({
+        title: "Enhancement Failed",
+        description: "There was an error converting your text. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -44,6 +64,10 @@ const AiEnhancementSection = ({ onAddToDocument }: AiEnhancementSectionProps) =>
       setUserInput('');
       setEnhancedText('');
       setShowPreview(false);
+      toast({
+        title: "Added to Document",
+        description: "Your enhanced legal text has been added to the document.",
+      });
     }
   };
 

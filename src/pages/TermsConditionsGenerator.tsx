@@ -31,7 +31,17 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import AuthPrompt from '@/components/AuthPrompt';
 import { SavedTermsList } from '@/components/terms/SavedTermsList';
+import LegalPreview from '@/components/terms/LegalPreview';
+import AiEnhancementSection from '@/components/terms/AiEnhancementSection';
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  generateTermsAndConditions,
+  generatePrivacyPolicy,
+  generateCookiePolicy,
+  generateGDPRStatement,
+  generateHIPAAPolicy,
+  generateAcceptableUsePolicy
+} from '@/utils/termsGenerator';
 
 // Define policy types as a constant to ensure type safety
 const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
@@ -82,16 +92,42 @@ const platformOptions = [
   { value: "saas", label: "SaaS Platform" },
 ];
 
-// Function to process custom requirements (needed by generateTermsAndConditions)
-const processCustomRequirements = (requirements: string) => {
-  // Simple processing - in a real app, this might use NLP or other advanced processing
-  return requirements.replace(/\n/g, '<br>');
+// Function to generate the combined document
+const generateDocument = (formData: z.infer<typeof formSchema>) => {
+  let template = '';
+  
+  formData.policyTypes.forEach(policyType => {
+    switch(policyType as PolicyType) {
+      case 'privacy':
+        template += generatePrivacyPolicy(formData);
+        break;
+      case 'cookie':
+        template += generateCookiePolicy(formData);
+        break;
+      case 'gdpr':
+        template += generateGDPRStatement(formData);
+        break;
+      case 'hipaa':
+        template += generateHIPAAPolicy(formData);
+        break;
+      case 'acceptable-use':
+        template += generateAcceptableUsePolicy(formData);
+        break;
+      case 'terms':
+      default:
+        template += generateTermsAndConditions(formData);
+    }
+    
+    template += '<hr class="my-8" />';
+  });
+  
+  return template;
 };
 
 const TermsConditionsGenerator = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [generatedTC, setGeneratedTC] = useState<string | null>(null);
-  const [previewFormat, setPreviewFormat] = useState("html");
+  const [aiEnhancedText, setAiEnhancedText] = useState<string[]>([]);
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
   const navigate = useNavigate();
@@ -122,7 +158,8 @@ const TermsConditionsGenerator = () => {
     { id: 0, name: "Business Information" },
     { id: 1, name: "Platform Details" },
     { id: 2, name: "Legal Clauses" },
-    { id: 3, name: "Preview & Download" },
+    { id: 3, name: "AI Enhancement" },
+    { id: 4, name: "Preview & Download" },
   ];
 
   const handleNext = () => {
@@ -143,7 +180,7 @@ const TermsConditionsGenerator = () => {
       }
     }
     
-    if (activeStep === 2) {
+    if (activeStep === 3) {
       handleAnalyze();
     }
     
@@ -152,269 +189,6 @@ const TermsConditionsGenerator = () => {
 
   const handleBack = () => {
     setActiveStep((prev) => Math.max(prev - 1, 0));
-  };
-
-  const generateDocument = (formData: z.infer<typeof formSchema>) => {
-    let template = '';
-    
-    formData.policyTypes.forEach(policyType => {
-      switch(policyType as PolicyType) {
-        case 'privacy':
-          template += generatePrivacyPolicy(formData);
-          break;
-        case 'cookie':
-          template += generateCookiePolicy(formData);
-          break;
-        case 'gdpr':
-          template += generateGDPRStatement(formData);
-          break;
-        case 'hipaa':
-          template += generateHIPAAPolicy(formData);
-          break;
-        case 'acceptable-use':
-          template += generateAcceptableUsePolicy(formData);
-          break;
-        case 'terms':
-        default:
-          template += generateTermsAndConditions(formData);
-      }
-      
-      template += '<hr class="my-8" />';
-    });
-    
-    return template;
-  };
-
-  const generateTermsAndConditions = (formData: z.infer<typeof formSchema>) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    
-    let customRequirementsSection = '';
-    if (formData.customRequirements) {
-      customRequirementsSection = `
-      <h2>8. ADDITIONAL TERMS AND CONDITIONS</h2>
-      <p>${processCustomRequirements(formData.customRequirements)}</p>`;
-    }
-    
-    const tcTemplate = `
-      <h1>TERMS AND CONDITIONS</h1>
-      <p>Last updated: ${currentDate}</p>
-      
-      <h2>1. AGREEMENT TO TERMS</h2>
-      <p>These Terms and Conditions constitute a legally binding agreement made between you and ${formData.businessName} ("we," "us" or "our"), concerning your access to and use of our ${getReadablePlatformType(formData.platformType)}.</p>
-      
-      <p>By accessing or using our ${getReadablePlatformType(formData.platformType)}, you agree to these Terms and Conditions. If you disagree with any part of the terms, you do not have permission to access our ${getReadablePlatformType(formData.platformType)}.</p>
-      
-      <h2>2. INTELLECTUAL PROPERTY RIGHTS</h2>
-      <p>Our ${getReadablePlatformType(formData.platformType)} and its entire contents, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio, and the design, selection, and arrangement thereof) are owned by ${formData.businessName}, its licensors, or other providers of such material and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.</p>
-      
-      ${formData.includeProhibitedActivities ? `
-      <h2>3. PROHIBITED ACTIVITIES</h2>
-      <p>You may not access or use the ${getReadablePlatformType(formData.platformType)} for any purpose other than that for which we make it available. The ${getReadablePlatformType(formData.platformType)} may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us.</p>
-      
-      <p>As a user of the ${getReadablePlatformType(formData.platformType)}, you agree not to:</p>
-      <ul>
-        <li>Systematically retrieve data or other content from the ${getReadablePlatformType(formData.platformType)} to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us.</li>
-        <li>Trick, defraud, or mislead us and other users, especially in any attempt to learn sensitive account information such as user passwords.</li>
-        <li>Circumvent, disable, or otherwise interfere with security-related features of the ${getReadablePlatformType(formData.platformType)}.</li>
-        <li>Engage in unauthorized framing of or linking to the ${getReadablePlatformType(formData.platformType)}.</li>
-        <li>Make improper use of our support services or submit false reports of abuse or misconduct.</li>
-      </ul>
-      ` : ''}
-      
-      ${formData.includeTermination ? `
-      <h2>4. TERMINATION</h2>
-      <p>We may terminate or suspend your access immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach these Terms and Conditions.</p>
-      <p>Upon termination, your right to use the ${getReadablePlatformType(formData.platformType)} will immediately cease.</p>
-      ` : ''}
-      
-      ${formData.includeDisputeResolution ? `
-      <h2>5. DISPUTE RESOLUTION</h2>
-      <p>Any legal action of whatever nature brought by either you or us shall be commenced or prosecuted in the courts located in ${formData.jurisdiction}, and you and we hereby consent to, and waive all defenses of lack of personal jurisdiction and forum non conveniens with respect to venue and jurisdiction in such courts.</p>
-      <p>These Terms and Conditions and your use of the ${getReadablePlatformType(formData.platformType).toUpperCase()} are governed by and construed in accordance with the laws of ${formData.jurisdiction}.</p>
-      ` : ''}
-      
-      ${formData.includeLimitations ? `
-      <h2>6. LIMITATIONS OF LIABILITY</h2>
-      <p>IN NO EVENT WILL WE OR OUR DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY DIRECT, INDIRECT, CONSEQUENTIAL, EXEMPLARY, INCIDENTAL, SPECIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFIT, LOST REVENUE, LOSS OF DATA, OR OTHER DAMAGES ARISING FROM YOUR USE OF THE ${getReadablePlatformType(formData.platformType).toUpperCase()}, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</p>
-      ` : ''}
-      
-      ${customRequirementsSection}
-      
-      <h2>7. CONTACT US</h2>
-      <p>To resolve a complaint regarding the ${getReadablePlatformType(formData.platformType)} or to receive further information regarding use of the ${getReadablePlatformType(formData.platformType)}, please contact us at:</p>
-      <p>${formData.businessName}<br>
-      Email: ${formData.email}<br>
-      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
-      ${formData.website ? `Website: ${formData.website}` : ''}</p>
-    `;
-    
-    return tcTemplate;
-  };
-
-  const generatePrivacyPolicy = (formData: z.infer<typeof formSchema>) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    return `
-      <h1>PRIVACY POLICY</h1>
-      <p>Last updated: ${currentDate}</p>
-      
-      <h2>1. INTRODUCTION</h2>
-      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
-      
-      <h2>2. DATA WE COLLECT</h2>
-      <p>We collect and process the following types of personal data:</p>
-      <ul>
-        <li>Contact information (name, email, phone number)</li>
-        <li>Usage data</li>
-        <li>Device information</li>
-      </ul>
-      
-      <h2>3. CONTACT US</h2>
-      <p>For privacy-related inquiries, please contact us at:</p>
-      <p>${formData.businessName}<br>
-      Email: ${formData.email}<br>
-      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
-      ${formData.website ? `Website: ${formData.website}` : ''}</p>
-    `;
-  };
-
-  const generateCookiePolicy = (formData: z.infer<typeof formSchema>) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    return `
-      <h1>COOKIE POLICY</h1>
-      <p>Last updated: ${currentDate}</p>
-      
-      <h2>1. INTRODUCTION</h2>
-      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
-      
-      <h2>2. WHAT ARE COOKIES</h2>
-      <p>Cookies are small text files that are stored on your device when you visit a website. They are widely used to remember user preferences, to provide personalized content, and to track user behavior.</p>
-      
-      <h2>3. HOW WE USE COOKIES</h2>
-      <p>We use cookies to:</p>
-      <ul>
-        <li>Remember your preferences</li>
-        <li>Provide personalized content</li>
-        <li>Track user behavior</li>
-      </ul>
-      
-      <h2>4. TYPES OF COOKIES WE USE</h2>
-      <p>We use the following types of cookies:</p>
-      <ul>
-        <li>Strictly necessary cookies</li>
-        <li>Performance cookies</li>
-        <li>Functionality cookies</li>
-        <li>Targeting cookies</li>
-      </ul>
-      
-      <h2>5. HOW TO MANAGE COOKIES</h2>
-      <p>You can manage your cookie preferences by adjusting your browser settings. Most browsers allow you to block cookies or to delete cookies that have already been set.</p>
-      
-      <h2>6. CONTACT US</h2>
-      <p>For privacy-related inquiries, please contact us at:</p>
-      <p>${formData.businessName}<br>
-      Email: ${formData.email}<br>
-      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
-      ${formData.website ? `Website: ${formData.website}` : ''}</p>
-    `;
-  };
-
-  const generateGDPRStatement = (formData: z.infer<typeof formSchema>) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    return `
-      <h1>GDPR COMPLIANCE STATEMENT</h1>
-      <p>Last updated: ${currentDate}</p>
-      
-      <h2>1. INTRODUCTION</h2>
-      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
-      
-      <h2>2. WHAT IS GDPR</h2>
-      <p>The General Data Protection Regulation (GDPR) is a set of rules that govern the collection, use, and protection of personal data in the European Union.</p>
-      
-      <h2>3. HOW WE COMPLY WITH GDPR</h2>
-      <p>We comply with GDPR by:</p>
-      <ul>
-        <li>Obtaining consent from users</li>
-        <li>Ensuring the accuracy of personal data</li>
-        <li>Providing users with access to their personal data</li>
-        <li>Notifying users of data breaches</li>
-      </ul>
-      
-      <h2>4. CONTACT US</h2>
-      <p>For privacy-related inquiries, please contact us at:</p>
-      <p>${formData.businessName}<br>
-      Email: ${formData.email}<br>
-      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
-      ${formData.website ? `Website: ${formData.website}` : ''}</p>
-    `;
-  };
-
-  const generateHIPAAPolicy = (formData: z.infer<typeof formSchema>) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    return `
-      <h1>HIPAA COMPLIANCE POLICY</h1>
-      <p>Last updated: ${currentDate}</p>
-      
-      <h2>1. INTRODUCTION</h2>
-      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
-      
-      <h2>2. WHAT IS HIPAA</h2>
-      <p>The Health Insurance Portability and Accountability Act (HIPAA) is a set of rules that govern the collection, use, and protection of personal health information in the United States.</p>
-      
-      <h2>3. HOW WE COMPLY WITH HIPAA</h2>
-      <p>We comply with HIPAA by:</p>
-      <ul>
-        <li>Obtaining consent from users</li>
-        <li>Ensuring the accuracy of personal data</li>
-        <li>Providing users with access to their personal data</li>
-        <li>Notifying users of data breaches</li>
-      </ul>
-      
-      <h2>4. CONTACT US</h2>
-      <p>For privacy-related inquiries, please contact us at:</p>
-      <p>${formData.businessName}<br>
-      Email: ${formData.email}<br>
-      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
-      ${formData.website ? `Website: ${formData.website}` : ''}</p>
-    `;
-  };
-
-  const generateAcceptableUsePolicy = (formData: z.infer<typeof formSchema>) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    return `
-      <h1>ACCEPTABLE USE POLICY</h1>
-      <p>Last updated: ${currentDate}</p>
-      
-      <h2>1. INTRODUCTION</h2>
-      <p>${formData.businessName} ("we," "us," or "our") values your privacy and is committed to protecting your personal data.</p>
-      
-      <h2>2. WHAT IS ACCEPTABLE USE</h2>
-      <p>Acceptable use is the use of our ${getReadablePlatformType(formData.platformType)} in a manner that is consistent with our policies and laws.</p>
-      
-      <h2>3. WHAT IS NOT ACCEPTABLE USE</h2>
-      <p>Not acceptable use includes:</p>
-      <ul>
-        <li>Using our ${getReadablePlatformType(formData.platformType)} for illegal activities</li>
-        <li>Using our ${getReadablePlatformType(formData.platformType)} to harm others</li>
-        <li>Using our ${getReadablePlatformType(formData.platformType)} to violate our policies</li>
-      </ul>
-      
-      <h2>4. CONTACT US</h2>
-      <p>For privacy-related inquiries, please contact us at:</p>
-      <p>${formData.businessName}<br>
-      Email: ${formData.email}<br>
-      ${formData.phone ? `Phone: ${formData.phone}<br>` : ''}
-      ${formData.website ? `Website: ${formData.website}` : ''}</p>
-    `;
-  };
-
-  const getReadablePlatformType = (type: string) => {
-    switch (type) {
-      case 'website': return 'website';
-      case 'mobile-app': return 'mobile application';
-      case 'ecommerce': return 'e-commerce platform';
-      case 'saas': return 'software service';
-      default: return 'platform';
-    }
   };
 
   const handleDownload = (format: string) => {
@@ -444,7 +218,20 @@ const TermsConditionsGenerator = () => {
     if (!generatedTC) {
       try {
         const formData = form.getValues();
-        const generatedContent = generateDocument(formData);
+        
+        // Combine any AI-enhanced text with the custom requirements
+        let customRequirements = formData.customRequirements || '';
+        if (aiEnhancedText.length > 0) {
+          customRequirements += '\n\n' + aiEnhancedText.join('\n\n');
+        }
+        
+        // Create a new form data object with the combined custom requirements
+        const enhancedFormData = {
+          ...formData,
+          customRequirements
+        };
+        
+        const generatedContent = generateDocument(enhancedFormData);
 
         if (isAuthenticated) {
           // Save the generated terms to the database
@@ -454,7 +241,7 @@ const TermsConditionsGenerator = () => {
               user_id: userId,
               business_name: formData.businessName,
               policy_types: formData.policyTypes,
-              form_data: formData,
+              form_data: enhancedFormData,
               generated_content: generatedContent
             });
 
@@ -464,7 +251,7 @@ const TermsConditionsGenerator = () => {
         }
 
         setGeneratedTC(generatedContent);
-        setActiveStep(3); // Move to the preview step
+        setActiveStep(4); // Move to the preview step
       } catch (error: any) {
         console.error("Error generating terms:", error);
         toast({
@@ -474,6 +261,15 @@ const TermsConditionsGenerator = () => {
         });
       }
     }
+  };
+  
+  const handleAddAiEnhancedText = (text: string) => {
+    setAiEnhancedText((prev) => [...prev, text]);
+    
+    toast({
+      title: "Text Added",
+      description: "Your enhanced legal text has been added to the document.",
+    });
   };
 
   const renderStepContent = () => {
@@ -819,84 +615,53 @@ const TermsConditionsGenerator = () => {
         );
       case 3:
         return (
-          <div className="space-y-4">
-            <div className="flex justify-end space-x-2 mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownload('html')}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                HTML
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownload('pdf')}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                PDF
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownload('docx')}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                DOCX
-              </Button>
+          <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+              <h3 className="text-lg font-medium text-blue-800">AI Language Enhancement</h3>
+              <p className="text-sm text-blue-600 mt-1">
+                Add custom requirements in plain language, and our AI will convert them into formal legal language.
+                Any enhanced text will be incorporated into your final document.
+              </p>
             </div>
             
-            <Tabs defaultValue="html" onValueChange={setPreviewFormat}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="html">HTML</TabsTrigger>
-                <TabsTrigger value="text">Plain Text</TabsTrigger>
-                <TabsTrigger value="markdown">Markdown</TabsTrigger>
-              </TabsList>
-              <TabsContent value="html" className="mt-4">
-                {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white max-h-[600px] overflow-auto">
-                    <div dangerouslySetInnerHTML={{ __html: generatedTC }} />
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No content generated yet. Fill out the form and click "Generate" to create your document.
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="text" className="mt-4">
-                {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white font-mono whitespace-pre-wrap max-h-[600px] overflow-auto">
-                    {generatedTC.replace(/<[^>]*>/g, '')}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No content generated yet. Fill out the form and click "Generate" to create your document.
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="markdown" className="mt-4">
-                {generatedTC ? (
-                  <div className="border rounded-md p-4 bg-white font-mono whitespace-pre-wrap max-h-[600px] overflow-auto">
-                    {generatedTC
-                      .replace(/<h1>(.*?)<\/h1>/g, '# $1')
-                      .replace(/<h2>(.*?)<\/h2>/g, '## $1')
-                      .replace(/<p>(.*?)<\/p>/g, '$1\n\n')
-                      .replace(/<br>/g, '\n')
-                      .replace(/<ul>(.*?)<\/ul>/gs, '$1')
-                      .replace(/<li>(.*?)<\/li>/g, '- $1\n')
-                      .replace(/<[^>]*>/g, '')}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No content generated yet. Fill out the form and click "Generate" to create your document.
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+            <AiEnhancementSection onAddToDocument={handleAddAiEnhancedText} />
+            
+            {aiEnhancedText.length > 0 && (
+              <div className="mt-8">
+                <h4 className="font-medium mb-2">Added to Document:</h4>
+                <div className="space-y-2">
+                  {aiEnhancedText.map((text, index) => (
+                    <div 
+                      key={index}
+                      className="border rounded-md p-3 bg-gray-50"
+                      dangerouslySetInnerHTML={{ __html: text }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      case 4:
+        return (
+          <div className="space-y-4">
+            {generatedTC ? (
+              <LegalPreview 
+                content={generatedTC} 
+                businessName={form.getValues().businessName}
+                policyTypes={form.getValues().policyTypes}
+                onDownload={handleDownload} 
+              />
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Document Generated Yet</h3>
+                <p className="text-gray-500 mb-4">
+                  Complete all the previous steps and click "Generate Document" to create your legal document.
+                </p>
+                <Button onClick={handleAnalyze}>Generate Document</Button>
+              </div>
+            )}
             
             {isAuthenticated && (
               <div className="mt-8">
@@ -913,10 +678,15 @@ const TermsConditionsGenerator = () => {
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
+      <Seo
+        title="Terms & Conditions Generator | Create Legal Documents"
+        description="Generate professional, legally-sound terms and conditions documents for your website, app, or business with our advanced AI-powered generator."
+      />
+      
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Terms & Conditions Generator</h1>
         <p className="text-gray-600">
-          Generate professional terms and conditions documents for your business.
+          Generate comprehensive, professional legal documents for your business with advanced AI enhancements.
         </p>
       </div>
       
@@ -964,7 +734,11 @@ const TermsConditionsGenerator = () => {
       </div>
 
       <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
-        {renderStepContent()}
+        <Form {...form}>
+          <form>
+            {renderStepContent()}
+          </form>
+        </Form>
       </div>
       
       <div className="flex justify-between mt-6">
@@ -978,7 +752,7 @@ const TermsConditionsGenerator = () => {
         
         {activeStep < steps.length - 1 ? (
           <Button onClick={handleNext}>
-            {activeStep === 2 ? "Generate" : "Next"}
+            {activeStep === 3 ? "Generate Document" : "Next"}
           </Button>
         ) : !isAuthenticated ? (
           <div className="flex items-center gap-4">

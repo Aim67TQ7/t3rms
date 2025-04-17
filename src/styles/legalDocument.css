@@ -1,0 +1,81 @@
+
+/* Legal document styling */
+
+.legal-document {
+  font-family: 'Times New Roman', Times, serif;
+  line-height: 1.5;
+  color: #333333;
+}
+
+.document-header {
+  margin-bottom: 2rem;
+  text-align: center;
+  border-bottom: 2px solid #333;
+  padding-bottom: 1rem;
+}
+
+.document-header h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.document-date {
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.preamble {
+  margin-bottom: 2rem;
+  font-size: 14px;
+}
+
+.preamble strong {
+  font-weight: bold;
+}
+
+.legal-document h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.legal-document h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.legal-document p {
+  margin-bottom: 1rem;
+  text-align: justify;
+}
+
+.legal-document ol,
+.legal-document ul {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.legal-document li {
+  margin-bottom: 0.5rem;
+  text-align: justify;
+}
+
+.document-footer {
+  margin-top: 3rem;
+  font-size: 14px;
+  border-top: 1px solid #666;
+  padding-top: 1rem;
+}
+
+.date-effective {
+  margin-top: 2rem;
+  font-style: italic;
+  text-align: right;
+}

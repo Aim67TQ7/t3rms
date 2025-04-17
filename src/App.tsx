@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,8 +6,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import FeedbackPrompt from "@/components/FeedbackPrompt";
-import { useExitFeedback } from "@/hooks/use-exit-feedback";
 import Seo from "@/components/Seo";
 import Navbar from "@/components/Navbar";
 
@@ -25,7 +22,6 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const [loading, setLoading] = useState(true);
-  const { showFeedbackPrompt, closeFeedbackPrompt, userId } = useExitFeedback();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -63,12 +59,6 @@ const AppContent = () => {
           </Routes>
         </div>
       </TooltipProvider>
-      
-      <FeedbackPrompt 
-        isOpen={showFeedbackPrompt} 
-        onClose={closeFeedbackPrompt}
-        userId={userId}
-      />
     </>
   );
 };

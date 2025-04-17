@@ -185,15 +185,30 @@ const TermsConditionsGenerator = () => {
       try {
         const formData = form.getValues();
         
-        // Ensure all required fields are set
+        // Ensure all required fields are set correctly for FormData interface
         const formDataForGeneration: FormData = {
-          ...formData,
           businessName: formData.businessName,
           email: formData.email,
           platformType: formData.platformType,
           businessDescription: formData.businessDescription,
           jurisdiction: formData.jurisdiction,
           policyTypes: formData.policyTypes as PolicyType[],
+          includeDisputeResolution: formData.includeDisputeResolution,
+          includeIntellectualProperty: formData.includeIntellectualProperty,
+          includeLimitations: formData.includeLimitations,
+          includePrivacyPolicy: formData.includePrivacyPolicy,
+          includeProhibitedActivities: formData.includeProhibitedActivities,
+          includeTermination: formData.includeTermination,
+          includeUserContent: formData.includeUserContent,
+          website: formData.website,
+          phone: formData.phone,
+          customRequirements: formData.customRequirements || '',
+          dataRetentionPeriod: formData.dataRetentionPeriod,
+          dataCollectionMethods: formData.dataCollectionMethods,
+          thirdPartyServices: formData.thirdPartyServices,
+          cookieTypes: formData.cookieTypes,
+          medicalDataHandling: formData.medicalDataHandling,
+          securityMeasures: formData.securityMeasures
         };
         
         // Combine any AI-enhanced text with the custom requirements
@@ -218,7 +233,7 @@ const TermsConditionsGenerator = () => {
               user_id: userId,
               business_name: formData.businessName,
               policy_types: formData.policyTypes,
-              form_data: enhancedFormData,
+              form_data: enhancedFormData as any, // Type assertion to handle JSON compatibility
               generated_content: generatedContent
             });
 
@@ -740,410 +755,6 @@ const TermsConditionsGenerator = () => {
       </div>
     </div>
   );
-  
-  function renderStepContent() {
-    switch (activeStep) {
-      case 0:
-        return (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="policyTypes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Policy Types *</FormLabel>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {policyTypeOptions.map((option) => (
-                      <FormItem
-                        key={option.value}
-                        className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(option.value)}
-                            onCheckedChange={(checked) => {
-                              const currentValue = field.value || [];
-                              const newValue = checked
-                                ? [...currentValue, option.value]
-                                : currentValue.filter((value) => value !== option.value);
-                              field.onChange(newValue);
-                            }}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>{option.label}</FormLabel>
-                          <FormDescription>
-                            Include {option.label.toLowerCase()} in your document
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    ))}
-                  </div>
-                  <FormDescription>
-                    Select all the policies you want to include in your document
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="businessName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your Business Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="website"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://www.yourbusiness.com" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Your company website (optional)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Email *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="contact@yourbusiness.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="(123) 456-7890" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Your contact phone number (optional)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-      case 1:
-        return (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="platformType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Platform Type *</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select platform type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {platformOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="businessDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Description *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Briefly describe your business and services..."
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="jurisdiction"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Governing Law/Jurisdiction *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., State of California, United States" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The laws that will govern your Terms & Conditions
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-      case 2:
-        return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Custom Requirements and Clauses</h3>
-            <FormField
-              control={form.control}
-              name="customRequirements"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Custom Requirements</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter your specific requirements or policies (e.g., payment terms, credit holds, service-specific conditions)..."
-                      className="min-h-[150px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Add any custom requirements, policies, or conditions specific to your business. Our AI will convert these into professional legal language.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <h3 className="text-lg font-medium mt-8">Standard Clauses</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="includeDisputeResolution"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Dispute Resolution</FormLabel>
-                      <FormDescription>
-                        Include clauses for resolving disputes and jurisdiction information
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="includeIntellectualProperty"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Intellectual Property Rights</FormLabel>
-                      <FormDescription>
-                        Protect your content, trademarks, and other intellectual property
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="includeLimitations"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Limitations of Liability</FormLabel>
-                      <FormDescription>
-                        Limit your liability for damages related to use of your platform
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="includeProhibitedActivities"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Prohibited Activities</FormLabel>
-                      <FormDescription>
-                        Define what users are not allowed to do on your platform
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="includeTermination"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Termination Clauses</FormLabel>
-                      <FormDescription>
-                        Conditions under which you can terminate user access
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="includeUserContent"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>User Content</FormLabel>
-                      <FormDescription>
-                        Rules regarding content uploaded or created by users
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="includePrivacyPolicy"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Privacy Policy Reference</FormLabel>
-                      <FormDescription>
-                        Reference to your separate Privacy Policy document
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-              <h3 className="text-lg font-medium text-blue-800">AI Language Enhancement</h3>
-              <p className="text-sm text-blue-600 mt-1">
-                Add custom requirements in plain language, and our AI will convert them into formal legal language.
-                Any enhanced text will be incorporated into your final document.
-              </p>
-            </div>
-            
-            <AiEnhancementSection onAddToDocument={handleAddAiEnhancedText} />
-            
-            {aiEnhancedText.length > 0 && (
-              <div className="mt-8">
-                <h4 className="font-medium mb-2">Added to Document:</h4>
-                <div className="space-y-2">
-                  {aiEnhancedText.map((text, index) => (
-                    <div 
-                      key={index}
-                      className="border rounded-md p-3 bg-gray-50"
-                      dangerouslySetInnerHTML={{ __html: text }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      case 4:
-        return (
-          <div className="space-y-4">
-            {generatedTC ? (
-              <LegalPreview 
-                content={generatedTC} 
-                businessName={form.getValues().businessName}
-                policyTypes={form.getValues().policyTypes}
-                onDownload={handleDownload} 
-              />
-            ) : (
-              <div className="text-center py-8">
-                <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Document Generated Yet</h3>
-                <p className="text-gray-500 mb-4">
-                  Complete all the previous steps and click "Generate Document" to create your legal document.
-                </p>
-                <Button onClick={handleAnalyze}>Generate Document</Button>
-              </div>
-            )}
-            
-            {isAuthenticated && (
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Your Saved Terms</h3>
-                <SavedTermsList />
-              </div>
-            )}
-          </div>
-        );
-      default:
-        return null;
-    }
-  }
 };
 
 export default TermsConditionsGenerator;

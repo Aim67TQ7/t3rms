@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ensureUserProfile } from "@/integrations/supabase/client";
 
 const AuthCallback = () => {
   const [loading, setLoading] = useState(true);
@@ -13,6 +14,8 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthRedirect = async () => {
       try {
+        console.log("Auth callback handling redirect", { hash: location.hash, search: location.search });
+        
         // Get the auth code from the URL
         const hashParams = new URLSearchParams(location.hash.substring(1));
         
@@ -26,9 +29,14 @@ const AuthCallback = () => {
           }
 
           if (session) {
+            // Ensure user profile exists in our database
+            if (session.user.email) {
+              await ensureUserProfile(session.user.id, session.user.email);
+            }
+            
             toast({
               title: "Login Successful",
-              description: "You've successfully signed in with Google",
+              description: "You've successfully signed in",
             });
             navigate('/analyzer');
           } else {

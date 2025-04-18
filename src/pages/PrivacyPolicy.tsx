@@ -23,14 +23,30 @@ const PrivacyPolicy = () => {
           businessInfo: {
             businessName: "T3RMS",
             website: "https://t3rms.ai",
-            email: "privacy@t3rms.ai",  // Updated to use a dedicated privacy email
+            email: "privacy@t3rms.ai",
             phone: "",
             businessDescription: "AI-powered legal document analysis and generation platform with focus on data protection and privacy",
-            jurisdiction: "European Union",  // Updated to emphasize GDPR compliance
+            jurisdiction: "European Union",
             platformType: "website"
           },
           options: {
-            includePrivacyPolicy: true
+            includePrivacyPolicy: true,
+            includeGoogleAuth: true, // New flag to include Google authentication section
+            googleDataHandling: {
+              dataCollected: [
+                "Google Account email address",
+                "Google Account public profile information",
+                "Google Account ID (for authentication purposes)"
+              ],
+              dataUsage: [
+                "Authentication and account creation",
+                "User identification",
+                "Communication purposes"
+              ],
+              dataStorage: "Secure database with encryption",
+              dataSharing: "We do not share Google user data with third parties except as required by law",
+              dataDeletion: "Users can request deletion of their Google-linked data by contacting privacy@t3rms.ai"
+            }
           }
         };
         
@@ -63,7 +79,7 @@ const PrivacyPolicy = () => {
     <div className="min-h-screen flex flex-col">
       <Seo 
         title="Privacy Policy - T3RMS | GDPR Compliant" 
-        description="Our comprehensive GDPR-compliant Privacy Policy detailing how we collect, process, and protect your personal data in accordance with EU data protection law"
+        description="Our comprehensive GDPR-compliant Privacy Policy detailing how we collect, process, and protect your personal data including Google user data in accordance with EU data protection law"
       />
       <main className="flex-grow container mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
@@ -81,7 +97,7 @@ const PrivacyPolicy = () => {
           <div className="prose prose-slate max-w-none">
             <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md mb-8">
               <p className="text-sm">Last updated: {new Date().toLocaleDateString()}</p>
-              <p className="text-sm mt-2">This Privacy Policy is compliant with the General Data Protection Regulation (GDPR) and other applicable data protection laws.</p>
+              <p className="text-sm mt-2">This Privacy Policy is compliant with the General Data Protection Regulation (GDPR), Google API Services User Data Policy, and other applicable data protection laws.</p>
             </div>
             <div dangerouslySetInnerHTML={{ __html: content }} />
           </div>

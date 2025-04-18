@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
@@ -34,6 +33,35 @@ interface GenerateLegalDocRequest {
 
 const getPolicyPrompt = (request: GenerateLegalDocRequest): string => {
   const { policyType, businessInfo, options, specialConditions } = request;
+  
+  if (policyType === 'privacy') {
+    return `You are a senior data protection attorney specializing in GDPR compliance and international privacy law.
+    
+Create a comprehensive, GDPR-compliant Privacy Policy for the following business:
+
+Business Name: ${businessInfo.businessName}
+Website: ${businessInfo.website || "N/A"}
+Contact Email: ${businessInfo.email}
+Phone: ${businessInfo.phone || "N/A"}
+Platform Type: ${businessInfo.platformType}
+Business Description: ${businessInfo.businessDescription}
+Jurisdiction: ${businessInfo.jurisdiction}
+
+Please include specific sections covering:
+1. Data Protection Officer (DPO) details and contact information
+2. Legal basis for processing under Article 6 GDPR
+3. Data subject rights under GDPR (access, rectification, erasure, etc.)
+4. Data retention periods
+5. International data transfers and safeguards
+6. Use of cookies and tracking technologies
+7. How to file a complaint with supervisory authorities
+8. Process for handling data breaches
+9. Children's privacy
+10. Automated decision-making and profiling
+
+Format the document in HTML with appropriate heading tags and paragraph structure. Use formal legal language throughout.`;
+  }
+
   const baseInfo = `
 Business Name: ${businessInfo.businessName}
 Website: ${businessInfo.website || "N/A"}
@@ -44,11 +72,9 @@ Business Description: ${businessInfo.businessDescription}
 Jurisdiction: ${businessInfo.jurisdiction}
 `;
 
-  // Add special conditions if provided
   const specialConditionsText = specialConditions ? 
     `\nSpecial Conditions: ${specialConditions}\n` : "";
 
-  // Build policy-specific prompts
   switch (policyType) {
     case "terms":
       return `You are a senior corporate attorney with extensive experience drafting Terms & Conditions for ${businessInfo.platformType} businesses. 
@@ -176,7 +202,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-3-opus-20240229",
-        max_tokens: 25000,
+        max_tokens: 4000,
         messages: [
           {
             role: "user",

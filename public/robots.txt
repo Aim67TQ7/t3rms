@@ -1,14 +1,11 @@
 
 User-agent: *
 Allow: /
+Allow: /terms  # Explicitly allow terms page
 
-Sitemap: https://yoursite.com/sitemap.xml
+Sitemap: https://t3rms.com/sitemap.xml
 
-# Disallow specific paths if needed
-# Disallow: /private/
-# Disallow: /admin/
-
-# Allow specific bots
+# Existing bot configurations remain the same
 User-agent: Googlebot
 Allow: /
 

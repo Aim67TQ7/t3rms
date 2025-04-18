@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -242,13 +243,13 @@ const Analyzer = () => {
               loading={loading}
             />
           
-          {loading && (
-            <div className="mt-4">
-              <AnalysisStatusIndicator loading={loading} />
-            </div>
-          )}
+            {loading && (
+              <div className="mt-4">
+                <AnalysisStatusIndicator loading={loading} />
+              </div>
+            )}
           
-          {showAuthPrompt && !isAuthenticated && (
+            {showAuthPrompt && !isAuthenticated && (
               <div className="mt-4">
                 <AuthPrompt 
                   onDismiss={() => setShowAuthPrompt(false)} 
@@ -256,9 +257,9 @@ const Analyzer = () => {
                 />
               </div>
             )}
-        </div>
+          </div>
 
-        {isAuthenticated && (
+          {isAuthenticated && (
             <div className="lg:col-span-7 xl:col-span-8">
               <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
               <AnalysisHistory 
@@ -267,6 +268,7 @@ const Analyzer = () => {
               />
             </div>
           )}
+        </div>
       </div>
     </>
   );

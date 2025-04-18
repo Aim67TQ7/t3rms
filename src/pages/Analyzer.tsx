@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -108,6 +107,8 @@ const Analyzer = () => {
       return;
     }
 
+    console.log("Text content length:", text.length);
+    
     if (!isAuthenticated && hasReachedAnonymousLimit()) {
       toast({
         title: "Analysis Limit Reached",
@@ -127,10 +128,10 @@ const Analyzer = () => {
       let fileSize = 0;
       
       if (file) {
-        fileContent = await readFileAsBase64(file);
-        fileType = file.type;
-        fileName = file.name;
-        fileSize = file.size;
+        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        fileType = file.type || 'text/plain';
+        fileName = file.name || 'document.txt';
+        fileSize = file.size || new Blob([text]).size;
       } else if (text) {
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = 'text/plain';
@@ -138,6 +139,8 @@ const Analyzer = () => {
         fileSize = new Blob([text]).size;
       }
 
+      console.log("Sending content to analyze-contract function, content size:", fileContent.length);
+      
       const { data, error } = await supabase.functions.invoke('analyze-contract', {
         body: {
           content: fileContent,
@@ -154,6 +157,8 @@ const Analyzer = () => {
       if (!data) {
         throw new Error("No analysis data received from the server");
       }
+
+      console.log("Analysis data received:", data);
 
       if (!isAuthenticated) {
         incrementAnonymousAnalysisCount();
@@ -207,19 +212,6 @@ const Analyzer = () => {
     }
   };
 
-  const readFileAsBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
   return (
     <>
       <Seo 
@@ -240,7 +232,7 @@ const Analyzer = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-5 xl:col-span-4">
             <DropzoneUploader 
               file={file}
               setFile={setFile}
@@ -260,7 +252,7 @@ const Analyzer = () => {
           </div>
 
           {isAuthenticated && (
-            <div className="lg:col-span-10">
+            <div className="lg:col-span-7 xl:col-span-8">
               <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
               <AnalysisHistory 
                 analysisResults={analysisResults}

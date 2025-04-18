@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as base64 from "https://deno.land/std@0.177.0/encoding/base64.ts";
@@ -62,40 +61,53 @@ function splitIntoChunks(text: string): string[] {
   
   const chunks: string[] = [];
   let currentChunk = '';
-  const paragraphs = text.split(/\n\n+/);
+  
+  try {
+    const paragraphs = text.split(/\n\n+/);
+    console.log(`Split text into ${paragraphs.length} paragraphs`);
 
-  for (const paragraph of paragraphs) {
-    if (currentChunk.length + paragraph.length + 2 <= MAX_CHUNK_SIZE) {
-      currentChunk += (currentChunk ? '\n\n' : '') + paragraph;
-    } else {
-      // If current chunk is not empty and meets minimum size, add it
-      if (currentChunk.length >= MIN_CHUNK_SIZE) {
-        chunks.push(currentChunk);
-      }
-      
-      // Start new chunk with current paragraph
-      if (paragraph.length > MAX_CHUNK_SIZE) {
-        // Split long paragraphs by sentences
-        const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph];
-        let sentenceChunk = '';
-        
-        for (const sentence of sentences) {
-          if (sentenceChunk.length + sentence.length <= MAX_CHUNK_SIZE) {
-            sentenceChunk += sentence;
-          } else {
-            if (sentenceChunk) chunks.push(sentenceChunk);
-            sentenceChunk = sentence;
-          }
-        }
-        if (sentenceChunk) chunks.push(sentenceChunk);
+    for (const paragraph of paragraphs) {
+      if (currentChunk.length + paragraph.length + 2 <= MAX_CHUNK_SIZE) {
+        currentChunk += (currentChunk ? '\n\n' : '') + paragraph;
       } else {
-        currentChunk = paragraph;
+        // If current chunk is not empty and meets minimum size, add it
+        if (currentChunk.length >= MIN_CHUNK_SIZE) {
+          chunks.push(currentChunk);
+        }
+        
+        // Start new chunk with current paragraph
+        if (paragraph.length > MAX_CHUNK_SIZE) {
+          // Split long paragraphs by sentences
+          const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph];
+          let sentenceChunk = '';
+          
+          for (const sentence of sentences) {
+            if (sentenceChunk.length + sentence.length <= MAX_CHUNK_SIZE) {
+              sentenceChunk += sentence;
+            } else {
+              if (sentenceChunk) chunks.push(sentenceChunk);
+              sentenceChunk = sentence;
+            }
+          }
+          if (sentenceChunk) chunks.push(sentenceChunk);
+        } else {
+          currentChunk = paragraph;
+        }
       }
     }
-  }
 
-  if (currentChunk.length >= MIN_CHUNK_SIZE) {
-    chunks.push(currentChunk);
+    if (currentChunk.length >= MIN_CHUNK_SIZE) {
+      chunks.push(currentChunk);
+    }
+  } catch (error) {
+    console.error('Error splitting text into chunks:', error);
+    // If chunking fails, try to use the whole text as one chunk if it's small enough
+    if (text.length <= MAX_CHUNK_SIZE) {
+      chunks.push(text);
+    } else {
+      // Otherwise use the first portion that fits
+      chunks.push(text.substring(0, MAX_CHUNK_SIZE));
+    }
   }
 
   console.log(`Split document into ${chunks.length} chunks`);
@@ -341,13 +353,27 @@ serve(async (req) => {
       throw new Error("Missing required field: fileType");
     }
 
+    console.log(`Received document: ${fileName}, type: ${fileType}, content length: ${content.length}`);
+
     // Convert base64 to buffer
     let buffer;
+    let text;
     try {
-      buffer = base64.decode(content.split(',')[1]);
+      // Check if content is a data URI
+      if (content.startsWith('data:')) {
+        const base64Content = content.split(',')[1];
+        buffer = base64.decode(base64Content);
+        text = new TextDecoder().decode(buffer);
+      } else {
+        // If it's already text, use it directly
+        text = content;
+        buffer = new TextEncoder().encode(content);
+      }
+      
+      console.log(`Decoded text length: ${text.length} characters`);
     } catch (decodeError) {
-      console.error('Base64 decoding error:', decodeError);
-      throw new Error("Invalid base64 encoded content");
+      console.error('Content processing error:', decodeError);
+      throw new Error("Invalid content format. Expected base64 encoded content or plain text.");
     }
     
     // Check file size
@@ -355,18 +381,16 @@ serve(async (req) => {
       throw new Error(`File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
     }
 
-    // Extract text from file
-    const text = await extractTextFromFile(buffer, fileType);
-    
-    if (!text || text.length === 0) {
-      // Return a default empty analysis when no text was extracted
+    if (!text || text.trim().length === 0) {
+      console.error('Empty text content after decoding');
+      // Return a default empty analysis for empty content
       const emptyAnalysis = {
         overallScore: 0,
         criticalPoints: [],
         financialRisks: [],
         unusualLanguage: [],
-        recommendations: [{ text: "No text could be extracted from the document. Please try a different file." }],
-        errors: [{ message: "Empty document or text extraction failed" }]
+        recommendations: [{ text: "The document appears to be empty. Please provide a document with content to analyze." }],
+        errors: [{ message: "Empty document content" }]
       };
       
       return new Response(JSON.stringify(emptyAnalysis), {

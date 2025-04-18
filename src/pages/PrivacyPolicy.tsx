@@ -31,7 +31,7 @@ const PrivacyPolicy = () => {
           },
           options: {
             includePrivacyPolicy: true,
-            includeGoogleAuth: true, // New flag to include Google authentication section
+            includeGoogleAuth: true, // Explicitly include Google authentication details
             googleDataHandling: {
               dataCollected: [
                 "Google Account email address",
@@ -78,8 +78,8 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Seo 
-        title="Privacy Policy - T3RMS | GDPR Compliant" 
-        description="Our comprehensive GDPR-compliant Privacy Policy detailing how we collect, process, and protect your personal data including Google user data in accordance with EU data protection law"
+        title="Privacy Policy - T3RMS | GDPR & Google Auth Compliant" 
+        description="Comprehensive privacy policy detailing data collection, usage, and protection, including specific disclosures for Google authentication and user data handling in compliance with GDPR and Google API Services User Data Policy"
       />
       <main className="flex-grow container mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
@@ -87,7 +87,7 @@ const PrivacyPolicy = () => {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Generating GDPR-compliant Privacy Policy document...</p>
+            <p className="text-muted-foreground">Generating GDPR and Google Auth-compliant Privacy Policy document...</p>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">

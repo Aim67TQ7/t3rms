@@ -56,6 +56,10 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
  * Enhanced text chunking with smart splitting
  */
 function splitIntoChunks(text: string): string[] {
+  if (!text || text.trim() === '') {
+    return [];
+  }
+  
   const chunks: string[] = [];
   let currentChunk = '';
   const paragraphs = text.split(/\n\n+/);
@@ -103,6 +107,20 @@ function splitIntoChunks(text: string): string[] {
  */
 async function analyzeDocumentChunks(chunks: string[]): Promise<any[]> {
   const results = [];
+  
+  if (chunks.length === 0) {
+    // If there are no chunks, return a default error result
+    return [{
+      error: true,
+      message: "No valid text content to analyze",
+      severity: "high",
+      overallScore: 0,
+      criticalPoints: [],
+      financialRisks: [],
+      unusualLanguage: [],
+      recommendations: [{ text: "Please provide a document with valid content to analyze." }]
+    }];
+  }
   
   for (let i = 0; i < chunks.length; i++) {
     try {
@@ -190,8 +208,17 @@ function safeJsonParse(text: string): any {
       }
     } catch (e2) {
       console.error('JSON parsing failed:', e2);
-      throw new Error('Failed to parse analysis results');
     }
+    // If all parsing attempts fail, return a default object
+    return {
+      error: true,
+      message: "Failed to parse analysis results",
+      overallScore: 0,
+      criticalPoints: [],
+      financialRisks: [],
+      unusualLanguage: [],
+      recommendations: [{ text: "Analysis failed due to technical issues. Please try again." }]
+    };
   }
 }
 
@@ -199,7 +226,18 @@ function safeJsonParse(text: string): any {
  * Combine analysis results with deduplication
  */
 function combineAnalysisResults(results: any[]): any {
-  if (results.length === 0) return null;
+  if (results.length === 0) {
+    // Return default empty analysis if no results
+    return {
+      overallScore: 0,
+      criticalPoints: [],
+      financialRisks: [],
+      unusualLanguage: [],
+      recommendations: [{ text: "No content was analyzed. Please check your document and try again." }],
+      errors: [{ message: "No content was analyzed" }]
+    };
+  }
+  
   if (results.length === 1) return results[0];
 
   const combinedResult = {
@@ -321,7 +359,19 @@ serve(async (req) => {
     const text = await extractTextFromFile(buffer, fileType);
     
     if (!text || text.length === 0) {
-      throw new Error("Failed to extract text from the file or the file is empty");
+      // Return a default empty analysis when no text was extracted
+      const emptyAnalysis = {
+        overallScore: 0,
+        criticalPoints: [],
+        financialRisks: [],
+        unusualLanguage: [],
+        recommendations: [{ text: "No text could be extracted from the document. Please try a different file." }],
+        errors: [{ message: "Empty document or text extraction failed" }]
+      };
+      
+      return new Response(JSON.stringify(emptyAnalysis), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     // Split into chunks
@@ -338,10 +388,19 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in analyze-contract function:', error);
-    return new Response(JSON.stringify({
+    // Return a structured error response with default values
+    const errorResponse = {
       error: true,
-      message: error.message
-    }), {
+      message: error.message,
+      overallScore: 0,
+      criticalPoints: [],
+      financialRisks: [],
+      unusualLanguage: [],
+      recommendations: [{ text: "An error occurred during analysis. Please try again." }],
+      errors: [{ message: error.message }]
+    };
+    
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

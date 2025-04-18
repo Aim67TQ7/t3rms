@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -59,13 +60,18 @@ const Analyzer = () => {
 
   const handlePendingAnalysis = async (analysisData: any) => {
     try {
+      if (!analysisData) {
+        console.log("No pending analysis data available");
+        return;
+      }
+
       const { error: saveError } = await supabase
         .from('contract_analyses')
         .insert({
           user_id: userId,
-          filename: analysisData.filename,
-          file_type: analysisData.fileType,
-          file_size: analysisData.fileSize,
+          filename: analysisData.filename || 'Unknown file',
+          file_type: analysisData.fileType || 'text/plain',
+          file_size: analysisData.fileSize || 0,
           status: 'completed',
           analysis_score: analysisData.overallScore || 0,
           analysis_results: analysisData,
@@ -144,13 +150,20 @@ const Analyzer = () => {
         throw new Error(error.message || "Error analyzing document");
       }
 
+      // Check if data is null or undefined before accessing properties
+      if (!data) {
+        throw new Error("No analysis data received from the server");
+      }
+
       if (!isAuthenticated) {
         incrementAnonymousAnalysisCount();
+        // Store analysis data safely, ensuring we have default values for required fields
         storePendingAnalysis({
           ...data,
           filename: fileName,
           fileType: fileType,
-          fileSize: fileSize
+          fileSize: fileSize,
+          overallScore: data.overallScore || 0
         });
         setShowAuthPrompt(true);
         toast({

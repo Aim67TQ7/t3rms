@@ -21,7 +21,7 @@ const TermsAndConditions = () => {
           <h1>TERMS AND CONDITIONS</h1>
 
           <h2>INTRODUCTION</h2>
-          <p>Welcome to T3RMS.com (the "Website"), operated by n0v8v.LLC ("Company", "we", "us", or "our"). T3RMS.com specializes in developing and evaluating Terms and Conditions policies for businesses and organizations.</p>
+          <p>Welcome to T3RMS.com (the "Website"), operated by NOV8V LLC ("Company", "we", "us", or "our"). T3RMS.com specializes in developing and evaluating Terms and Conditions policies for businesses and organizations.</p>
           
           <p>By accessing or using our Website, you agree to be bound by these Terms and Conditions (the "Terms"). Please read these Terms carefully before using our services. If you do not agree with any part of these Terms, you must not use our Website or services.</p>
 
@@ -123,7 +123,7 @@ const TermsAndConditions = () => {
           <p>We may terminate or suspend your account and access to the Services immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach these Terms. Upon termination, your right to use the Services will immediately cease.</p>
 
           <h2>14. GOVERNING LAW</h2>
-          <p>These Terms shall be governed by and construed in accordance with the laws of the state where n0v8v.LLC is registered, without regard to its conflict of law provisions. Any legal suit, action, or proceeding arising out of, or related to, these Terms or the Website shall be instituted exclusively in the federal courts of the United States or the courts of the state where n0v8v.LLC is registered.</p>
+          <p>These Terms shall be governed by and construed in accordance with the laws of the state where NOV8V LLC is registered, without regard to its conflict of law provisions. Any legal suit, action, or proceeding arising out of, or related to, these Terms or the Website shall be instituted exclusively in the federal courts of the United States or the courts of the state where NOV8V LLC is registered.</p>
 
           <h2>15. DISPUTE RESOLUTION</h2>
           <h3>15.1 Mandatory Arbitration</h3>
@@ -153,7 +153,7 @@ const TermsAndConditions = () => {
 
           <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md my-8">
             <p className="font-bold mb-4">DISCLAIMER:</p>
-            <p>THE INFORMATION PROVIDED ON THIS WEBSITE IS FOR GENERAL INFORMATIONAL PURPOSES ONLY AND DOES NOT CONSTITUTE LEGAL ADVICE. ALWAYS CONSULT WITH A QUALIFIED LEGAL PROFESSIONAL REGARDING YOUR SPECIFIC CIRCUMSTANCES BEFORE IMPLEMENTING ANY TERMS AND CONDITIONS FOR YOUR BUSINESS OR WEBSITE. n0v8v.LLC AND T3RMS.COM ARE RELEASED FROM ANY LIABILITY ARISING FROM YOUR USE OF THE SERVICES OR IMPLEMENTATION OF ANY TERMS AND CONDITIONS GENERATED OR EVALUATED THROUGH THIS WEBSITE WITHOUT PROPER LEGAL CONSULTATION.</p>
+            <p>THE INFORMATION PROVIDED ON THIS WEBSITE IS FOR GENERAL INFORMATIONAL PURPOSES ONLY AND DOES NOT CONSTITUTE LEGAL ADVICE. ALWAYS CONSULT WITH A QUALIFIED LEGAL PROFESSIONAL REGARDING YOUR SPECIFIC CIRCUMSTANCES BEFORE IMPLEMENTING ANY TERMS AND CONDITIONS FOR YOUR BUSINESS OR WEBSITE. NOV8V LLC AND T3RMS.COM ARE RELEASED FROM ANY LIABILITY ARISING FROM YOUR USE OF THE SERVICES OR IMPLEMENTATION OF ANY TERMS AND CONDITIONS GENERATED OR EVALUATED THROUGH THIS WEBSITE WITHOUT PROPER LEGAL CONSULTATION.</p>
           </div>
 
           <h2>21. CONTACT INFORMATION</h2>

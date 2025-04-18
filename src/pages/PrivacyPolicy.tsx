@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
 import Footer from "@/components/Footer";
@@ -22,7 +21,7 @@ const PrivacyPolicy = () => {
           <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
 
           <h2>1. INTRODUCTION</h2>
-          <p>T3RMS ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.</p>
+          <p>T3RMS ("we," "our," or "us"), operated by NOV8V LLC, is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.</p>
 
           <h2>2. INFORMATION WE COLLECT</h2>
           <h3>2.1 Personal Information</h3>

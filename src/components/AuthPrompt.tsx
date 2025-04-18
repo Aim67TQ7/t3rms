@@ -7,9 +7,19 @@ interface AuthPromptProps {
   onDismiss?: () => void;
   showDismiss?: boolean;
   buttonText?: string;
+  buttonClass?: string;
+  buttonVariant?: string;
+  children?: React.ReactNode;
 }
 
-const AuthPrompt = ({ onDismiss, showDismiss = true, buttonText = "Sign Up Now" }: AuthPromptProps) => {
+const AuthPrompt = ({ 
+  onDismiss, 
+  showDismiss = true, 
+  buttonText = "Sign Up Now",
+  buttonClass = "",
+  buttonVariant = "default",
+  children
+}: AuthPromptProps) => {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader>
@@ -43,10 +53,12 @@ const AuthPrompt = ({ onDismiss, showDismiss = true, buttonText = "Sign Up Now" 
           </Button>
         )}
         <Button 
-          className="w-full"
+          className={`w-full ${buttonClass}`}
+          variant={buttonVariant as any}
           asChild
         >
           <Link to="/auth">
+            {children}
             {buttonText}
           </Link>
         </Button>

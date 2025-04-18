@@ -3,10 +3,11 @@
  * Utility functions to manage user credits for document analysis and generation
  */
 
-const FREE_CREDIT_LIMIT = 3; // Free tier limit
+export const FREE_CREDIT_LIMIT = 3; // Free tier limit
 const CREDITS_COUNT_KEY = 'user_credits_count';
 const PENDING_ANALYSIS_KEY = 'pending_analysis';
 const PENDING_DOCUMENT_KEY = 'pending_document';
+const ANONYMOUS_ANALYSIS_COUNT_KEY = 'anonymous_analysis_count';
 
 // Credit packages available for purchase
 export const CREDIT_PACKAGES = {
@@ -30,6 +31,30 @@ export const CREDIT_PACKAGES = {
 export const hasReachedCreditLimit = (): boolean => {
   const count = getRemainingCredits();
   return count <= 0;
+};
+
+/**
+ * Check if the anonymous user has reached their analysis limit
+ */
+export const hasReachedAnonymousLimit = (): boolean => {
+  const count = getAnonymousAnalysisCount();
+  return count >= FREE_CREDIT_LIMIT;
+};
+
+/**
+ * Get the anonymous analysis count
+ */
+export const getAnonymousAnalysisCount = (): number => {
+  const countStr = localStorage.getItem(ANONYMOUS_ANALYSIS_COUNT_KEY);
+  return countStr ? parseInt(countStr, 10) : 0;
+};
+
+/**
+ * Increment the anonymous analysis count
+ */
+export const incrementAnonymousAnalysisCount = (): void => {
+  const currentCount = getAnonymousAnalysisCount();
+  localStorage.setItem(ANONYMOUS_ANALYSIS_COUNT_KEY, (currentCount + 1).toString());
 };
 
 /**
@@ -168,4 +193,3 @@ export const getPendingDocument = (): any | null => {
 export const needsPurchaseCredits = (requiredCredits: number): boolean => {
   return getRemainingCredits() < requiredCredits;
 };
-

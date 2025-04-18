@@ -25,11 +25,6 @@ const TermsAndConditions = () => {
           
           <p>By accessing or using our Website, you agree to be bound by these Terms and Conditions (the "Terms"). Please read these Terms carefully before using our services. If you do not agree with any part of these Terms, you must not use our Website or services.</p>
 
-          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md my-8">
-            <p className="font-bold">IMPORTANT NOTICE:</p>
-            <p>THE INFORMATION PROVIDED ON THIS WEBSITE IS FOR GENERAL INFORMATIONAL PURPOSES ONLY AND SHOULD NOT BE CONSIDERED AS LEGAL ADVICE. ALWAYS CONSULT WITH A QUALIFIED LEGAL PROFESSIONAL BEFORE IMPLEMENTING ANY TERMS AND CONDITIONS FOR YOUR BUSINESS.</p>
-          </div>
-
           <h2>1. DEFINITIONS</h2>
           <p>In these Terms, unless the context requires otherwise:</p>
           <ul>

@@ -77,39 +77,62 @@ const Analyzer = () => {
     setLoading(true);
 
     try {
-      const formData = new FormData();
+      let fileContent = '';
+      let fileType = '';
+      let fileName = '';
+      
       if (file) {
-        formData.append('contract', file);
+        // Read the file as base64
+        fileContent = await readFileAsBase64(file);
+        fileType = file.type;
+        fileName = file.name;
       } else if (text) {
         // Create a text file from the input if no file was uploaded
-        const textFile = new Blob([text], { type: 'text/plain' });
-        formData.append('contract', textFile, 'document.txt');
+        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        fileType = 'text/plain';
+        fileName = 'document.txt';
       }
 
-      const response = await supabase.functions.invoke('analyze-contract', {
-        body: formData
+      // Call the edge function with JSON payload
+      const { data, error } = await supabase.functions.invoke('analyze-contract', {
+        body: {
+          content: fileContent,
+          fileType: fileType,
+          fileName: fileName
+        }
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || "Error analyzing document");
+      if (error) {
+        throw new Error(error.message || "Error analyzing document");
       }
 
       if (!isAuthenticated) {
         // Increment the counter for anonymous users
         incrementAnonymousAnalysisCount();
+      } else {
+        // For authenticated users, save the analysis to the database
+        const { error: saveError } = await supabase
+          .from('contract_analyses')
+          .insert({
+            user_id: userId,
+            filename: fileName,
+            file_type: fileType,
+            file_size: file ? file.size : new Blob([text]).size,
+            status: 'completed',
+            analysis_score: data.overallScore || 0,
+            analysis_results: data,
+            completed_at: new Date().toISOString()
+          });
+          
+        if (saveError) {
+          console.error("Error saving analysis results:", saveError);
+        }
       }
 
-      if (response.data.status === 'processing') {
-        toast({
-          title: "PDF Processing",
-          description: "Your document is being analyzed. Check the history for results.",
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Contract analysis completed.",
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Contract analysis completed.",
+      });
 
       refetch();
     } catch (error: any) {
@@ -122,6 +145,20 @@ const Analyzer = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to read file as base64
+  const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   return (

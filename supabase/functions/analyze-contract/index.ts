@@ -269,10 +269,48 @@ serve(async (req) => {
   }
 
   try {
-    const { content, fileType, fileName } = await req.json();
+    // Check if the ANTHROPIC_API_KEY is set
+    if (!Deno.env.get("ANTHROPIC_API_KEY")) {
+      throw new Error("ANTHROPIC_API_KEY is not set in environment variables");
+    }
+
+    // Improved request parsing with better error handling
+    let requestBody;
+    try {
+      const contentType = req.headers.get('content-type') || '';
+      
+      if (contentType.includes('application/json')) {
+        requestBody = await req.json();
+      } else if (contentType.includes('multipart/form-data')) {
+        // Handle form data (not implemented here, would need a form-data parser)
+        throw new Error("Multipart form data is not supported yet. Please use JSON format.");
+      } else {
+        throw new Error(`Unsupported content type: ${contentType}`);
+      }
+    } catch (parseError) {
+      console.error('Request parsing error:', parseError);
+      throw new Error(`Failed to parse request: ${parseError.message}`);
+    }
+
+    // Validate the request body
+    const { content, fileType, fileName } = requestBody || {};
+    
+    if (!content) {
+      throw new Error("Missing required field: content");
+    }
+    
+    if (!fileType) {
+      throw new Error("Missing required field: fileType");
+    }
 
     // Convert base64 to buffer
-    const buffer = base64.decode(content.split(',')[1]);
+    let buffer;
+    try {
+      buffer = base64.decode(content.split(',')[1]);
+    } catch (decodeError) {
+      console.error('Base64 decoding error:', decodeError);
+      throw new Error("Invalid base64 encoded content");
+    }
     
     // Check file size
     if (buffer.length > MAX_FILE_SIZE) {
@@ -281,6 +319,10 @@ serve(async (req) => {
 
     // Extract text from file
     const text = await extractTextFromFile(buffer, fileType);
+    
+    if (!text || text.length === 0) {
+      throw new Error("Failed to extract text from the file or the file is empty");
+    }
     
     // Split into chunks
     const chunks = splitIntoChunks(text);

@@ -13,6 +13,7 @@ import Navbar from "@/components/Navbar";
 // Import page components
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
+import AuthCallback from "@/pages/AuthCallback";
 import Analyzer from "@/pages/Analyzer";
 import Pricing from "@/pages/Pricing";
 import EmbeddedTool from "@/pages/EmbeddedTool";
@@ -54,6 +55,7 @@ const AppContent = () => {
           <Routes>
             <Route path="/" element={<><Seo /><Index /></>} />
             <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
+            <Route path="/auth/callback" element={<><Seo title="Authentication - T3RMS" /><AuthCallback /></>} />
             <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} />
             <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
             <Route path="/embedded-tool" element={<><Seo title="Embedded Analysis Tool - T3RMS" /><EmbeddedTool /></>} />

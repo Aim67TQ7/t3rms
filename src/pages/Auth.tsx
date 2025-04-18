@@ -5,9 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/components/navbar/useAuth";
-import { Chrome } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
 
 const Auth = () => {
@@ -17,13 +16,25 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Check for error state from redirect
+    if (location.state && location.state.error) {
+      toast({
+        title: "Authentication Error",
+        description: location.state.error,
+        variant: "destructive",
+      });
+      // Clear the error state
+      window.history.replaceState({}, document.title);
+    }
+    
     if (isAuthenticated) {
       navigate('/analyzer');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location.state, toast]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +86,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
@@ -187,4 +198,3 @@ const Auth = () => {
 };
 
 export default Auth;
-

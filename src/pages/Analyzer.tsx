@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileText, Plus } from 'lucide-react';
 import Seo from '@/components/Seo';
+import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
 
 const Analyzer = () => {
   const [text, setText] = useState('');
@@ -240,8 +241,14 @@ const Analyzer = () => {
               onAnalyze={handleAnalyze}
               loading={loading}
             />
-            
-            {showAuthPrompt && !isAuthenticated && (
+          
+          {loading && (
+            <div className="mt-4">
+              <AnalysisStatusIndicator loading={loading} />
+            </div>
+          )}
+          
+          {showAuthPrompt && !isAuthenticated && (
               <div className="mt-4">
                 <AuthPrompt 
                   onDismiss={() => setShowAuthPrompt(false)} 
@@ -249,9 +256,9 @@ const Analyzer = () => {
                 />
               </div>
             )}
-          </div>
+        </div>
 
-          {isAuthenticated && (
+        {isAuthenticated && (
             <div className="lg:col-span-7 xl:col-span-8">
               <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
               <AnalysisHistory 
@@ -260,7 +267,6 @@ const Analyzer = () => {
               />
             </div>
           )}
-        </div>
       </div>
     </>
   );

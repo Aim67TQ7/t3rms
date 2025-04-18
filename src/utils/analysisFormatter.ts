@@ -115,9 +115,9 @@ export const formatAnalysisResults = (results: any): string => {
     
     markdown += '## Complete Analysis\n\n';
     
-    // If there's generatedText or content field in the results
-    if (results.generatedText || results.content) {
-      markdown += results.generatedText || results.content;
+    // If there's generatedText, content, or raw text from Claude
+    if (results.generatedText || results.content || results.rawContent) {
+      markdown += results.generatedText || results.content || results.rawContent;
     } else {
       // As a last resort, stringify the entire object but format it nicely
       try {

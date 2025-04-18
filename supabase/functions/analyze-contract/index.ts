@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as base64 from "https://deno.land/std@0.177.0/encoding/base64.ts";
@@ -197,7 +198,16 @@ async function analyzeDocumentChunk(chunkText: string, chunkIndex: number, total
     });
 
     const analysisText = response.content[0].text;
-    return safeJsonParse(analysisText);
+    
+    // First try to parse as JSON, if that fails, include the raw text
+    let result = safeJsonParse(analysisText);
+    
+    // If JSON parsing failed, add the raw text to the result
+    if (result.error) {
+      result.content = analysisText;
+    }
+    
+    return result;
   } catch (error) {
     console.error(`Error in chunk analysis:`, error);
     throw new Error(`Failed to analyze chunk ${chunkIndex + 1}: ${error.message}`);
@@ -216,12 +226,15 @@ function safeJsonParse(text: string): any {
       // Second attempt: find JSON object in text
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const jsonText = jsonMatch[0];
+        // Replace problematic control characters that might be causing parsing issues
+        const cleanJson = jsonText.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+        return JSON.parse(cleanJson);
       }
     } catch (e2) {
       console.error('JSON parsing failed:', e2);
     }
-    // If all parsing attempts fail, return a default object
+    // If all parsing attempts fail, return a default object with the raw text
     return {
       error: true,
       message: "Failed to parse analysis results",
@@ -229,7 +242,8 @@ function safeJsonParse(text: string): any {
       criticalPoints: [],
       financialRisks: [],
       unusualLanguage: [],
-      recommendations: [{ text: "Analysis failed due to technical issues. Please try again." }]
+      recommendations: [{ text: "Analysis completed but results couldn't be structured properly." }],
+      content: text // Include the raw text
     };
   }
 }
@@ -258,11 +272,13 @@ function combineAnalysisResults(results: any[]): any {
     financialRisks: [],
     unusualLanguage: [],
     recommendations: [],
-    errors: []
+    errors: [],
+    content: "" // Store raw content if available
   };
 
   let totalScore = 0;
   let validResults = 0;
+  let hasRawContent = false;
 
   results.forEach((result, index) => {
     if (result.error) {
@@ -270,6 +286,14 @@ function combineAnalysisResults(results: any[]): any {
         chunkIndex: index,
         message: result.message
       });
+      
+      // If this result has raw content from Claude, save it
+      if (result.content) {
+        combinedResult.content += (combinedResult.content ? "\n\n" : "") + 
+          `--- Chunk ${index + 1} Analysis ---\n\n${result.content}`;
+        hasRawContent = true;
+      }
+      
       return;
     }
 
@@ -282,6 +306,13 @@ function combineAnalysisResults(results: any[]): any {
         combinedResult[key].push(...result[key]);
       }
     });
+    
+    // If this result has content, add it
+    if (result.content) {
+      combinedResult.content += (combinedResult.content ? "\n\n" : "") + 
+        `--- Chunk ${index + 1} Analysis ---\n\n${result.content}`;
+      hasRawContent = true;
+    }
   });
 
   // Calculate average score from valid results
@@ -294,6 +325,15 @@ function combineAnalysisResults(results: any[]): any {
     combinedResult[key] = removeDuplicates(combinedResult[key], 'title');
   });
   combinedResult.recommendations = removeDuplicates(combinedResult.recommendations, 'text');
+
+  // If we have raw content but no structured data, set generatedText for the formatter
+  if (hasRawContent && 
+      !combinedResult.criticalPoints.length && 
+      !combinedResult.financialRisks.length && 
+      !combinedResult.unusualLanguage.length &&
+      !combinedResult.recommendations.length) {
+    combinedResult.generatedText = combinedResult.content;
+  }
 
   return combinedResult;
 }

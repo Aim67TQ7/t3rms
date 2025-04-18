@@ -16,6 +16,7 @@ const MarkdownComponents = {
   ul: ({ node, ...props }: any) => <ul className="my-2 pl-6 list-disc" {...props} />,
   ol: ({ node, ...props }: any) => <ol className="my-2 pl-6 list-decimal" {...props} />,
   li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
+  pre: ({ node, ...props }: any) => <pre className="bg-muted p-4 rounded-md overflow-x-auto my-4 text-sm" {...props} />,
   code: ({ node, inline, ...props }: any) => 
     inline ? 
       <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> : 
@@ -23,6 +24,13 @@ const MarkdownComponents = {
 };
 
 const AnalysisDetails = ({ analysisResults }: AnalysisDetailsProps) => {
+  // Process and format raw text from Claude's analysis if available
+  let formattedContent = '';
+  
+  if (analysisResults) {
+    formattedContent = formatAnalysisResults(analysisResults);
+  }
+  
   return (
     <Card className="w-full overflow-hidden">
       <CardContent className="pt-6">
@@ -33,7 +41,7 @@ const AnalysisDetails = ({ analysisResults }: AnalysisDetailsProps) => {
                 className="break-words whitespace-normal"
                 components={MarkdownComponents}
               >
-                {formatAnalysisResults(analysisResults)}
+                {formattedContent}
               </ReactMarkdown>
             ) : (
               <p className="text-muted-foreground">No detailed analysis results available for this entry.</p>

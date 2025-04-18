@@ -106,6 +106,35 @@ export const formatAnalysisResults = (results: any): string => {
     });
   }
 
+  // Add raw analysis content if available (for debugging or when the structured data is missing)
+  if (Object.keys(results).length > 0 && 
+      (!results.criticalPoints?.length && 
+       !results.financialRisks?.length && 
+       !results.unusualLanguage?.length && 
+       !results.recommendations?.length)) {
+    
+    markdown += '## Complete Analysis\n\n';
+    
+    // If there's generatedText or content field in the results
+    if (results.generatedText || results.content) {
+      markdown += results.generatedText || results.content;
+    } else {
+      // As a last resort, stringify the entire object but format it nicely
+      try {
+        const cleanResults = { ...results };
+        // Remove any large or circular references that might cause issues
+        delete cleanResults.rawContent;
+        delete cleanResults.errors;
+        
+        markdown += '```json\n';
+        markdown += JSON.stringify(cleanResults, null, 2);
+        markdown += '\n```\n';
+      } catch (error) {
+        markdown += "Unable to display complete analysis data.";
+      }
+    }
+  }
+
   // If no content was added, provide a default message
   if (markdown === '') {
     markdown = 'No detailed analysis results available.';

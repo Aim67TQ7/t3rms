@@ -3,8 +3,9 @@
  * Utility functions to manage anonymous usage limits
  */
 
-const ANONYMOUS_ANALYSIS_LIMIT = 3;
+const ANONYMOUS_ANALYSIS_LIMIT = 3; // Keeping the free tier limit
 const ANONYMOUS_ANALYSIS_COUNT_KEY = 'anonymous_analysis_count';
+const PENDING_ANALYSIS_KEY = 'pending_analysis';
 
 /**
  * Check if the anonymous user has reached their limit of free analyses
@@ -36,3 +37,23 @@ export const getAnonymousAnalysisCount = (): number => {
 export const resetAnonymousAnalysisCount = (): void => {
   localStorage.removeItem(ANONYMOUS_ANALYSIS_COUNT_KEY);
 };
+
+/**
+ * Store a pending analysis result for anonymous users
+ */
+export const storePendingAnalysis = (result: any): void => {
+  localStorage.setItem(PENDING_ANALYSIS_KEY, JSON.stringify(result));
+};
+
+/**
+ * Get and clear the pending analysis result
+ */
+export const getPendingAnalysis = (): any | null => {
+  const pending = localStorage.getItem(PENDING_ANALYSIS_KEY);
+  if (pending) {
+    localStorage.removeItem(PENDING_ANALYSIS_KEY);
+    return JSON.parse(pending);
+  }
+  return null;
+};
+

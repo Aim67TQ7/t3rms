@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +10,9 @@ import AnalysisHistory from '@/components/analyzer/AnalysisHistory';
 import { ContractAnalysis } from '@/components/analyzer/AnalysisHistory';
 import { 
   hasReachedAnonymousLimit, 
-  incrementAnonymousAnalysisCount 
+  incrementAnonymousAnalysisCount,
+  storePendingAnalysis,
+  getPendingAnalysis
 } from '@/utils/anonymousUsage';
 import { Button } from "@/components/ui/button";
 import { FileText, Plus } from 'lucide-react';
@@ -49,9 +50,47 @@ const Analyzer = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      refetch();
+      const pendingAnalysis = getPendingAnalysis();
+      if (pendingAnalysis) {
+        handlePendingAnalysis(pendingAnalysis);
+      }
     }
-  }, [isAuthenticated, refetch]);
+  }, [isAuthenticated]);
+
+  const handlePendingAnalysis = async (analysisData: any) => {
+    try {
+      const { error: saveError } = await supabase
+        .from('contract_analyses')
+        .insert({
+          user_id: userId,
+          filename: analysisData.filename,
+          file_type: analysisData.fileType,
+          file_size: analysisData.fileSize,
+          status: 'completed',
+          analysis_score: analysisData.overallScore || 0,
+          analysis_results: analysisData,
+          completed_at: new Date().toISOString()
+        });
+        
+      if (saveError) {
+        throw saveError;
+      }
+
+      toast({
+        title: "Analysis Available",
+        description: "Your analysis results are now available to view.",
+      });
+
+      refetch();
+    } catch (error: any) {
+      console.error("Error saving pending analysis:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your analysis results.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!text && !file) {
@@ -63,7 +102,6 @@ const Analyzer = () => {
       return;
     }
 
-    // Check if anonymous user has reached the limit before starting analysis
     if (!isAuthenticated && hasReachedAnonymousLimit()) {
       toast({
         title: "Analysis Limit Reached",
@@ -80,20 +118,20 @@ const Analyzer = () => {
       let fileContent = '';
       let fileType = '';
       let fileName = '';
+      let fileSize = 0;
       
       if (file) {
-        // Read the file as base64
         fileContent = await readFileAsBase64(file);
         fileType = file.type;
         fileName = file.name;
+        fileSize = file.size;
       } else if (text) {
-        // Create a text file from the input if no file was uploaded
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = 'text/plain';
         fileName = 'document.txt';
+        fileSize = new Blob([text]).size;
       }
 
-      // Call the edge function with JSON payload
       const { data, error } = await supabase.functions.invoke('analyze-contract', {
         body: {
           content: fileContent,
@@ -107,17 +145,26 @@ const Analyzer = () => {
       }
 
       if (!isAuthenticated) {
-        // Increment the counter for anonymous users
         incrementAnonymousAnalysisCount();
+        storePendingAnalysis({
+          ...data,
+          filename: fileName,
+          fileType: fileType,
+          fileSize: fileSize
+        });
+        setShowAuthPrompt(true);
+        toast({
+          title: "Analysis Complete",
+          description: "Please sign up or log in to view your results.",
+        });
       } else {
-        // For authenticated users, save the analysis to the database
         const { error: saveError } = await supabase
           .from('contract_analyses')
           .insert({
             user_id: userId,
             filename: fileName,
             file_type: fileType,
-            file_size: file ? file.size : new Blob([text]).size,
+            file_size: fileSize,
             status: 'completed',
             analysis_score: data.overallScore || 0,
             analysis_results: data,
@@ -125,16 +172,16 @@ const Analyzer = () => {
           });
           
         if (saveError) {
-          console.error("Error saving analysis results:", saveError);
+          throw saveError;
         }
+
+        toast({
+          title: "Success",
+          description: "Contract analysis completed.",
+        });
+
+        refetch();
       }
-
-      toast({
-        title: "Success",
-        description: "Contract analysis completed.",
-      });
-
-      refetch();
     } catch (error: any) {
       console.error("There was an error analyzing the text:", error);
       toast({
@@ -147,7 +194,6 @@ const Analyzer = () => {
     }
   };
 
-  // Function to read file as base64
   const readFileAsBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();

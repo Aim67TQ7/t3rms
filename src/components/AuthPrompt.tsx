@@ -1,26 +1,36 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 interface AuthPromptProps {
   onDismiss?: () => void;
   showDismiss?: boolean;
-  buttonText?: string; // Added buttonText prop
+  buttonText?: string;
 }
 
-const AuthPrompt = ({ onDismiss, showDismiss = true, buttonText = "Get Started" }: AuthPromptProps) => {
+const AuthPrompt = ({ onDismiss, showDismiss = true, buttonText = "Sign Up Now" }: AuthPromptProps) => {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader>
-        <CardTitle>Want to continue analyzing?</CardTitle>
+        <CardTitle>Your Analysis is Ready!</CardTitle>
         <CardDescription>
-          You've used your free analysis. Get more by registering.
+          Sign up to view your results and get more analyses.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600">
-          Create a free account to get 5 analyses per month and save your analysis history.
-        </p>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Create a free account to get:
+          </p>
+          <ul className="list-disc pl-5 text-sm text-gray-600">
+            <li>3 free document analyses</li>
+            <li>Basic risk identification</li>
+            <li>Documents up to 20 pages</li>
+            <li>Document history</li>
+            <li>Downloadable PDFs</li>
+          </ul>
+        </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
         {showDismiss && (
@@ -32,8 +42,13 @@ const AuthPrompt = ({ onDismiss, showDismiss = true, buttonText = "Get Started" 
             Maybe Later
           </Button>
         )}
-        <Button className="w-full">
-          {buttonText}
+        <Button 
+          className="w-full"
+          asChild
+        >
+          <Link to="/auth">
+            {buttonText}
+          </Link>
         </Button>
       </CardFooter>
     </Card>

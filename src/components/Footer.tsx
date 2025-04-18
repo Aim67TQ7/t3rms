@@ -8,7 +8,7 @@ const Footer = () => {
   return (
     <footer className="bg-gray-50 border-t border-gray-100">
       <div className="container mx-auto px-4 md:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="col-span-1">
             <Link to="/" className="inline-block mb-4">
               <span className="font-mono text-xl font-bold text-t3rms-charcoal">
@@ -37,7 +37,55 @@ const Footer = () => {
           </div>
           
           <div className="col-span-1">
-            <div className="border-t border-gray-200 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <h3 className="font-medium text-gray-900 mb-4">Product</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/analyzer" className="text-gray-500 hover:text-t3rms-blue text-sm transition-colors">
+                  Document Analyzer
+                </Link>
+              </li>
+              <li>
+                <Link to="/tcgenerator" className="text-gray-500 hover:text-t3rms-blue text-sm transition-colors">
+                  T&C Generator
+                </Link>
+              </li>
+              <li>
+                <Link to="/pricing" className="text-gray-500 hover:text-t3rms-blue text-sm transition-colors">
+                  Pricing
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="col-span-1">
+            <h3 className="font-medium text-gray-900 mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/terms" className="text-gray-500 hover:text-t3rms-blue text-sm transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="text-gray-500 hover:text-t3rms-blue text-sm transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="col-span-1">
+            <h3 className="font-medium text-gray-900 mb-4">Contact</h3>
+            <ul className="space-y-2">
+              <li>
+                <a href="mailto:contact@t3rms.ai" className="text-gray-500 hover:text-t3rms-blue text-sm transition-colors">
+                  contact@t3rms.ai
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="col-span-1 md:col-span-2 lg:col-span-4">
+            <div className="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-500 text-sm">
                 © {currentYear} T3RMS. All rights reserved.
               </p>

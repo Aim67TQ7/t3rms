@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,8 @@ import Analyzer from "@/pages/Analyzer";
 import Pricing from "@/pages/Pricing";
 import EmbeddedTool from "@/pages/EmbeddedTool";
 import TermsConditionsGenerator from "@/pages/TermsConditionsGenerator";
+import TermsAndConditions from "@/pages/TermsAndConditions";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +58,8 @@ const AppContent = () => {
             <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
             <Route path="/embedded-tool" element={<><Seo title="Embedded Analysis Tool - T3RMS" /><EmbeddedTool /></>} />
             <Route path="/tcgenerator" element={<><Seo title="Terms & Conditions Generator - T3RMS" description="Generate compliant terms & conditions documents" /><TermsConditionsGenerator /></>} />
+            <Route path="/terms" element={<><Seo title="Terms & Conditions - T3RMS" /><TermsAndConditions /></>} />
+            <Route path="/privacy" element={<><Seo title="Privacy Policy - T3RMS" /><PrivacyPolicy /></>} />
             <Route path="*" element={<><Seo title="404 - Page Not Found" /><NotFound /></>} />
           </Routes>
         </div>

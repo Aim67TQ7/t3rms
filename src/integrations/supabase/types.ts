@@ -9,255 +9,130 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      analysis_results: {
+      analytics_events: {
         Row: {
-          content: string
           created_at: string | null
-          id: string
-          updated_at: string | null
+          event_name: string | null
+          id: number
+          meta: Json | null
           user_id: string | null
         }
         Insert: {
-          content: string
           created_at?: string | null
-          id?: string
-          updated_at?: string | null
+          event_name?: string | null
+          id?: number
+          meta?: Json | null
           user_id?: string | null
         }
         Update: {
-          content?: string
           created_at?: string | null
-          id?: string
-          updated_at?: string | null
+          event_name?: string | null
+          id?: number
+          meta?: Json | null
           user_id?: string | null
         }
         Relationships: []
       }
-      anonymous_feedback: {
+      clauses: {
         Row: {
-          comment: string | null
+          clause_text: string
+          contract_id: string | null
+          counter_text: string | null
           created_at: string | null
           id: string
-          ip_address: string | null
-          rating: number
+          location: string | null
+          risk_level: string | null
         }
         Insert: {
-          comment?: string | null
+          clause_text: string
+          contract_id?: string | null
+          counter_text?: string | null
           created_at?: string | null
           id?: string
-          ip_address?: string | null
-          rating?: number
+          location?: string | null
+          risk_level?: string | null
         }
         Update: {
-          comment?: string | null
+          clause_text?: string
+          contract_id?: string | null
+          counter_text?: string | null
           created_at?: string | null
           id?: string
-          ip_address?: string | null
-          rating?: number
+          location?: string | null
+          risk_level?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clauses_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      anonymous_usage: {
+      contracts: {
         Row: {
-          id: string
-          ip_address: string
-          last_visit: string | null
-          visit_count: number | null
-        }
-        Insert: {
-          id?: string
-          ip_address: string
-          last_visit?: string | null
-          visit_count?: number | null
-        }
-        Update: {
-          id?: string
-          ip_address?: string
-          last_visit?: string | null
-          visit_count?: number | null
-        }
-        Relationships: []
-      }
-      contract_analyses: {
-        Row: {
-          analysis_results: Json | null
-          analysis_score: number | null
-          completed_at: string | null
-          created_at: string
-          error_message: string | null
-          file_size: number
-          file_type: string
+          created_at: string | null
           filename: string
           id: string
-          status: string
-          updated_at: string | null
+          risk_score: number | null
           user_id: string
         }
         Insert: {
-          analysis_results?: Json | null
-          analysis_score?: number | null
-          completed_at?: string | null
-          created_at?: string
-          error_message?: string | null
-          file_size: number
-          file_type: string
+          created_at?: string | null
           filename: string
           id?: string
-          status?: string
-          updated_at?: string | null
+          risk_score?: number | null
           user_id: string
         }
         Update: {
-          analysis_results?: Json | null
-          analysis_score?: number | null
-          completed_at?: string | null
-          created_at?: string
-          error_message?: string | null
-          file_size?: number
-          file_type?: string
+          created_at?: string | null
           filename?: string
           id?: string
-          status?: string
-          updated_at?: string | null
+          risk_score?: number | null
           user_id?: string
         }
         Relationships: []
       }
-      feedback: {
+      embeddings: {
         Row: {
-          comment: string | null
-          created_at: string | null
-          id: string
-          rating: number
-          user_id: string | null
+          clause_id: string
+          embedding: string
         }
         Insert: {
-          comment?: string | null
-          created_at?: string | null
-          id?: string
-          rating?: number
-          user_id?: string | null
+          clause_id: string
+          embedding: string
         }
         Update: {
-          comment?: string | null
-          created_at?: string | null
-          id?: string
-          rating?: number
-          user_id?: string | null
+          clause_id?: string
+          embedding?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "embeddings_clause_id_fkey"
+            columns: ["clause_id"]
+            isOneToOne: true
+            referencedRelation: "clauses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      generated_terms: {
+      stripe_subscriptions: {
         Row: {
-          business_name: string
-          created_at: string | null
-          form_data: Json
-          generated_content: string
-          id: string
-          policy_types: string[]
-          user_id: string | null
-        }
-        Insert: {
-          business_name: string
-          created_at?: string | null
-          form_data: Json
-          generated_content: string
-          id?: string
-          policy_types: string[]
-          user_id?: string | null
-        }
-        Update: {
-          business_name?: string
-          created_at?: string | null
-          form_data?: Json
-          generated_content?: string
-          id?: string
-          policy_types?: string[]
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      payment_history: {
-        Row: {
-          amount: number
-          created_at: string | null
-          currency: string
-          id: string
-          metadata: Json | null
-          status: string
-          stripe_payment_id: string | null
+          current_period_end: string | null
+          stripe_status: string | null
           user_id: string
         }
         Insert: {
-          amount: number
-          created_at?: string | null
-          currency?: string
-          id?: string
-          metadata?: Json | null
-          status: string
-          stripe_payment_id?: string | null
+          current_period_end?: string | null
+          stripe_status?: string | null
           user_id: string
         }
         Update: {
-          amount?: number
-          created_at?: string | null
-          currency?: string
-          id?: string
-          metadata?: Json | null
-          status?: string
-          stripe_payment_id?: string | null
+          current_period_end?: string | null
+          stripe_status?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      t3rms_users: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          feedback_comments: string | null
-          feedback_rating: number | null
-          id: string
-          monthly_remaining: number | null
-          monthly_usage: number | null
-          plan: string | null
-          stripe_customer_id: string | null
-          subscription_id: string | null
-          subscription_period_end: string | null
-          subscription_status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          feedback_comments?: string | null
-          feedback_rating?: number | null
-          id?: string
-          monthly_remaining?: number | null
-          monthly_usage?: number | null
-          plan?: string | null
-          stripe_customer_id?: string | null
-          subscription_id?: string | null
-          subscription_period_end?: string | null
-          subscription_status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          feedback_comments?: string | null
-          feedback_rating?: number | null
-          id?: string
-          monthly_remaining?: number | null
-          monthly_usage?: number | null
-          plan?: string | null
-          stripe_customer_id?: string | null
-          subscription_id?: string | null
-          subscription_period_end?: string | null
-          subscription_status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -266,7 +141,98 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

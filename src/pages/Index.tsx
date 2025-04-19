@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
+import ParticleEffect from '@/components/ParticleEffect';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FileText, ShieldCheck, Zap } from 'lucide-react';
@@ -14,10 +15,11 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col page-transition">
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-white page-transition relative overflow-hidden">
+      <ParticleEffect />
       <Navbar />
       
-      <main className="flex-grow">
+      <main className="flex-grow relative z-10">
         <Hero />
         <Features />
         

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +90,32 @@ const platformOptions = [
   { value: "mobile-app", label: "Mobile App" },
   { value: "ecommerce", label: "E-Commerce Platform" },
   { value: "saas", label: "SaaS Platform" },
+];
+
+const businessDescriptionOptions = [
+  { value: "ecommerce", label: "E-commerce Store / Online Retail" },
+  { value: "saas", label: "Software as a Service (SaaS)" },
+  { value: "consulting", label: "Consulting Services" },
+  { value: "digital_products", label: "Digital Products / Downloads" },
+  { value: "online_courses", label: "Online Courses / Education" },
+  { value: "marketplace", label: "Online Marketplace / Platform" },
+  { value: "subscription", label: "Subscription-based Service" },
+  { value: "content_creation", label: "Content Creation / Media" },
+  { value: "agency", label: "Agency Services" },
+  { value: "other", label: "Other" }
+];
+
+const jurisdictionOptions = [
+  { value: "US-CA", label: "United States - California" },
+  { value: "US-NY", label: "United States - New York" },
+  { value: "US-TX", label: "United States - Texas" },
+  { value: "US-FL", label: "United States - Florida" },
+  { value: "UK", label: "United Kingdom" },
+  { value: "EU", label: "European Union" },
+  { value: "CA", label: "Canada" },
+  { value: "AU", label: "Australia" },
+  { value: "SG", label: "Singapore" },
+  { value: "other", label: "Other Jurisdiction" }
 ];
 
 const TermsConditionsGenerator = () => {
@@ -486,14 +511,36 @@ const TermsConditionsGenerator = () => {
               name="businessDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Business Description *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Briefly describe your business and services..."
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
-                  </FormControl>
+                  <FormLabel>Business Type *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      const description = businessDescriptionOptions.find(opt => opt.value === value)?.label;
+                      field.onChange(description || value);
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your business type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {businessDescriptionOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {field.value && field.value !== businessDescriptionOptions.find(opt => opt.value === field.value)?.label && (
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Additional details about your business..."
+                        className="mt-2"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -504,9 +551,35 @@ const TermsConditionsGenerator = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Governing Law/Jurisdiction *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., State of California, United States" {...field} />
-                  </FormControl>
+                  <Select 
+                    onValueChange={(value) => {
+                      const label = jurisdictionOptions.find(opt => opt.value === value)?.label;
+                      field.onChange(label || value);
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select jurisdiction" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {jurisdictionOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {field.value && field.value !== jurisdictionOptions.find(opt => opt.value === field.value)?.label && (
+                    <FormControl>
+                      <Input 
+                        className="mt-2"
+                        placeholder="Enter your specific jurisdiction"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                  )}
                   <FormDescription>
                     The laws that will govern your Terms & Conditions
                   </FormDescription>
@@ -854,47 +927,4 @@ const TermsConditionsGenerator = () => {
               {step.id < steps.length - 1 && (
                 <div className="w-10 h-1 mx-2 bg-gray-200">
                   <div
-                    className={`h-full ${
-                      step.id < activeStep ? "bg-primary" : "bg-gray-200"
-                    }`}
-                  ></div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
-        <Form {...form}>
-          <form>
-            {renderStepContent()}
-          </form>
-        </Form>
-      </div>
-      
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={activeStep === 0 || isGenerating}
-        >
-          Back
-        </Button>
-        
-        {activeStep < steps.length - 1 ? (
-          <Button onClick={handleNext} disabled={isGenerating}>
-            {activeStep === 4 ? "Generate Documents" : "Next"}
-          </Button>
-        ) : !isAuthenticated ? (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">Login to save your terms for future use</span>
-            <AuthPrompt buttonText="Login to Save" />
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-};
-
-export default TermsConditionsGenerator;
+                    className

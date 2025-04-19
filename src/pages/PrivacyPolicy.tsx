@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
 import Footer from "@/components/Footer";

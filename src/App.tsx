@@ -72,11 +72,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppContent />
-      </QueryClientProvider>
-    </HelmetProvider>
+    <BrowserRouter>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppContent />
+        </QueryClientProvider>
+      </HelmetProvider>
+    </BrowserRouter>
   );
 };
 

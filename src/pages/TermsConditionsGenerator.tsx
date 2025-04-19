@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -927,4 +928,38 @@ const TermsConditionsGenerator = () => {
               {step.id < steps.length - 1 && (
                 <div className="w-10 h-1 mx-2 bg-gray-200">
                   <div
-                    className
+                    className={`h-1 bg-primary ${
+                      step.id < activeStep ? "w-full" : "w-0"
+                    }`}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            disabled={activeStep === 0}
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={isGenerating}
+          >
+            {activeStep === steps.length - 1 ? "Download" : activeStep === 4 ? "Generate" : "Next"}
+          </Button>
+        </div>
+      </div>
+      
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        {renderStepContent()}
+      </div>
+    </div>
+  );
+};
+
+export default TermsConditionsGenerator;

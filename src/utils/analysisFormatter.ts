@@ -11,6 +11,11 @@ export const formatAnalysisResults = (results: any): string => {
     markdown += `# Analysis Results\n\n`;
   }
   
+  // Add sampling note for large documents
+  if (results.documentApproach === "sampled" && results.samplingNote) {
+    markdown += `> ⚠️ ${results.samplingNote}\n\n`;
+  }
+  
   // Add any errors that occurred during analysis
   if (results.errors && results.errors.length > 0) {
     markdown += '## Analysis Warnings\n\n';

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -16,10 +15,9 @@ import {
   getPendingAnalysis
 } from '@/utils/anonymousUsage';
 import { Button } from "@/components/ui/button";
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, AlertCircle } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
-import { env } from '@/env';
 
 const MAX_CONTENT_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -226,7 +224,7 @@ const Analyzer = () => {
 
         refetch();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("There was an error analyzing the text:", error);
       
       let errorMessage = "Failed to analyze document.";

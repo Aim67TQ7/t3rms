@@ -13,9 +13,9 @@ const corsHeaders = {
 // Define file size and other limits
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB limit
 const CLAUDE_MODEL = "claude-3-haiku-20240307"; // Using a stable, available model
-const MAX_CHUNK_SIZE = 30000; // Maximum characters per chunk for Claude
+const MAX_CHUNK_SIZE = 25000; // Reduced maximum characters per chunk for Claude
 const MIN_CHUNK_SIZE = 1000; // Minimum chunk size to avoid tiny fragments
-const RATE_LIMIT_DELAY = 500; // Milliseconds between API calls
+const RATE_LIMIT_DELAY = 1500; // Increased milliseconds between API calls to prevent rate limiting
 
 // Initialize Anthropic client
 const anthropicClient = new Anthropic({
@@ -52,7 +52,7 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
 }
 
 /**
- * Enhanced text chunking with smart splitting
+ * Enhanced text chunking with smart splitting - improved for better performance
  */
 function splitIntoChunks(text: string): string[] {
   if (!text || text.trim() === '') {
@@ -63,6 +63,22 @@ function splitIntoChunks(text: string): string[] {
   let currentChunk = '';
   
   try {
+    // For large documents, use simpler chunking strategy to increase performance
+    if (text.length > 200000) { // For very large documents, split into roughly equal chunks
+      const chunkCount = Math.ceil(text.length / MAX_CHUNK_SIZE);
+      const adjustedChunkSize = Math.ceil(text.length / chunkCount);
+      
+      console.log(`Large document detected (${text.length} chars). Using ${chunkCount} equal chunks of ~${adjustedChunkSize} chars`);
+      
+      for (let i = 0; i < text.length; i += adjustedChunkSize) {
+        const end = Math.min(i + adjustedChunkSize, text.length);
+        chunks.push(text.substring(i, end));
+      }
+      
+      return chunks;
+    }
+    
+    // For smaller documents, use the original paragraph-based splitting
     const paragraphs = text.split(/\n\n+/);
     console.log(`Split text into ${paragraphs.length} paragraphs`);
 
@@ -115,7 +131,7 @@ function splitIntoChunks(text: string): string[] {
 }
 
 /**
- * Analyze document chunks with rate limiting
+ * Analyze document chunks with improved rate limiting and concurrency control
  */
 async function analyzeDocumentChunks(chunks: string[]): Promise<any[]> {
   const results = [];
@@ -134,23 +150,36 @@ async function analyzeDocumentChunks(chunks: string[]): Promise<any[]> {
     }];
   }
   
-  for (let i = 0; i < chunks.length; i++) {
+  // For improved performance, analyze a smaller number of chunks for very large documents
+  const maxChunksToAnalyze = chunks.length > 10 ? 5 : chunks.length;
+  const chunkStep = chunks.length > maxChunksToAnalyze ? Math.floor(chunks.length / maxChunksToAnalyze) : 1;
+  const chunksToAnalyze = [];
+  
+  // Select representative chunks from throughout the document
+  for (let i = 0; i < chunks.length && chunksToAnalyze.length < maxChunksToAnalyze; i += chunkStep) {
+    chunksToAnalyze.push({index: i, text: chunks[i]});
+  }
+  
+  console.log(`Analyzing ${chunksToAnalyze.length} chunks out of ${chunks.length} total chunks`);
+  
+  for (let i = 0; i < chunksToAnalyze.length; i++) {
     try {
       // Add delay between API calls
       if (i > 0) {
         await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY));
       }
       
-      const result = await analyzeDocumentChunk(chunks[i], i, chunks.length);
+      const chunk = chunksToAnalyze[i];
+      const result = await analyzeDocumentChunk(chunk.text, chunk.index, chunks.length);
       results.push(result);
       
-      console.log(`Successfully analyzed chunk ${i + 1}/${chunks.length}`);
+      console.log(`Successfully analyzed chunk ${chunk.index + 1}/${chunks.length}`);
     } catch (error) {
-      console.error(`Error analyzing chunk ${i + 1}:`, error);
+      console.error(`Error analyzing chunk ${chunksToAnalyze[i].index + 1}:`, error);
       // Add error result for this chunk
       results.push({
         error: true,
-        chunkIndex: i,
+        chunkIndex: chunksToAnalyze[i].index,
         message: error.message,
         severity: "high",
         overallScore: 0
@@ -394,6 +423,9 @@ serve(async (req) => {
 
     console.log(`Received document: ${fileName}, type: ${fileType}, content length: ${content.length}`);
 
+    // Add progress update
+    let timeStart = Date.now();
+
     // Convert base64 to buffer
     let buffer;
     let text;
@@ -409,7 +441,8 @@ serve(async (req) => {
         buffer = new TextEncoder().encode(content);
       }
       
-      console.log(`Decoded text length: ${text.length} characters`);
+      console.log(`Decoded text length: ${text.length} characters (${Date.now() - timeStart}ms)`);
+      timeStart = Date.now();
     } catch (decodeError) {
       console.error('Content processing error:', decodeError);
       throw new Error("Invalid content format. Expected base64 encoded content or plain text.");
@@ -437,14 +470,33 @@ serve(async (req) => {
       });
     }
     
+    // For large documents, add a sample-based approach
+    let documentApproach = "full";
+    if (text.length > 100000) {
+      documentApproach = "sampled";
+      console.log(`Large document detected (${text.length} chars). Using sampling approach.`);
+    }
+    
     // Split into chunks
     const chunks = splitIntoChunks(text);
+    console.log(`Chunking complete (${Date.now() - timeStart}ms)`);
+    timeStart = Date.now();
     
     // Analyze all chunks
     const results = await analyzeDocumentChunks(chunks);
+    console.log(`Analysis complete (${Date.now() - timeStart}ms)`);
+    timeStart = Date.now();
     
     // Combine results
     const combinedResults = combineAnalysisResults(results);
+    
+    // For sampled documents, add a note
+    if (documentApproach === "sampled") {
+      combinedResults.documentApproach = "sampled";
+      combinedResults.samplingNote = "Due to the large size of this document, analysis was performed on selected representative sections.";
+    }
+    
+    console.log(`Results combined (${Date.now() - timeStart}ms)`);
 
     return new Response(JSON.stringify(combinedResults), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

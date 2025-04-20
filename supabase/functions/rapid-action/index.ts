@@ -52,28 +52,32 @@ serve(async (req) => {
         fileName = file.name.toLowerCase();
         if (fileName.endsWith('.pdf')) {
           fileType = 'application/pdf';
-        } else if (fileName.endsWith('.txt')) {
-          fileType = 'text/plain';
-        } else {
-          return new Response(
-            JSON.stringify({ error: 'Unsupported file type' }), 
-            { status: 415, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
 
-        // Extract text from file
-        if (fileName.endsWith('.pdf')) {
+          // For PDF processing, initialize the worker source
+          if (typeof window === 'undefined') {
+            // @ts-ignore - Ensure the worker is properly set for PDF.js in Deno
+            globalThis.pdfjsLib = pdfjs;
+          }
+          
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
           const numPages = pdf.numPages;
           
+          // Extract text from all pages
           for (let i = 1; i <= numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             content += textContent.items.map((item: any) => item.str).join(' ') + '\n';
           }
-        } else {
+          
+        } else if (fileName.endsWith('.txt')) {
+          fileType = 'text/plain';
           content = await file.text();
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'Unsupported file type' }), 
+            { status: 415, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
       } catch (error) {
         console.error('Error processing form data:', error);
@@ -119,11 +123,17 @@ serve(async (req) => {
       );
     }
 
-    // Process with OpenAI API instead of Anthropic
+    // Process with OpenAI API
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
       console.error("OpenAI API key is missing!");
-      throw new Error("OPENAI_API_KEY is not set");
+      return new Response(
+        JSON.stringify({ 
+          error: true, 
+          message: "OPENAI_API_KEY is not set in the Supabase Edge Function environment" 
+        }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const model = "gpt-4o-mini";
@@ -140,6 +150,8 @@ serve(async (req) => {
       Be concise and specific, referencing the relevant sections of the contract where possible.
       Your response should be formatted as a JSON object with the following keys: overallScore, criticalPoints, financialRisks, unusualLanguage, recommendations.`;
 
+    console.log(`Sending request to OpenAI API using model: ${model}`);
+    
     const data = {
       model: model,
       temperature: 0.1,
@@ -156,7 +168,6 @@ serve(async (req) => {
       ]
     };
 
-    console.log("Sending request to OpenAI API...");
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: headers,
@@ -184,7 +195,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ content, analysis: result }), 
+      JSON.stringify(result), 
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

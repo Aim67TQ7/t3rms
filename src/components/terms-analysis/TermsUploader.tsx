@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -15,192 +14,119 @@ interface TermsUploaderProps {
 }
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const FREE_ANALYSIS_LIMIT = 2;
 
 const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUploaderProps) => {
   const [directInputText, setDirectInputText] = useState('');
-  const [inputMethod, setInputMethod] = useState<'file' | 'text'>('file');
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
+  const [showLimitReached, setShowLimitReached] = useState(false);
   const { toast } = useToast();
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-    
-    const file = acceptedFiles[0];
-    
-    if (file.size > MAX_FILE_SIZE) {
-      setFileSizeError(`File is too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
-      toast({
-        title: "File too large",
-        description: `Please upload a file smaller than ${MAX_FILE_SIZE / 1024 / 1024}MB or paste the text directly.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setFileSizeError(null);
-    setFile(file);
-    setInputMethod('file');
-
-    const reader = new FileReader();
-    reader.onload = (event: ProgressEvent<FileReader>) => {
-      if (event.target?.result) {
-        const content = event.target.result as string;
-        setText(content);
-        console.log("File content read successfully, length:", content.length);
-      }
-    };
-    reader.onerror = (error) => {
-      console.error("Error reading file:", error);
-      toast({
-        title: "Error",
-        description: "Failed to read file. Please try again or paste the text directly.",
-        variant: "destructive",
-      });
-    };
-    reader.readAsText(file);
+  // Utility to get analysis count
+  const getFreeAnalysesUsed = () => {
+    const val = localStorage.getItem('anonymous_analysis_count');
+    return val ? parseInt(val, 10) : 0;
   };
 
+  // Hide upload file UI, only allow paste text for free users
   const handleTextInput = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    
+
     if (value.length > MAX_FILE_SIZE / 2) {
       toast({
         title: "Text too long",
-        description: "The text is too long for analysis. Please shorten it or upload a smaller document.",
+        description: "The text is too long for analysis. Please shorten it.",
         variant: "destructive",
       });
       return;
     }
-    
+
     setDirectInputText(value);
     setText(value);
-    setInputMethod('text');
     setFile(null);
     setFileSizeError(null);
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop, 
-    accept: { 
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'text/plain': ['.txt']
-    },
-    maxFiles: 1,
-    multiple: false,
-    maxSize: MAX_FILE_SIZE
-  });
+  // Check free-tier use before running onAnalyze
+  const handleAnalyzeClick = () => {
+    if (getFreeAnalysesUsed() >= FREE_ANALYSIS_LIMIT) {
+      setShowLimitReached(true);
+      toast({
+        title: "Free Limit Exceeded",
+        description:
+          "You have reached the free analysis limit. Please purchase 50 credits to continue analyzing documents.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowLimitReached(false);
+    onAnalyze();
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 mb-2">
-        <Button 
-          variant={inputMethod === 'file' ? "default" : "outline"} 
-          onClick={() => setInputMethod('file')}
-          className={`flex-1 ${inputMethod === 'file' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-        >
-          Upload File
-        </Button>
-        <Button 
-          variant={inputMethod === 'text' ? "default" : "outline"} 
-          onClick={() => setInputMethod('text')}
-          className={`flex-1 ${inputMethod === 'text' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-        >
-          Paste Text
-        </Button>
+      {/* Only show paste text, no file upload or input method choice */}
+      <div className="space-y-2">
+        <div className="mb-2 text-md font-semibold text-blue-700">Paste Text Only (Free Tier)</div>
+        <Textarea
+          placeholder="Paste your contract text here..."
+          className={`min-h-[200px] transition-all duration-300 ${
+            directInputText
+              ? 'border-green-500 focus:border-green-500 focus:ring-green-500'
+              : 'focus:border-blue-500 focus:ring-blue-500'
+          }`}
+          value={directInputText}
+          onChange={handleTextInput}
+          disabled={showLimitReached}
+        />
+        <p className="text-xs text-gray-500 text-right">Max ~1MB of text</p>
       </div>
 
-      {inputMethod === 'file' ? (
-        <div 
-          {...getRootProps()} 
-          className={`
-            dropzone border-2 border-dashed rounded-lg p-12 text-center 
-            transition-all duration-300 cursor-pointer
-            ${isDragActive 
-              ? 'border-blue-500 bg-blue-50' 
-              : file 
-                ? 'border-green-500 bg-green-50'
-                : fileSizeError 
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-            }
-          `}
-        >
-          <input {...getInputProps()} />
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              {file ? (
-                <FileText className="h-16 w-16 text-green-500" />
-              ) : fileSizeError ? (
-                <AlertCircle className="h-16 w-16 text-red-500" />
-              ) : (
-                <FileUp className={`h-16 w-16 ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`} />
-              )}
-            </div>
-            
-            {file ? (
-              <div className="space-y-2">
-                <p className="text-lg font-medium text-green-600">File ready for analysis</p>
-                <p className="text-sm text-green-600 break-all">
-                  {file.name}
-                </p>
-              </div>
-            ) : fileSizeError ? (
-              <div className="space-y-2">
-                <p className="text-lg font-medium text-red-600">Error</p>
-                <p className="text-sm text-red-600">
-                  {fileSizeError}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-lg font-medium text-gray-700">
-                  {isDragActive ? 'Drop your file here' : 'Drag & drop your contract here'}
-                </p>
-                <p className="text-sm text-gray-500">
-                  or click to browse your files (max size: 2MB)
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Textarea 
-            placeholder="Paste your contract text here..."
-            className={`min-h-[200px] transition-all duration-300 ${
-              directInputText 
-                ? 'border-green-500 focus:border-green-500 focus:ring-green-500' 
-                : 'focus:border-blue-500 focus:ring-blue-500'
-            }`}
-            value={directInputText}
-            onChange={handleTextInput}
-          />
-          <p className="text-xs text-gray-500 text-right">Max ~1MB of text</p>
-        </div>
-      )}
-
-      <Button 
-        onClick={onAnalyze} 
-        disabled={(inputMethod === 'file' && !file) || (inputMethod === 'text' && !directInputText) || loading || !!fileSizeError}
-        className={`w-full py-6 text-lg ${
-          ((file || directInputText) && !loading && !fileSizeError)
-            ? 'bg-blue-600 hover:bg-blue-700'
-            : 'bg-gray-300'
+      <button
+        onClick={handleAnalyzeClick}
+        disabled={!directInputText || loading || !!fileSizeError || showLimitReached}
+        className={`w-full py-6 text-lg rounded ${
+          directInputText && !loading && !fileSizeError && !showLimitReached
+            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
         }`}
       >
         {loading ? (
-          <>
-            <span className="animate-pulse">Analyzing...</span>
-          </>
+          <span className="animate-pulse">Analyzing...</span>
         ) : (
           <>
-            <FileText className="mr-2 h-5 w-5" />
-            Analyze Contract
+            <span className="inline-flex items-center">
+              <FileText className="mr-2 h-5 w-5" />
+              Analyze Contract
+            </span>
           </>
         )}
-      </Button>
+      </button>
+
+      {showLimitReached && (
+        <div className="bg-amber-100 border border-amber-300 rounded-md p-4 mt-2">
+          <div className="text-amber-800 font-medium mb-1">
+            Free Tier Limit Reached
+          </div>
+          <div className="text-amber-700 mb-2">
+            You have reached your free usage limit. To continue, please purchase a 50-credit package.
+          </div>
+          <button
+            className="bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded"
+            // Placeholder: add actual purchase flow
+            onClick={() => toast({
+              title: 'Purchase Credits',
+              description: 'Purchase flow coming soon.',
+            })}
+          >
+            Buy 50 Credits
+          </button>
+        </div>
+      )}
+
+      {fileSizeError && (
+        <div className="text-red-600 text-center">{fileSizeError}</div>
+      )}
     </div>
   );
 };

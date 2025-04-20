@@ -13,100 +13,144 @@ const PrivacyPolicy = () => {
         description="Comprehensive privacy policy detailing data collection, usage, and protection, including specific disclosures for Google authentication and user data handling in compliance with GDPR and Google API Services User Data Policy"
       />
       <main className="flex-grow container mx-auto px-4 py-12">
-        <div className="prose prose-slate max-w-none">
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md mb-8">
-            <p className="text-sm">Last updated: April 17, 2025</p>
-            <p className="text-sm mt-2">This Privacy Policy is compliant with the General Data Protection Regulation (GDPR), Google API Services User Data Policy, and other applicable data protection laws.</p>
+        <div className="prose prose-slate max-w-none dark:prose-invert">
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md mb-8">
+            <p className="text-sm">Last updated: April 20, 2025</p>
           </div>
 
           <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
 
-          <h2>1. INTRODUCTION</h2>
-          <p>T3RMS ("we," "our," or "us"), operated by NOV8V LLC, is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.</p>
+          <div className="mb-8">
+            <h2>Table of Contents</h2>
+            <ol className="list-decimal list-inside">
+              <li>Introduction</li>
+              <li>Information We Collect</li>
+              <li>How We Use Your Information</li>
+              <li>Legal Basis for Processing</li>
+              <li>Information Sharing and Disclosure</li>
+              <li>International Data Transfers</li>
+              <li>Data Security</li>
+              <li>Data Retention</li>
+              <li>Your Rights Under GDPR</li>
+              <li>Children's Privacy</li>
+              <li>Cookies and Tracking Technologies</li>
+              <li>Changes to This Privacy Policy</li>
+              <li>Data Protection Officer</li>
+              <li>Contact Us</li>
+            </ol>
+          </div>
 
-          <h2>2. INFORMATION WE COLLECT</h2>
-          <h3>2.1 Personal Information</h3>
-          <p>We collect information that you provide directly to us, including:</p>
+          <h2>1. Introduction</h2>
+          <p>T3RMS ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by T3RMS. This Privacy Policy applies to our website, t3rms.ai, and its associated subdomains (collectively, our "Service"). By accessing or using our Service, you signify that you have read, understood, and agreed to our collection, storage, use, and disclosure of your personal information as described in this Privacy Policy.</p>
+          
+          <p>This Privacy Policy complies with the General Data Protection Regulation (GDPR) and outlines your rights as a data subject and our obligations as a data controller.</p>
+
+          <h2>2. Information We Collect</h2>
+          <h3>2.1 Personal Data</h3>
+          <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you ("Personal Data"). Personal Data may include, but is not limited to:</p>
           <ul>
             <li>Email address</li>
-            <li>Name</li>
-            <li>Payment information (processed securely through our payment providers)</li>
-            <li>Usage data and preferences</li>
+            <li>First name and last name</li>
+            <li>Phone number</li>
+            <li>Address, State, Province, ZIP/Postal code, City</li>
+            <li>Cookies and Usage Data</li>
           </ul>
 
-          <h3>2.2 Google Account Information</h3>
-          <p>When you choose to sign in using Google, we collect:</p>
+          <h3>2.2 Usage Data</h3>
+          <p>We may also collect information on how the Service is accessed and used ("Usage Data"). This Usage Data may include information such as your computer's Internet Protocol address (e.g. IP address), browser type, browser version, the pages of our Service that you visit, the time and date of your visit, the time spent on those pages, unique device identifiers and other diagnostic data.</p>
+
+          <h3>2.3 Tracking & Cookies Data</h3>
+          <p>We use cookies and similar tracking technologies to track the activity on our Service and hold certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service.</p>
+
+          <h2>3. How We Use Your Information</h2>
+          <p>We use your Personal Data for various purposes:</p>
           <ul>
-            <li>Google Account email address</li>
-            <li>Google Account public profile information</li>
-            <li>Google Account ID (for authentication purposes)</li>
+            <li>To provide and maintain our Service</li>
+            <li>To notify you about changes to our Service</li>
+            <li>To allow you to participate in interactive features of our Service when you choose to do so</li>
+            <li>To provide customer support</li>
+            <li>To gather analysis or valuable information so that we can improve our Service</li>
+            <li>To monitor the usage of our Service</li>
+            <li>To detect, prevent and address technical issues</li>
+            <li>To fulfill any other purpose for which you provide it</li>
           </ul>
 
-          <h2>3. HOW WE USE YOUR INFORMATION</h2>
-          <p>We use the collected information for:</p>
+          <h2>4. Legal Basis for Processing</h2>
+          <p>Under the GDPR, we must have a legal basis for processing your Personal Data. We rely on the following legal bases, depending on the circumstances:</p>
           <ul>
-            <li>Authentication and account creation</li>
-            <li>Providing and improving our services</li>
-            <li>Communication about your account and our services</li>
-            <li>Processing your transactions</li>
-            <li>Analytics and service improvement</li>
+            <li><strong>Consent:</strong> We may process your data based on your consent, such as when you sign up for our newsletter.</li>
+            <li><strong>Contractual Necessity:</strong> We may process your data when it's necessary for the performance of a contract with you.</li>
+            <li><strong>Legitimate Interests:</strong> We may process your data when it's in our legitimate interests to do so, and those interests aren't overridden by your data protection rights.</li>
+            <li><strong>Legal Obligations:</strong> We may process your data when we have a legal obligation to do so, such as to comply with applicable law, regulations, or court orders.</li>
           </ul>
 
-          <h3>3.1 Google User Data Usage</h3>
-          <p>Google user data is specifically used for:</p>
+          <h2>5. Information Sharing and Disclosure</h2>
+          <p>We may share your Personal Data in the following situations:</p>
           <ul>
-            <li>Authentication and account creation</li>
-            <li>User identification</li>
-            <li>Communication purposes</li>
+            <li><strong>With Service Providers:</strong> We may share your data with service providers to perform services on our behalf.</li>
+            <li><strong>For Business Transfers:</strong> We may share or transfer your data in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.</li>
+            <li><strong>With Affiliates:</strong> We may share your information with our affiliates, in which case we will require those affiliates to honor this Privacy Policy.</li>
+            <li><strong>With Business Partners:</strong> We may share your information with our business partners to offer you certain products, services, or promotions.</li>
+            <li><strong>With Your Consent:</strong> We may disclose your personal information for any other purpose with your consent.</li>
+            <li><strong>To Comply with Legal Obligations:</strong> We may disclose your information where required to do so by law or subpoena.</li>
           </ul>
 
-          <h2>4. DATA STORAGE AND SECURITY</h2>
-          <p>We implement appropriate security measures to protect your information:</p>
+          <h2>6. International Data Transfers</h2>
+          <p>Your information may be transferred to — and maintained on — computers located outside of your state, province, country or other governmental jurisdiction where the data protection laws may differ from those of your jurisdiction.</p>
+          
+          <p>If you are located outside the United States and choose to provide information to us, please note that we transfer the data, including Personal Data, to the United States and process it there.</p>
+          
+          <p>Your consent to this Privacy Policy followed by your submission of such information represents your agreement to that transfer. We will take all steps reasonably necessary to ensure that your data is treated securely and in accordance with this Privacy Policy and no transfer of your Personal Data will take place to an organization or a country unless there are adequate controls in place including the security of your data and other personal information.</p>
+
+          <h2>7. Data Security</h2>
+          <p>The security of your data is important to us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.</p>
+          
+          <p>We implement appropriate technical and organizational measures to protect your Personal Data, including encryption, access controls, regular security assessments, and staff training.</p>
+
+          <h2>8. Data Retention</h2>
+          <p>We will retain your Personal Data only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use your Personal Data to the extent necessary to comply with our legal obligations (for example, if we are required to retain your data to comply with applicable laws), resolve disputes, and enforce our legal agreements and policies.</p>
+          
+          <p>We will also retain Usage Data for internal analysis purposes. Usage Data is generally retained for a shorter period of time, except when this data is used to strengthen the security or to improve the functionality of our Service, or we are legally obligated to retain this data for longer time periods.</p>
+
+          <h2>9. Your Rights Under GDPR</h2>
+          <p>If you are in the European Economic Area (EEA), you have certain data protection rights. T3RMS aims to take reasonable steps to allow you to correct, amend, delete, or limit the use of your Personal Data.</p>
+          
+          <p>You have the following data protection rights:</p>
           <ul>
-            <li>All data is stored in secure databases with encryption</li>
-            <li>We use HTTPS encryption for all data transmission</li>
-            <li>Regular security audits and updates</li>
-            <li>Limited employee access to personal data</li>
+            <li>The right to access - You have the right to request copies of your personal data.</li>
+            <li>The right to rectification - You have the right to request that we correct any information you believe is inaccurate. You also have the right to request that we complete information you believe is incomplete.</li>
+            <li>The right to erasure - You have the right to request that we erase your personal data, under certain conditions.</li>
+            <li>The right to restrict processing - You have the right to request that we restrict the processing of your personal data, under certain conditions.</li>
+            <li>The right to object to processing - You have the right to object to our processing of your personal data, under certain conditions.</li>
+            <li>The right to data portability - You have the right to request that we transfer the data that we have collected to another organization, or directly to you, under certain conditions.</li>
           </ul>
 
-          <h2>5. DATA SHARING</h2>
-          <p>We do not share or sell your personal information to third parties except:</p>
+          <h2>10. Children's Privacy</h2>
+          <p>Our Service does not address anyone under the age of 16 ("Children"). We do not knowingly collect personally identifiable information from anyone under the age of 16. If you are a parent or guardian and you are aware that your Children has provided us with Personal Data, please contact us. If we become aware that we have collected Personal Data from children without verification of parental consent, we take steps to remove that information from our servers.</p>
+
+          <h2>11. Cookies and Tracking Technologies</h2>
+          <p>We use cookies and similar tracking technologies to track the activity on our Service and hold certain information. Cookies are files with small amount of data which may include an anonymous unique identifier.</p>
+          
+          <p>You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service.</p>
+          
+          <p>Examples of Cookies we use:</p>
           <ul>
-            <li>When required by law</li>
-            <li>With your explicit consent</li>
-            <li>To our service providers who assist in operating our website and services</li>
+            <li><strong>Session Cookies:</strong> We use Session Cookies to operate our Service.</li>
+            <li><strong>Preference Cookies:</strong> We use Preference Cookies to remember your preferences and various settings.</li>
+            <li><strong>Security Cookies:</strong> We use Security Cookies for security purposes.</li>
           </ul>
 
-          <h3>5.1 Google User Data Sharing</h3>
-          <p>We do not share Google user data with third parties except as required by law. Any sharing of Google user data is in compliance with Google API Services User Data Policy.</p>
+          <h2>12. Changes to This Privacy Policy</h2>
+          <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date at the top of this Privacy Policy.</p>
+          
+          <p>You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
 
-          <h2>6. YOUR RIGHTS AND CHOICES</h2>
-          <p>You have the right to:</p>
-          <ul>
-            <li>Access your personal information</li>
-            <li>Correct inaccurate information</li>
-            <li>Request deletion of your information</li>
-            <li>Object to or restrict processing of your information</li>
-            <li>Request a copy of your information</li>
-          </ul>
+          <h2>13. Data Protection Officer</h2>
+          <p>We have appointed a Data Protection Officer ("DPO") who is responsible for overseeing questions in relation to this privacy policy. If you have any questions about this Privacy Policy, including any requests to exercise your legal rights, please contact the DPO using the details set out below.</p>
 
-          <h2>7. DATA RETENTION</h2>
-          <p>We retain your information for as long as necessary to provide our services and comply with legal obligations. You can request deletion of your data by contacting privacy@t3rms.ai.</p>
-
-          <h2>8. CHILDREN'S PRIVACY</h2>
-          <p>Our services are not intended for users under 18 years of age. We do not knowingly collect information from children under 18.</p>
-
-          <h2>9. CHANGES TO THIS PRIVACY POLICY</h2>
-          <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
-
-          <h2>10. CONTACT US</h2>
-          <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-          <p>Email: privacy@t3rms.ai</p>
-
-          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-md my-8">
-            <p className="font-bold">Data Protection Rights (GDPR):</p>
-            <p>For EU residents: You have the right to access, correct, or delete your personal data. Contact our Data Protection Officer at privacy@t3rms.ai for assistance with your data protection rights.</p>
-          </div>
+          <h2>14. Contact Us</h2>
+          <p>If you have any questions about this Privacy Policy, please contact us:</p>
+          <p>By email: privacy@t3rms.ai</p>
         </div>
       </main>
       <Footer />

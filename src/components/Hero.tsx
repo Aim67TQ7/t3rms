@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, FileText, ShieldCheck } from 'lucide-react';
@@ -50,15 +49,6 @@ const Hero = () => {
           >
             Analyze & Create T3RMS
           </h2>
-
-          {/* Free Usage Info */}
-          <p 
-            className={`text-xl text-gray-400 mb-3 transition-all duration-700 delay-200 ${
-              isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
-            }`}
-          >
-            3 free scans • Counter-proposal text unlocked on Pro plan ($29/mo)
-          </p>
 
           {/* Primary CTA */}
           <div 

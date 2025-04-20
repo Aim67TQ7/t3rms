@@ -19,19 +19,76 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     }));
   };
 
-  // Filter critical points related to key risk categories
-  const indemnityIssues = analysisData?.criticalPoints?.filter((item: any) => 
-    item.title?.toLowerCase().includes('indemnity') || 
-    item.description?.toLowerCase().includes('indemnity')
-  ) || [];
+  // Process critical points in analysis data
+  const processIssues = () => {
+    // Map raw data to normalized structure
+    const criticalPoints = analysisData?.criticalPoints?.map((point: any) => {
+      // Handle both old and new API response formats
+      return {
+        title: point.title || point.issue || `Issue in section ${point.section || 'Unknown'}`,
+        description: point.description || point.issue || 'Potential issue identified',
+        severity: point.severity || (point.section ? 'high' : 'medium'),
+        reference: point.reference || { 
+          section: point.section || null,
+          excerpt: null
+        }
+      };
+    }) || [];
 
-  const liabilityIssues = analysisData?.criticalPoints?.filter((item: any) => 
-    item.title?.toLowerCase().includes('liability') || 
-    item.description?.toLowerCase().includes('liability')
-  ) || [];
+    const financialRisks = analysisData?.financialRisks?.map((risk: any) => {
+      return {
+        title: risk.title || `Financial risk in section ${risk.section || 'Unknown'}`,
+        description: risk.description || risk.risk || 'Financial risk identified',
+        severity: risk.severity || 'high',
+        reference: risk.reference || { 
+          section: risk.section || null,
+          excerpt: null
+        }
+      };
+    }) || [];
 
-  const unusualLanguage = analysisData?.unusualLanguage || [];
-  const financialRisks = analysisData?.financialRisks || [];
+    const unusualLanguage = analysisData?.unusualLanguage?.map((item: any) => {
+      return {
+        title: item.title || `Unusual language in section ${item.section || 'Unknown'}`,
+        description: item.description || item.language || 'Unusual language identified',
+        severity: item.severity || 'medium',
+        reference: item.reference || { 
+          section: item.section || null,
+          excerpt: null
+        }
+      };
+    }) || [];
+
+    return {
+      criticalPoints,
+      financialRisks,
+      unusualLanguage
+    };
+  };
+
+  const processedData = processIssues();
+
+  // Filter issues by category
+  const indemnityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
+    (item.title?.toLowerCase().includes('indemnity') || 
+    item.description?.toLowerCase().includes('indemnity'))
+  );
+
+  const liabilityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
+    (item.title?.toLowerCase().includes('liability') || 
+    item.description?.toLowerCase().includes('liability'))
+  );
+
+  const financialRisks = processedData.financialRisks;
+  const unusualLanguage = processedData.unusualLanguage;
+
+  // Identify additional important risks (not in the above categories)
+  const otherCriticalIssues = processedData.criticalPoints.filter((item: any) => 
+    !item.title?.toLowerCase().includes('indemnity') && 
+    !item.description?.toLowerCase().includes('indemnity') &&
+    !item.title?.toLowerCase().includes('liability') && 
+    !item.description?.toLowerCase().includes('liability')
+  );
 
   const getRiskLevel = (issues: any[]) => {
     if (!issues.length) return "low";
@@ -62,9 +119,15 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     const allIssues = [
       ...indemnityIssues,
       ...liabilityIssues,
+      ...financialRisks,
       ...unusualLanguage,
-      ...financialRisks
+      ...otherCriticalIssues
     ];
+    
+    // If there are any high severity issues, overall risk is high
+    if (allIssues.some(issue => issue.severity === 'high')) {
+      return "high";
+    }
     return getRiskLevel(allIssues);
   };
 
@@ -132,7 +195,12 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   };
 
   const overallRiskLevel = getOverallRiskLevel();
-  const alignedScore = analysisData?.overallScore || 0;
+  // Recalculate the score to align with risk level
+  const alignedScore = overallRiskLevel === 'high' ? 
+    Math.max(0, Math.min(40, analysisData?.overallScore || 0)) : 
+    overallRiskLevel === 'medium' ? 
+      Math.max(41, Math.min(70, analysisData?.overallScore || 50)) :
+      Math.max(71, Math.min(100, analysisData?.overallScore || 80));
 
   return (
     <div className="space-y-6">
@@ -152,8 +220,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
             <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
               <strong>Key Recommendations:</strong>
               <ul className="list-disc pl-5 mt-2 space-y-1">
-                {analysisData.recommendations.slice(0, 3).map((rec: any, index: number) => (
-                  <li key={index}>{rec.text || rec}</li>
+                {(analysisData.recommendations || []).slice(0, 3).map((rec: any, index: number) => (
+                  <li key={index}>{rec.text || rec.recommendation || rec}</li>
                 ))}
               </ul>
             </div>
@@ -182,6 +250,13 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
           issues={unusualLanguage}
           icon={AlertTriangle}
         />
+        {otherCriticalIssues.length > 0 && (
+          <RiskCategory 
+            title="Other Critical Issues" 
+            issues={otherCriticalIssues}
+            icon={AlertTriangle}
+          />
+        )}
       </div>
     </div>
   );

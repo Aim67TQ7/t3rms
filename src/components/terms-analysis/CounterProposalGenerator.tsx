@@ -25,58 +25,43 @@ const CounterProposalGenerator = ({ analysisData, isPremium, onRequestPremium }:
     const counterProposalParts = [];
     
     counterProposalParts.push(`
-Dear [Counterparty Name],
+Based on our review of the proposed contract, we require the following modifications to proceed:
 
-I hope this email finds you well. Thank you for sharing the contract for our review. After a careful analysis, we would like to propose several modifications to ensure the agreement better serves both parties' interests while maintaining appropriate risk management protocols.
-
-Below are our specific recommendations for amendments:
-    `);
+Proposed Contract Modifications:`);
 
     if (criticalPoints.length > 0) {
-      counterProposalParts.push("\n1. Critical Contract Terms:\n");
+      counterProposalParts.push("\n1. Critical Terms Amendments:\n");
       criticalPoints.forEach((point: any, index: number) => {
         const title = point.title || point.issue || `Section ${point.section || 'Unknown'}`;
         const description = point.description || point.issue;
-        const suggestion = point.suggestion || "We propose revising this clause to better balance the interests of both parties";
+        const suggestion = point.suggestion || "This clause must be revised to align with standard industry practices and reasonable risk allocation";
         
         counterProposalParts.push(`
-   ${index + 1}. Re: ${title}
-      Current Language: ${description}
-      Proposed Change: ${suggestion}
-        `);
+   ${String.fromCharCode(97 + index)}. ${title}
+      Current: ${description}
+      Required Change: ${suggestion}
+      Rationale: To ensure balanced risk allocation and alignment with industry standards`);
       });
     }
 
     if (financialRisks.length > 0) {
-      counterProposalParts.push("\n2. Financial Terms:\n");
+      counterProposalParts.push("\n2. Financial Terms Revisions:\n");
       financialRisks.forEach((risk: any, index: number) => {
         const title = risk.title || risk.risk || `Financial term in section ${risk.section || 'Unknown'}`;
         counterProposalParts.push(`
-   ${index + 1}. ${title}
-      - Proposed Modification: ${risk.suggestion || "We suggest adjusting these terms to align with standard industry practices"}
-      - Rationale: ${risk.rationale || "This change would provide better clarity and fairness for both parties"}
-        `);
+   ${String.fromCharCode(97 + index)}. ${title}
+      Required Modification: ${risk.suggestion || "Terms must be adjusted to reflect fair market conditions"}
+      Business Justification: ${risk.rationale || "Current terms present unreasonable financial exposure"}`);
       });
     }
 
     if (recommendations.length > 0) {
-      counterProposalParts.push("\n3. Additional Recommendations:\n");
+      counterProposalParts.push("\n3. Additional Required Changes:\n");
       recommendations.forEach((rec: any, index: number) => {
         const recText = rec.text || rec.recommendation || rec;
-        counterProposalParts.push(`   ${index + 1}. ${recText}`);
+        counterProposalParts.push(`   ${String.fromCharCode(97 + index)}. ${recText}`);
       });
     }
-
-    counterProposalParts.push(`
-
-We believe these proposed modifications will create a more balanced agreement that better serves both organizations' interests while maintaining appropriate protections for all parties involved.
-
-I would welcome the opportunity to discuss these points in detail at your earliest convenience. Please let me know what times work best for you to review these suggestions together.
-
-Best regards,
-[Your Name]
-[Your Organization]
-    `);
     
     return counterProposalParts.join("\n");
   };
@@ -102,36 +87,36 @@ Best regards,
   };
 
   return (
-    <Card>
+    <Card className="border-purple-500/20">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Counter-Proposal Generator</CardTitle>
+          <CardTitle className="text-white">Counter-Proposal Generator</CardTitle>
           {!isPremium && (
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1 bg-purple-500/20">
               <Lock className="h-3 w-3" /> Premium Feature
             </Badge>
           )}
         </div>
-        <CardDescription>
+        <CardDescription className="text-gray-300">
           Generate a professional counter-proposal based on identified issues
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <Textarea 
-            className="min-h-[300px] font-mono text-sm"
+            className="min-h-[300px] font-mono text-sm text-white bg-purple-950/40 border-purple-500/20"
             readOnly
             value={isPremium ? counterProposalText : counterProposalText.split('\n').slice(0, 4).join('\n') + "\n\n[Subscribe to view and use the complete counter-proposal text]"}
             style={{ filter: isPremium ? 'none' : 'blur(1px)' }}
           />
           
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-500">
-              {isPremium ? "Click to copy this text and paste it into your email reply" : "Upgrade to unlock this feature"}
+            <p className="text-sm text-gray-300">
+              {isPremium ? "Click to copy the counter-proposal text" : "Upgrade to unlock this feature"}
             </p>
             <Button 
               onClick={handleCopy}
-              className={isPremium ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-600 hover:bg-gray-700"}
+              className={isPremium ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-600 hover:bg-gray-700"}
             >
               {isPremium ? (
                 copied ? (

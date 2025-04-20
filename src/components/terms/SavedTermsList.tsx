@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
@@ -6,14 +5,9 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/navbar/useAuth";
+import type { Database } from '@/integrations/supabase/types';
 
-interface SavedTerm {
-  id: string;
-  business_name: string;
-  policy_types: string[];
-  created_at: string;
-  generated_content: string;
-}
+type SavedTerm = Database['public']['Tables']['saved_terms']['Row'];
 
 export function SavedTermsList() {
   const { userId } = useAuth();
@@ -22,12 +16,12 @@ export function SavedTermsList() {
     queryKey: ['saved-terms', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('saved_terms')  // Updated table name to match the actual table
+        .from('saved_terms')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
     enabled: !!userId
   });

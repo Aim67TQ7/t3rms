@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -6,13 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { NavbarMobile } from './NavbarMobile';
 import { NavbarDesktop } from './NavbarDesktop';
 import { useAuth } from './useAuth';
+import type { Database } from '@/integrations/supabase/types';
 
-interface UserData {
-  id: string;
-  email: string;
-  created_at: string;
-  avatar_url?: string;
-}
+type UserProfile = Database['public']['Tables']['profiles']['Row'];
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -20,13 +15,13 @@ const Navbar = () => {
   const location = useLocation();
   const { isAuthenticated, userId, userEmail } = useAuth();
 
-  const { data: userData } = useQuery<UserData | null>({
-    queryKey: ['user', userId],
+  const { data: userData } = useQuery<UserProfile | null>({
+    queryKey: ['user-profile', userId],
     queryFn: async () => {
       if (!isAuthenticated) return null;
       
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
@@ -38,7 +33,7 @@ const Navbar = () => {
       
       return data;
     },
-    enabled: isAuthenticated
+    enabled: isAuthenticated && !!userId
   });
 
   useEffect(() => {
@@ -67,14 +62,12 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 md:px-6">
-        {/* Desktop Navigation */}
         <NavbarDesktop 
           isAuthenticated={isAuthenticated}
           userData={userData}
           userEmail={userEmail}
         />
 
-        {/* Mobile Navigation */}
         <NavbarMobile
           isAuthenticated={isAuthenticated}
           userData={userData}

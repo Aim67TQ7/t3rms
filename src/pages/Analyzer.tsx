@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Plus } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
+import { env } from '@/env';
 
 const MAX_CONTENT_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -27,6 +29,7 @@ const Analyzer = () => {
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [currentStep, setCurrentStep] = useState('Preparing document...');
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
   const navigate = useNavigate();
@@ -134,6 +137,7 @@ const Analyzer = () => {
 
     setLoading(true);
     setCurrentStep('Preparing document...');
+    setApiKeyMissing(false);
 
     try {
       let fileContent = '';
@@ -168,6 +172,12 @@ const Analyzer = () => {
 
       if (error) {
         throw new Error(error.message || "Error analyzing document");
+      }
+
+      // Check if the response contains an error message about the API key
+      if (data && data.error && data.message && data.message.includes("ANTHROPIC_API_KEY is not set")) {
+        setApiKeyMissing(true);
+        throw new Error("The Anthropic API key is not configured. Please contact the administrator.");
       }
 
       if (!data) {
@@ -221,7 +231,9 @@ const Analyzer = () => {
       
       let errorMessage = "Failed to analyze document.";
       
-      if (error.message && error.message.includes("send a request to the Edge Function")) {
+      if (apiKeyMissing) {
+        errorMessage = "The AI service is not properly configured. Please contact the administrator to set up the Anthropic API key.";
+      } else if (error.message && error.message.includes("send a request to the Edge Function")) {
         errorMessage = "The document is too large or complex to analyze. Please try with a smaller document or paste a portion of the text.";
       } else if (error.message) {
         errorMessage = error.message;
@@ -264,6 +276,21 @@ const Analyzer = () => {
             <div className="lg:col-span-12 xl:col-span-12">
               <div className="min-h-[70vh] flex items-center justify-center p-8">
                 <div className="w-full max-w-4xl">
+                  {apiKeyMissing && (
+                    <div className="mb-6 p-4 border border-amber-300 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
+                        <div>
+                          <h3 className="font-medium text-amber-800 dark:text-amber-300">API Configuration Required</h3>
+                          <p className="text-amber-700 dark:text-amber-400 text-sm mt-1">
+                            The Anthropic API key is not configured. The document analysis feature requires this API key to be set in 
+                            the Supabase edge functions environment. Please contact the administrator to configure this.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                
                   <DropzoneUploader 
                     file={file}
                     setFile={setFile}

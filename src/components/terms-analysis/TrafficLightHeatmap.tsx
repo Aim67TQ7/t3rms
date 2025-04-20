@@ -38,39 +38,101 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     item.description?.toLowerCase().includes('days to pay')
   ) || [];
 
-  // Determine severity levels for traffic light display
+  // Improved risk level determination for more accurate traffic light display
   const getIndemnityRiskLevel = () => {
     if (indemnityIssues.length === 0) return "low";
+    
+    // Count high and medium risk issues
     const highRiskCount = indemnityIssues.filter((issue: any) => 
       issue.severity === "high" || issue.risk === "high"
     ).length;
+    
+    const mediumRiskCount = indemnityIssues.filter((issue: any) => 
+      issue.severity === "medium" || issue.risk === "medium"
+    ).length;
+    
     if (highRiskCount > 0) return "high";
-    return "medium";
+    if (mediumRiskCount > 0) return "medium";
+    return "low";
   };
 
   const getLiabilityRiskLevel = () => {
     if (liabilityIssues.length === 0) return "low";
+    
+    // Count high and medium risk issues
     const highRiskCount = liabilityIssues.filter((issue: any) => 
       issue.severity === "high" || issue.risk === "high"
     ).length;
+    
+    const mediumRiskCount = liabilityIssues.filter((issue: any) => 
+      issue.severity === "medium" || issue.risk === "medium"
+    ).length;
+    
     if (highRiskCount > 0) return "high";
-    return "medium";
+    if (mediumRiskCount > 0) return "medium";
+    return "low";
   };
 
   const getPaymentRiskLevel = () => {
     if (paymentIssues.length === 0) return "low";
+    
+    // Count high and medium risk issues
     const highRiskCount = paymentIssues.filter((issue: any) => 
       issue.severity === "high" || issue.risk === "high"
     ).length;
+    
+    const mediumRiskCount = paymentIssues.filter((issue: any) => 
+      issue.severity === "medium" || issue.risk === "medium"
+    ).length;
+    
     if (highRiskCount > 0) return "high";
-    return "medium";
+    if (mediumRiskCount > 0) return "medium";
+    return "low";
   };
 
+  // Calculate overall risk level based on all categories
+  const getOverallRiskLevel = () => {
+    const indemnityLevel = getIndemnityRiskLevel();
+    const liabilityLevel = getLiabilityRiskLevel();
+    const paymentLevel = getPaymentRiskLevel();
+    
+    if (indemnityLevel === "high" || liabilityLevel === "high" || paymentLevel === "high") {
+      return "high";
+    }
+    if (indemnityLevel === "medium" || liabilityLevel === "medium" || paymentLevel === "medium") {
+      return "medium";
+    }
+    return "low";
+  };
+
+  // Map risk levels to colors for visual display
   const riskColorMap = {
     high: "bg-red-500",
     medium: "bg-amber-500",
     low: "bg-green-500"
   };
+
+  // Get text descriptions based on risk levels
+  const getRiskDescription = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "high": return "High risk";
+      case "medium": return "Medium risk";
+      case "low": return "Low risk";
+      default: return "Unknown risk";
+    }
+  };
+
+  // Overall risk level for consistent scoring
+  const overallRiskLevel = getOverallRiskLevel();
+  
+  // Ensure score aligns with traffic light findings
+  const calculateAlignedScore = () => {
+    if (overallRiskLevel === "high") return Math.max(10, Math.min(40, analysisData?.overallScore || 30));
+    if (overallRiskLevel === "medium") return Math.max(41, Math.min(70, analysisData?.overallScore || 60));
+    return Math.max(71, Math.min(100, analysisData?.overallScore || 85));
+  };
+
+  const alignedScore = calculateAlignedScore();
 
   return (
     <div className="space-y-6">
@@ -98,7 +160,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                     <Collapsible key={`indemnity-${index}`} open={openItems[`indemnity-${index}`]} onOpenChange={() => toggleItem(`indemnity-${index}`)}>
                       <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
                         <div className="flex items-center gap-2">
-                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : 'text-amber-500'}`} />
+                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
                           <span>{issue.title || `Issue #${index + 1}`}</span>
                         </div>
                         {openItems[`indemnity-${index}`] ? 
@@ -140,7 +202,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                     <Collapsible key={`liability-${index}`} open={openItems[`liability-${index}`]} onOpenChange={() => toggleItem(`liability-${index}`)}>
                       <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
                         <div className="flex items-center gap-2">
-                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : 'text-amber-500'}`} />
+                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
                           <span>{issue.title || `Issue #${index + 1}`}</span>
                         </div>
                         {openItems[`liability-${index}`] ? 
@@ -182,7 +244,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                     <Collapsible key={`payment-${index}`} open={openItems[`payment-${index}`]} onOpenChange={() => toggleItem(`payment-${index}`)}>
                       <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
                         <div className="flex items-center gap-2">
-                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : 'text-amber-500'}`} />
+                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
                           <span>{issue.title || `Issue #${index + 1}`}</span>
                         </div>
                         {openItems[`payment-${index}`] ? 
@@ -209,15 +271,11 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Badge className={`${analysisData.overallScore > 70 ? 'bg-green-500' : analysisData.overallScore > 40 ? 'bg-amber-500' : 'bg-red-500'}`}>
-                Score: {analysisData.overallScore}/100
+              <Badge className={`${overallRiskLevel === 'low' ? 'bg-green-500' : overallRiskLevel === 'medium' ? 'bg-amber-500' : 'bg-red-500'}`}>
+                Score: {alignedScore}/100
               </Badge>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {analysisData.overallScore > 70 
-                  ? 'Low risk contract' 
-                  : analysisData.overallScore > 40 
-                    ? 'Medium risk contract' 
-                    : 'High risk contract'}
+                {getRiskDescription(overallRiskLevel)} contract
               </span>
             </div>
             

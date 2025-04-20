@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,9 +68,6 @@ const AnalysisRevisionHistory = ({
     try {
       const doc = new jsPDF();
       
-      // Add company logo
-      // doc.addImage(logo, 'PNG', 10, 10, 50, 20);
-      
       // Add title
       doc.setFontSize(20);
       doc.setTextColor(0, 0, 139);
@@ -104,33 +100,33 @@ const AnalysisRevisionHistory = ({
         
         // Safely access criticalPoints from analysis_results
         const analysisResults = selectedAnalysis.analysis_results || {};
-        if (typeof analysisResults === 'object') {
-          const criticalPoints = analysisResults.criticalPoints || [];
+        const criticalPoints = analysisResults && typeof analysisResults === 'object' && 'criticalPoints' in analysisResults 
+          ? (analysisResults.criticalPoints as any[] || []) 
+          : [];
           
-          if (Array.isArray(criticalPoints)) {
-            criticalPoints.forEach((point: any, index: number) => {
-              if (point && typeof point === 'object') {
-                doc.setTextColor(180, 0, 0);
-                doc.text(`${index + 1}. ${point.title || 'Unknown issue'}`, 20, yPos);
-                yPos += 10;
-                
-                doc.setTextColor(0, 0, 0);
-                const description = point.description || 'No description available';
-                const descLines = doc.splitTextToSize(description, 170);
-                doc.text(descLines, 25, yPos);
-                yPos += 10 * descLines.length;
-                
-                // Add some space between items
-                yPos += 5;
-                
-                // Check if we need a new page
-                if (yPos > 270) {
-                  doc.addPage();
-                  yPos = 20;
-                }
+        if (Array.isArray(criticalPoints)) {
+          criticalPoints.forEach((point: any, index: number) => {
+            if (point && typeof point === 'object') {
+              doc.setTextColor(180, 0, 0);
+              doc.text(`${index + 1}. ${point.title || 'Unknown issue'}`, 20, yPos);
+              yPos += 10;
+              
+              doc.setTextColor(0, 0, 0);
+              const description = point.description || 'No description available';
+              const descLines = doc.splitTextToSize(description, 170);
+              doc.text(descLines, 25, yPos);
+              yPos += 10 * descLines.length;
+              
+              // Add some space between items
+              yPos += 5;
+              
+              // Check if we need a new page
+              if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
               }
-            });
-          }
+            }
+          });
         }
       } else {
         doc.setFontSize(12);

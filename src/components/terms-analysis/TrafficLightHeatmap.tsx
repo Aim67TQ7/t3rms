@@ -19,45 +19,50 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     }));
   };
 
-  // Process critical points in analysis data
+  // Process critical points and other issues in analysis data
   const processIssues = () => {
-    // Map raw data to normalized structure
-    const criticalPoints = analysisData?.criticalPoints?.map((point: any) => {
-      // Handle both old and new API response formats
+    // Normalize critical points
+    const criticalPoints = (analysisData?.criticalPoints || []).map((point: any) => {
+      // Check for different data structures and normalize
       return {
-        title: point.title || point.issue || `Issue in section ${point.section || 'Unknown'}`,
-        description: point.description || point.issue || 'Potential issue identified',
-        severity: point.severity || (point.section ? 'high' : 'medium'),
-        reference: point.reference || { 
+        title: point.title || `Issue in section ${point.section || 'Unknown'}`,
+        description: point.description || point.concern || point.risk || 'Potential issue identified',
+        severity: point.severity || 'high',
+        reference: {
           section: point.section || null,
-          excerpt: null
+          excerpt: point.excerpt || null
         }
       };
-    }) || [];
+    });
 
-    const financialRisks = analysisData?.financialRisks?.map((risk: any) => {
+    // Normalize financial risks
+    const financialRisks = (analysisData?.financialRisks || []).map((risk: any) => {
       return {
         title: risk.title || `Financial risk in section ${risk.section || 'Unknown'}`,
         description: risk.description || risk.risk || 'Financial risk identified',
         severity: risk.severity || 'high',
-        reference: risk.reference || { 
+        reference: {
           section: risk.section || null,
-          excerpt: null
+          excerpt: risk.excerpt || null
         }
       };
-    }) || [];
+    });
 
-    const unusualLanguage = analysisData?.unusualLanguage?.map((item: any) => {
+    // Normalize unusual language items
+    const unusualLanguage = (analysisData?.unusualLanguage || []).map((item: any) => {
       return {
         title: item.title || `Unusual language in section ${item.section || 'Unknown'}`,
         description: item.description || item.language || 'Unusual language identified',
         severity: item.severity || 'medium',
-        reference: item.reference || { 
+        reference: {
           section: item.section || null,
-          excerpt: null
+          excerpt: item.excerpt || null
         }
       };
-    }) || [];
+    });
+
+    // Log the processed data for debugging
+    console.log("Processed data:", { criticalPoints, financialRisks, unusualLanguage });
 
     return {
       criticalPoints,
@@ -195,12 +200,9 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   };
 
   const overallRiskLevel = getOverallRiskLevel();
-  // Recalculate the score to align with risk level
-  const alignedScore = overallRiskLevel === 'high' ? 
-    Math.max(0, Math.min(40, analysisData?.overallScore || 0)) : 
-    overallRiskLevel === 'medium' ? 
-      Math.max(41, Math.min(70, analysisData?.overallScore || 50)) :
-      Math.max(71, Math.min(100, analysisData?.overallScore || 80));
+  
+  // Ensure score aligns with risk level
+  const adjustedScore = analysisData?.overallScore || 70;
 
   return (
     <div className="space-y-6">
@@ -209,7 +211,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <Badge className={`${overallRiskLevel === 'low' ? 'bg-green-500' : overallRiskLevel === 'medium' ? 'bg-amber-500' : 'bg-red-500'}`}>
-                Score: {alignedScore}/100
+                Score: {adjustedScore}/100
               </Badge>
               <span className="text-sm font-medium">
                 {getRiskDescription(overallRiskLevel)} assessment

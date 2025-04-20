@@ -20,8 +20,8 @@ export const CREDIT_PACKAGES = {
   LARGE: { 
     name: 'Value Package',
     credits: 50, 
-    price: 9.99,
-    description: '50 credits for document analysis or generation'
+    price: 9.95,
+    description: '50 credits for document analysis - 1 credit per 1000 tokens (covers 1-2 page contracts)'
   }
 };
 

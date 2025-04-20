@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -36,7 +35,7 @@ const Pricing = () => {
           <div className="container mx-auto px-4 md:px-6">
             <Alert className="mb-8 max-w-3xl mx-auto bg-t3rms-blue/10 text-t3rms-blue border-t3rms-blue">
               <AlertDescription className="text-center text-base">
-                🚀 T3RMS is currently in beta testing phase. Subscriptions will be available soon. 
+                🚀 T3RMS is currently in beta testing phase. Credit packages will be available soon. 
                 <br />
                 We'd love your feedback. Please test out our free tier and 
                 <a 
@@ -50,10 +49,10 @@ const Pricing = () => {
 
             <div className="max-w-3xl mx-auto text-center mb-12">
               <h1 className="text-3xl md:text-4xl font-bold text-t3rms-charcoal mb-4">
-                Simple, Transparent Pricing
+                Simple, Token-Based Pricing
               </h1>
               <p className="text-xl text-gray-600">
-                Choose the plan that fits your needs
+                Pay only for what you analyze
               </p>
             </div>
             
@@ -94,19 +93,7 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Documents up to 20 pages</span>
-                    </div>
-                    <div className="flex items-center text-gray-400">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-gray-100 mr-3">
-                        <X className="h-4 w-4" />
-                      </span>
-                      <span>Document history</span>
-                    </div>
-                    <div className="flex items-center text-gray-400">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-gray-100 mr-3">
-                        <X className="h-4 w-4" />
-                      </span>
-                      <span>Downloadable PDFs</span>
+                      <span className="text-gray-600">Documents up to 2 pages</span>
                     </div>
                   </div>
                 </CardContent>
@@ -126,18 +113,18 @@ const Pricing = () => {
                 <CardHeader className="pb-8">
                   <div className="mb-2">
                     <Badge className="bg-t3rms-blue text-white hover:bg-t3rms-blue/90 border-none">
-                      Single Document
+                      Most Popular
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
-                    Document Finalization
+                    Value Pack
                   </CardTitle>
                   <CardDescription className="text-gray-500">
-                    For one-time document creation
+                    For regular document analysis
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-t3rms-charcoal">$4.99</span>
-                    <span className="text-gray-500 ml-2">/ document</span>
+                    <span className="text-4xl font-bold text-t3rms-charcoal">$9.95</span>
+                    <span className="text-gray-500 block mt-1">50 credits</span>
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -146,31 +133,25 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Single document finalization</span>
+                      <span className="text-gray-600">50 document analyses</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Advanced risk identification</span>
+                      <span className="text-gray-600">1 credit per 1000 tokens</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Documents up to 100 pages</span>
+                      <span className="text-gray-600">Covers 1-2 page contracts</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Downloadable PDFs</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
-                        <Check className="h-4 w-4" />
-                      </span>
-                      <span className="text-gray-600">30-day document access</span>
+                      <span className="text-gray-600">Advanced risk analysis</span>
                     </div>
                   </div>
                 </CardContent>
@@ -185,18 +166,18 @@ const Pricing = () => {
                 <CardHeader className="pb-8">
                   <div className="mb-2">
                     <Badge variant="outline" className="bg-gray-900 text-white border-none">
-                      Credit Bundle
+                      Enterprise
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
-                    Credit Pack
+                    Custom Plan
                   </CardTitle>
                   <CardDescription className="text-gray-500">
-                    For regular document analysis and creation
+                    For high-volume analysis needs
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-t3rms-charcoal">$9.99</span>
-                    <span className="text-gray-500 block mt-1">50 credits</span>
+                    <span className="text-2xl font-bold text-t3rms-charcoal">Contact Us</span>
+                    <span className="text-gray-500 block mt-1">Custom pricing</span>
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -205,25 +186,19 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">50 analysis or document creations</span>
+                      <span className="text-gray-600">Unlimited analyses</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Advanced document options</span>
+                      <span className="text-gray-600">Custom integrations</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">60-day document history</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
-                        <Check className="h-4 w-4" />
-                      </span>
-                      <span className="text-gray-600">Unlimited downloads</span>
+                      <span className="text-gray-600">API access</span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
@@ -234,8 +209,10 @@ const Pricing = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button disabled className="w-full bg-gray-900/50 cursor-not-allowed">
-                    Coming Soon <ArrowRight className="ml-2 h-4 w-4" />
+                  <Button asChild className="w-full bg-gray-900 hover:bg-gray-800">
+                    <a href="mailto:enterprise@t3rms.com">
+                      Contact Sales <ArrowRight className="ml-2 h-4 w-4" />
+                    </a>
                   </Button>
                 </CardFooter>
               </Card>
@@ -252,10 +229,10 @@ const Pricing = () => {
                       Basic
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
-                      Document Finalization
+                      Value Pack
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
-                      Credit Pack
+                      Custom Plan
                     </th>
                   </tr>
                 </thead>

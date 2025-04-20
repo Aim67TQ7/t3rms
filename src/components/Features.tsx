@@ -1,5 +1,6 @@
 
 import { ArrowUpRight, FileText, Shield, Zap, LineChart, Lock, Users } from 'lucide-react';
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 const Features = () => {
   const features = [
@@ -36,40 +37,42 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24 bg-[#0a0a0a]">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-t3rms-charcoal mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Powerful Features for Contract Analysis
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-purple-300/70">
             Our AI-powered tools help you understand complex legal documents without the legal degree.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div 
+            <Card 
               key={index} 
-              className="relative group bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 card-hover"
+              className="relative group card-hover"
             >
-              <div className="flex items-start gap-4">
-                <div className="bg-t3rms-blue/10 rounded-lg p-3">
-                  {feature.icon}
+              <CardHeader>
+                <div className="flex items-start gap-4">
+                  <div className="bg-purple-500/10 rounded-lg p-3">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-purple-300/70 text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-t3rms-charcoal mb-2 group-hover:text-t3rms-blue transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    {feature.description}
-                  </p>
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowUpRight className="h-4 w-4 text-purple-400" />
                 </div>
-              </div>
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ArrowUpRight className="h-4 w-4 text-t3rms-blue" />
-              </div>
-            </div>
+              </CardHeader>
+            </Card>
           ))}
         </div>
       </div>

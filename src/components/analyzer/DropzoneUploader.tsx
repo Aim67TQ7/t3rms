@@ -13,7 +13,7 @@ interface DropzoneUploaderProps {
   loading: boolean;
 }
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
 
 const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: DropzoneUploaderProps) => {
   const [directInputText, setDirectInputText] = useState('');
@@ -82,8 +82,6 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
     onDrop, 
     accept: { 
       'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'text/plain': ['.txt']
     },
     maxFiles: 1,
@@ -174,7 +172,7 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
                   {isDragActive ? 'Drop your file here' : 'Drag & drop your file here'}
                 </p>
                 <p className="text-sm text-gray-500">
-                  or click to browse your files (max size: 2MB)
+                  or click to browse your files (max size: 8MB)
                 </p>
               </div>
             )}

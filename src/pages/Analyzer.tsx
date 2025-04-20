@@ -8,18 +8,13 @@ import AuthPrompt from '@/components/AuthPrompt';
 import DropzoneUploader from '@/components/analyzer/DropzoneUploader';
 import AnalysisHistory from '@/components/analyzer/AnalysisHistory';
 import { ContractAnalysis } from '@/components/analyzer/AnalysisHistory';
-import { 
-  hasReachedAnonymousLimit, 
-  incrementAnonymousAnalysisCount,
-  storePendingAnalysis,
-  getPendingAnalysis
-} from '@/utils/anonymousUsage';
+import { hasReachedAnonymousLimit, incrementAnonymousAnalysisCount, storePendingAnalysis, getPendingAnalysis } from '@/utils/anonymousUsage';
 import { Button } from "@/components/ui/button";
 import { FileText, Plus, AlertCircle } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
 
-const MAX_CONTENT_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_CONTENT_SIZE = 8 * 1024 * 1024;
 
 const Analyzer = () => {
   const [text, setText] = useState('');
@@ -112,12 +107,10 @@ const Analyzer = () => {
       return;
     }
 
-    console.log("Text content length:", text.length);
-    
-    if (text.length > MAX_CONTENT_SIZE / 2) {
+    if ((file && file.size > MAX_CONTENT_SIZE) || (!file && text.length > MAX_CONTENT_SIZE / 2)) {
       toast({
         title: "Content Too Large",
-        description: "The document is too large to process. Please upload a smaller document or reduce the text length.",
+        description: `The document is too large to process. Maximum size is ${MAX_CONTENT_SIZE / (1024 * 1024)}MB.`,
         variant: "destructive",
       });
       return;
@@ -145,13 +138,23 @@ const Analyzer = () => {
       
       if (file) {
         setCurrentStep('Converting document...');
-        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        
         fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
-        fileSize = file.size || new Blob([text]).size;
+        fileSize = file.size;
+        
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('rapid-action', {
+          body: formData
+        });
+
+        if (uploadError) throw new Error(uploadError.message);
+        fileContent = uploadData.content;
       } else if (text) {
         setCurrentStep('Processing text...');
-        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        fileContent = text;
         fileType = 'text/plain';
         fileName = 'document.txt';
         fileSize = new Blob([text]).size;
@@ -172,7 +175,6 @@ const Analyzer = () => {
         throw new Error(error.message || "Error analyzing document");
       }
 
-      // Check if the response contains an error message about the API key
       if (data && data.error && data.message && data.message.includes("ANTHROPIC_API_KEY is not set")) {
         setApiKeyMissing(true);
         throw new Error("The Anthropic API key is not configured. Please contact the administrator.");
@@ -229,10 +231,12 @@ const Analyzer = () => {
       
       let errorMessage = "Failed to analyze document.";
       
-      if (apiKeyMissing) {
-        errorMessage = "The AI service is not properly configured. Please contact the administrator to set up the Anthropic API key.";
-      } else if (error.message && error.message.includes("send a request to the Edge Function")) {
-        errorMessage = "The document is too large or complex to analyze. Please try with a smaller document or paste a portion of the text.";
+      if (error.message?.includes('413')) {
+        errorMessage = `File too large. Maximum size is ${MAX_CONTENT_SIZE / (1024 * 1024)}MB.`;
+      } else if (error.message?.includes('415')) {
+        errorMessage = "Unsupported file type. Please upload a PDF or text file.";
+      } else if (apiKeyMissing) {
+        errorMessage = "The AI service is not properly configured. Please contact the administrator.";
       } else if (error.message) {
         errorMessage = error.message;
       }

@@ -157,6 +157,36 @@ export type Database = {
           },
         ]
       }
+      generated_terms: {
+        Row: {
+          business_name: string
+          created_at: string | null
+          form_data: Json
+          generated_content: string
+          id: string
+          policy_types: string[]
+          user_id: string
+        }
+        Insert: {
+          business_name: string
+          created_at?: string | null
+          form_data: Json
+          generated_content: string
+          id?: string
+          policy_types?: string[]
+          user_id: string
+        }
+        Update: {
+          business_name?: string
+          created_at?: string | null
+          form_data?: Json
+          generated_content?: string
+          id?: string
+          policy_types?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

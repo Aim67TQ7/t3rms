@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -41,8 +40,8 @@ import {
 } from '@/utils/termsGenerator';
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { Tables } from '@/integrations/supabase/types';
 
-// Define policy types as a constant to ensure type safety
 const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
 
 const formSchema = z.object({
@@ -74,7 +73,6 @@ const formSchema = z.object({
   specialConditions: z.string().optional(),
 });
 
-// Ensure the form schema matches our FormData interface
 type FormValues = z.infer<typeof formSchema>;
 
 const policyTypeOptions = [
@@ -283,7 +281,6 @@ const TermsConditionsGenerator = () => {
         const policyType = selectedPolicyTypes[i];
         setCurrentPolicyIndex(i);
         
-        // Update progress
         const progressPerPolicy = 100 / selectedPolicyTypes.length;
         setGenerationProgress((i / selectedPolicyTypes.length) * 100);
         
@@ -292,23 +289,19 @@ const TermsConditionsGenerator = () => {
           description: `Progress: ${i + 1} of ${selectedPolicyTypes.length} policies`,
         });
         
-        // Generate policy with Claude
         const policyContent = await generatePolicyWithClaude(policyType);
         policies[policyType] = policyContent;
         
-        // Update progress
         setGenerationProgress(((i + 1) / selectedPolicyTypes.length) * 100);
       }
       
       setGeneratedPolicies(policies);
       
-      // Combine all generated policies into one document
       let combinedContent = "";
       for (const policyType of selectedPolicyTypes) {
         combinedContent += policies[policyType] + '\n\n';
       }
       
-      // Add any AI enhanced text
       if (aiEnhancedText.length > 0) {
         combinedContent += '<div class="additional-clauses">\n';
         combinedContent += '<h2>ADDITIONAL CLAUSES</h2>\n';
@@ -318,14 +311,13 @@ const TermsConditionsGenerator = () => {
       
       setGeneratedTC(combinedContent);
       
-      // Save the generated terms to the database
       if (isAuthenticated) {
         try {
           const formData = form.getValues();
           
           const { error } = await supabase
             .from('generated_terms')
-            .insert({
+            .insert<Tables['generated_terms']>({
               user_id: userId,
               business_name: formData.businessName,
               policy_types: formData.policyTypes,
@@ -346,7 +338,6 @@ const TermsConditionsGenerator = () => {
         }
       }
       
-      // Move to the preview step
       setActiveStep(5);
     } catch (error) {
       console.error("Error generating policies:", error);

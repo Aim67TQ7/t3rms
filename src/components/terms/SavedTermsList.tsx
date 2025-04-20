@@ -22,7 +22,7 @@ export function SavedTermsList() {
     queryKey: ['saved-terms', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('generated_terms')
+        .from('saved_terms')  // Updated table name to match the actual table
         .select('*')
         .order('created_at', { ascending: false });
 

@@ -7,19 +7,26 @@ import { NavbarMobile } from './NavbarMobile';
 import { NavbarDesktop } from './NavbarDesktop';
 import { useAuth } from './useAuth';
 
+interface UserData {
+  id: string;
+  email: string;
+  created_at: string;
+  avatar_url?: string;
+}
+
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, userId, userEmail } = useAuth();
 
-  const { data: userData } = useQuery({
-    queryKey: ['t3rmsUser'],
+  const { data: userData } = useQuery<UserData | null>({
+    queryKey: ['user', userId],
     queryFn: async () => {
       if (!isAuthenticated) return null;
       
       const { data, error } = await supabase
-        .from('users')  // Changed from 't3rms_users'
+        .from('users')
         .select('*')
         .eq('id', userId)
         .single();

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -164,10 +163,10 @@ const TermAnalysis = () => {
         fileSize = new Blob([text]).size;
       }
 
-      console.log("Sending content to rapid-action function, content size:", fileContent.length);
+      console.log("Sending content to analyze-contract function, content size:", fileContent.length);
       
       setCurrentStep('Analyzing with AI...');
-      const { data, error } = await supabase.functions.invoke('rapid-action', {
+      const { data, error } = await supabase.functions.invoke('analyze-contract', {
         body: {
           content: fileContent,
           fileType: fileType,
@@ -179,7 +178,6 @@ const TermAnalysis = () => {
         throw new Error(error.message || "Error analyzing document");
       }
 
-      // Check if the response contains an error message about the API key
       if (data && data.error && data.message && data.message.includes("ANTHROPIC_API_KEY is not set")) {
         setApiKeyMissing(true);
         throw new Error("The AI service is not properly configured. Please contact the administrator.");
@@ -263,7 +261,6 @@ const TermAnalysis = () => {
         description="Upload contracts for advanced AI analysis. Identify high-risk language, get counter-proposals, and track revisions with our specialized contract analysis tool."
       />
       <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
-        {/* Background gradients */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>

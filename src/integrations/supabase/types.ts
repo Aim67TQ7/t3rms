@@ -71,6 +71,45 @@ export type Database = {
           },
         ]
       }
+      contract_analyses: {
+        Row: {
+          analysis_results: Json | null
+          analysis_score: number | null
+          completed_at: string | null
+          created_at: string | null
+          file_size: number
+          file_type: string
+          filename: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          analysis_results?: Json | null
+          analysis_score?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          file_size: number
+          file_type: string
+          filename: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          analysis_results?: Json | null
+          analysis_score?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          file_size?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           created_at: string | null

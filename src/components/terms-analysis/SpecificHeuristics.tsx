@@ -9,14 +9,19 @@ interface SpecificHeuristicsProps {
 
 // Helper function to find issues related to specific PO terms
 const findSpecificIssues = (analysisData: any, terms: string[]) => {
+  // Check if we have direct access to the analysis field (from response structure)
+  const analysisContent = analysisData?.analysis || analysisData;
+  
   const allIssues = [
-    ...(analysisData.criticalPoints || []),
-    ...(analysisData.financialRisks || []),
-    ...(analysisData.unusualLanguage || [])
+    ...(analysisContent.criticalPoints || []),
+    ...(analysisContent.financialRisks || []),
+    ...(analysisContent.unusualLanguage || [])
   ];
   
   return allIssues.filter((issue: any) => {
-    const text = (issue.title || '') + ' ' + (issue.description || '');
+    const text = (issue.title || '') + ' ' + (issue.description || '') + ' ' + 
+                (issue.issue || '') + ' ' + (issue.risk || '') + ' ' + 
+                (issue.language || '');
     return terms.some(term => text.toLowerCase().includes(term.toLowerCase()));
   });
 };
@@ -81,10 +86,12 @@ const SpecificHeuristics = ({ analysisData }: SpecificHeuristicsProps) => {
                   {shippingIssues.map((issue: any, index: number) => (
                     <li key={`shipping-${index}`} className="border-l-2 border-blue-500 pl-3 py-1">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium text-sm">{issue.title}</span>
+                        <span className="font-medium text-sm">{issue.title || issue.issue || `Shipping Issue #${index + 1}`}</span>
                         {getSeverityBadge(issue)}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{issue.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {issue.description || issue.issue || issue.risk || 'Issue with shipping terms identified'}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -102,10 +109,12 @@ const SpecificHeuristics = ({ analysisData }: SpecificHeuristicsProps) => {
                   {deliveryPenaltyIssues.map((issue: any, index: number) => (
                     <li key={`penalty-${index}`} className="border-l-2 border-red-500 pl-3 py-1">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium text-sm">{issue.title}</span>
+                        <span className="font-medium text-sm">{issue.title || issue.issue || `Delivery Issue #${index + 1}`}</span>
                         {getSeverityBadge(issue)}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{issue.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {issue.description || issue.issue || issue.risk || 'Issue with delivery penalties identified'}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -123,10 +132,12 @@ const SpecificHeuristics = ({ analysisData }: SpecificHeuristicsProps) => {
                   {insuranceIssues.map((issue: any, index: number) => (
                     <li key={`insurance-${index}`} className="border-l-2 border-green-500 pl-3 py-1">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium text-sm">{issue.title}</span>
+                        <span className="font-medium text-sm">{issue.title || issue.issue || `Insurance Issue #${index + 1}`}</span>
                         {getSeverityBadge(issue)}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{issue.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {issue.description || issue.issue || issue.risk || 'Issue with insurance requirements identified'}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -144,10 +155,12 @@ const SpecificHeuristics = ({ analysisData }: SpecificHeuristicsProps) => {
                   {paymentStructureIssues.map((issue: any, index: number) => (
                     <li key={`payment-${index}`} className="border-l-2 border-purple-500 pl-3 py-1">
                       <div className="flex justify-between items-start">
-                        <span className="font-medium text-sm">{issue.title}</span>
+                        <span className="font-medium text-sm">{issue.title || issue.issue || `Payment Issue #${index + 1}`}</span>
                         {getSeverityBadge(issue)}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{issue.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {issue.description || issue.issue || issue.risk || 'Issue with payment structure identified'}
+                      </p>
                     </li>
                   ))}
                 </ul>

@@ -21,12 +21,17 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
 
   // Process critical points and other issues in analysis data
   const processIssues = () => {
+    // Check if we have direct access to the analysis field (from response structure)
+    const analysisContent = analysisData?.analysis || analysisData;
+    
+    console.log("Processing analysis data:", analysisContent);
+
     // Normalize critical points
-    const criticalPoints = (analysisData?.criticalPoints || []).map((point: any) => {
+    const criticalPoints = (analysisContent?.criticalPoints || []).map((point: any) => {
       // Check for different data structures and normalize
       return {
-        title: point.title || `Issue in section ${point.section || 'Unknown'}`,
-        description: point.description || point.concern || point.risk || 'Potential issue identified',
+        title: point.title || `Issue in ${point.section || 'Unknown section'}`,
+        description: point.description || point.issue || point.concern || point.risk || 'Potential issue identified',
         severity: point.severity || 'high',
         reference: {
           section: point.section || null,
@@ -36,9 +41,9 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     });
 
     // Normalize financial risks
-    const financialRisks = (analysisData?.financialRisks || []).map((risk: any) => {
+    const financialRisks = (analysisContent?.financialRisks || []).map((risk: any) => {
       return {
-        title: risk.title || `Financial risk in section ${risk.section || 'Unknown'}`,
+        title: risk.title || `Financial risk in ${risk.section || 'Unknown section'}`,
         description: risk.description || risk.risk || 'Financial risk identified',
         severity: risk.severity || 'high',
         reference: {
@@ -49,9 +54,9 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     });
 
     // Normalize unusual language items
-    const unusualLanguage = (analysisData?.unusualLanguage || []).map((item: any) => {
+    const unusualLanguage = (analysisContent?.unusualLanguage || []).map((item: any) => {
       return {
-        title: item.title || `Unusual language in section ${item.section || 'Unknown'}`,
+        title: item.title || `Unusual language in ${item.section || 'Unknown section'}`,
         description: item.description || item.language || 'Unusual language identified',
         severity: item.severity || 'medium',
         reference: {
@@ -96,7 +101,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   );
 
   const getRiskLevel = (issues: any[]) => {
-    if (!issues.length) return "low";
+    if (!issues || !issues.length) return "low";
     const highRiskCount = issues.filter(issue => issue.severity === "high").length;
     const mediumRiskCount = issues.filter(issue => issue.severity === "medium").length;
     
@@ -121,19 +126,30 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   };
 
   const getOverallRiskLevel = () => {
-    const allIssues = [
-      ...indemnityIssues,
-      ...liabilityIssues,
-      ...financialRisks,
-      ...unusualLanguage,
-      ...otherCriticalIssues
-    ];
+    // Check if there are any high severity issues in any category
+    const hasHighSeverityIssues = [
+      ...processedData.criticalPoints,
+      ...processedData.financialRisks,
+      ...processedData.unusualLanguage
+    ].some(issue => issue.severity === 'high');
     
-    // If there are any high severity issues, overall risk is high
-    if (allIssues.some(issue => issue.severity === 'high')) {
+    if (hasHighSeverityIssues) {
       return "high";
     }
-    return getRiskLevel(allIssues);
+    
+    // Check if there are any medium severity issues
+    const hasMediumSeverityIssues = [
+      ...processedData.criticalPoints,
+      ...processedData.financialRisks,
+      ...processedData.unusualLanguage
+    ].some(issue => issue.severity === 'medium');
+    
+    if (hasMediumSeverityIssues) {
+      return "medium";
+    }
+    
+    // If nothing found or no issues, return low
+    return "low";
   };
 
   const RiskCategory = ({ title, issues, icon: Icon }: { title: string; issues: any[]; icon: any }) => {
@@ -151,7 +167,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {issues.length === 0 ? (
+          {!issues || issues.length === 0 ? (
             <div className="flex items-center text-green-600 gap-2">
               <Check className="h-5 w-5" />
               <span>No issues detected</span>
@@ -201,8 +217,9 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
 
   const overallRiskLevel = getOverallRiskLevel();
   
-  // Ensure score aligns with risk level
-  const adjustedScore = analysisData?.overallScore || 70;
+  // Get overall score from the analysis data
+  const analysisContent = analysisData?.analysis || analysisData;
+  const adjustedScore = analysisContent?.overallScore || 70;
 
   return (
     <div className="space-y-6">
@@ -218,11 +235,11 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
               </span>
             </div>
           </div>
-          {analysisData?.recommendations && (
+          {analysisContent?.recommendations && (
             <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
               <strong>Key Recommendations:</strong>
               <ul className="list-disc pl-5 mt-2 space-y-1">
-                {(analysisData.recommendations || []).slice(0, 3).map((rec: any, index: number) => (
+                {(analysisContent.recommendations || []).slice(0, 3).map((rec: any, index: number) => (
                   <li key={index}>{rec.text || rec.recommendation || rec}</li>
                 ))}
               </ul>

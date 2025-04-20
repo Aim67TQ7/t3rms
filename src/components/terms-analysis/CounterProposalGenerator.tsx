@@ -19,9 +19,12 @@ const CounterProposalGenerator = ({ analysisData, isPremium, onRequestPremium }:
 
   // Generate counter-proposal text based on the analysis
   const generateCounterProposal = () => {
-    const criticalPoints = analysisData.criticalPoints || [];
-    const financialRisks = analysisData.financialRisks || [];
-    const recommendations = analysisData.recommendations || [];
+    // Check if we have direct access to the analysis field (from response structure)
+    const analysisContent = analysisData?.analysis || analysisData;
+    
+    const criticalPoints = analysisContent?.criticalPoints || [];
+    const financialRisks = analysisContent?.financialRisks || [];
+    const recommendations = analysisContent?.recommendations || [];
 
     const counterProposalParts = [];
     
@@ -32,10 +35,11 @@ const CounterProposalGenerator = ({ analysisData, isPremium, onRequestPremium }:
     if (criticalPoints.length > 0) {
       counterProposalParts.push("\n\nKey contractual adjustments:");
       criticalPoints
-        .filter((point: any) => point.severity === "high" || point.risk === "high")
         .slice(0, 3)
         .forEach((point: any, index: number) => {
-          counterProposalParts.push(`${index + 1}. ${point.title}: We suggest revising this clause to address ${point.description.substring(0, 100)}...`);
+          const title = point.title || point.issue || `Critical issue in section ${point.section || 'Unknown'}`;
+          const description = point.description || point.issue || 'This presents a significant risk that should be addressed';
+          counterProposalParts.push(`${index + 1}. ${title}: We suggest revising this clause to address ${description.substring(0, 100)}...`);
         });
     }
 
@@ -45,7 +49,8 @@ const CounterProposalGenerator = ({ analysisData, isPremium, onRequestPremium }:
       financialRisks
         .slice(0, 3)
         .forEach((risk: any, index: number) => {
-          counterProposalParts.push(`${index + 1}. ${risk.title}: We propose adjusting this to better reflect market standards and our company policies.`);
+          const title = risk.title || risk.risk || `Financial risk in section ${risk.section || 'Unknown'}`;
+          counterProposalParts.push(`${index + 1}. ${title}: We propose adjusting this to better reflect market standards and our company policies.`);
         });
     }
 
@@ -55,7 +60,8 @@ const CounterProposalGenerator = ({ analysisData, isPremium, onRequestPremium }:
       recommendations
         .slice(0, 3)
         .forEach((rec: any, index: number) => {
-          counterProposalParts.push(`${index + 1}. ${rec.text}`);
+          const recText = rec.text || rec.recommendation || rec;
+          counterProposalParts.push(`${index + 1}. ${recText}`);
         });
     }
 

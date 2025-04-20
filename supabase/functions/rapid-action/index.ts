@@ -53,21 +53,27 @@ serve(async (req) => {
         if (fileName.endsWith('.pdf')) {
           fileType = 'application/pdf';
 
-          // For PDF processing, initialize the worker source
-          if (typeof window === 'undefined') {
-            // @ts-ignore - Ensure the worker is properly set for PDF.js in Deno
-            globalThis.pdfjsLib = pdfjs;
-          }
-          
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-          const numPages = pdf.numPages;
-          
-          // Extract text from all pages
-          for (let i = 1; i <= numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            content += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+          try {
+            // For PDF processing, initialize the worker source
+            if (typeof window === 'undefined') {
+              // Set worker source for PDF.js in Deno environment
+              pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+            }
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+            const numPages = pdf.numPages;
+            
+            // Extract text from all pages
+            for (let i = 1; i <= numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              content += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+            }
+          } catch (pdfError) {
+            console.error('PDF processing error:', pdfError);
+            // Fallback to basic content extraction
+            content = `PDF file (${file.name}). Unable to extract text content due to: ${pdfError.message}`;
           }
           
         } else if (fileName.endsWith('.txt')) {

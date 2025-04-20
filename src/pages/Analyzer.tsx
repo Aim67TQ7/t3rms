@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/navbar/useAuth";
 import { useQuery } from '@tanstack/react-query';
@@ -220,54 +220,63 @@ const Analyzer = () => {
         title="T3RMS - AI Document Analyzer | Instant Contract Analysis"
         description="Upload your legal documents for instant AI analysis. Get risk assessments, identify unusual clauses, and receive actionable insights with T3RMS."
       />
-      <div className="container mx-auto py-6 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Analyze T3RMS</h1>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/tcgenerator")}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create Terms & Conditions
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto py-6 px-4">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Smart Contract Analysis
+            </h1>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/tcgenerator")}
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm hover:bg-white"
+            >
+              <Plus className="h-4 w-4" />
+              Create Terms & Conditions
+            </Button>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 xl:col-span-4">
-            <DropzoneUploader 
-              file={file}
-              setFile={setFile}
-              setText={setText}
-              onAnalyze={handleAnalyze}
-              loading={loading}
-            />
-          
-            {loading && (
-              <div className="mt-4">
-                <AnalysisStatusIndicator loading={loading} />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-12 xl:col-span-12">
+              {/* Main upload area */}
+              <div className="min-h-[70vh] flex items-center justify-center p-8">
+                <div className="w-full max-w-4xl">
+                  <DropzoneUploader 
+                    file={file}
+                    setFile={setFile}
+                    setText={setText}
+                    onAnalyze={handleAnalyze}
+                    loading={loading}
+                  />
+                
+                  {loading && (
+                    <div className="mt-4">
+                      <AnalysisStatusIndicator loading={loading} />
+                    </div>
+                  )}
+                
+                  {showAuthPrompt && !isAuthenticated && (
+                    <div className="mt-4">
+                      <AuthPrompt 
+                        onDismiss={() => setShowAuthPrompt(false)} 
+                        showDismiss={true}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          
-            {showAuthPrompt && !isAuthenticated && (
-              <div className="mt-4">
-                <AuthPrompt 
-                  onDismiss={() => setShowAuthPrompt(false)} 
-                  showDismiss={true}
+            </div>
+
+            {isAuthenticated && (
+              <div className="lg:col-span-12">
+                <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Analysis History</h2>
+                <AnalysisHistory 
+                  analysisResults={analysisResults}
+                  isLoading={analysisLoading}
                 />
               </div>
             )}
           </div>
-
-          {isAuthenticated && (
-            <div className="lg:col-span-7 xl:col-span-8">
-              <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
-              <AnalysisHistory 
-                analysisResults={analysisResults}
-                isLoading={analysisLoading}
-              />
-            </div>
-          )}
         </div>
       </div>
     </>

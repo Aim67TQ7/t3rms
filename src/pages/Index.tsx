@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -23,59 +22,62 @@ const Index = () => {
         <Hero />
         <Features />
         
-        <section className="bg-gray-50 py-16 md:py-24">
-          <div className="container mx-auto px-4 md:px-6">
+        <section className="relative py-16 md:py-24 bg-[#0a0a0a] overflow-hidden">
+          <div className="absolute -top-40 -left-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-3xl mx-auto text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-t3rms-charcoal mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-purple-200 to-purple-300 mb-4">
                 How T3RMS Works
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="text-xl text-purple-300/70">
                 Three simple steps to analyze any Terms & Conditions document
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-t3rms-blue/10 flex items-center justify-center mb-6">
-                  <FileText className="h-8 w-8 text-t3rms-blue" />
+              <div className="flex flex-col items-center text-center group">
+                <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
+                  <FileText className="h-8 w-8 text-purple-400" />
                 </div>
-                <span className="bg-t3rms-blue/10 text-t3rms-blue text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
+                <span className="bg-purple-500/10 text-purple-400 text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
                   Step 1
                 </span>
-                <h3 className="text-xl font-medium text-t3rms-charcoal mb-2">
+                <h3 className="text-xl font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">
                   Upload Document
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-purple-300/70">
                   Upload any Terms & Conditions or contract document to our secure platform
                 </p>
               </div>
               
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-t3rms-blue/10 flex items-center justify-center mb-6">
-                  <Zap className="h-8 w-8 text-t3rms-blue" />
+              <div className="flex flex-col items-center text-center group">
+                <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
+                  <Zap className="h-8 w-8 text-purple-400" />
                 </div>
-                <span className="bg-t3rms-blue/10 text-t3rms-blue text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
+                <span className="bg-purple-500/10 text-purple-400 text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
                   Step 2
                 </span>
-                <h3 className="text-xl font-medium text-t3rms-charcoal mb-2">
+                <h3 className="text-xl font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">
                   AI Analysis
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-purple-300/70">
                   Our AI engine processes the document, identifying risks and problematic clauses
                 </p>
               </div>
               
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-t3rms-blue/10 flex items-center justify-center mb-6">
-                  <ShieldCheck className="h-8 w-8 text-t3rms-blue" />
+              <div className="flex flex-col items-center text-center group">
+                <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
+                  <ShieldCheck className="h-8 w-8 text-purple-400" />
                 </div>
-                <span className="bg-t3rms-blue/10 text-t3rms-blue text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
+                <span className="bg-purple-500/10 text-purple-400 text-xs font-medium px-2.5 py-0.5 rounded-full mb-3">
                   Step 3
                 </span>
-                <h3 className="text-xl font-medium text-t3rms-charcoal mb-2">
+                <h3 className="text-xl font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">
                   Review Results
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-purple-300/70">
                   Get a comprehensive report with highlighted risks and plain-language explanations
                 </p>
               </div>

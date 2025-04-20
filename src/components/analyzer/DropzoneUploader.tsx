@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { FileUp, FileText, ArrowRight, AlertCircle } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +13,6 @@ interface DropzoneUploaderProps {
   loading: boolean;
 }
 
-// Maximum file size: 2MB to prevent edge function timeouts/failures
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: DropzoneUploaderProps) => {
@@ -24,13 +21,11 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const onDrop = (acceptedFiles: File[]) => {
+  const onDrop = async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     
-    // Only allow one file
     const file = acceptedFiles[0];
     
-    // Check file size
     if (file.size > MAX_FILE_SIZE) {
       setFileSizeError(`File is too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
       toast({
@@ -64,10 +59,9 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
     reader.readAsText(file);
   };
 
-  const handleTextInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextInput = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     
-    // Check text length - roughly estimate 2MB of text
     if (value.length > MAX_FILE_SIZE / 2) {
       toast({
         title: "Text too long",
@@ -99,7 +93,6 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
 
   return (
     <div className="space-y-6">
-      {/* Step indicator */}
       <div className="flex items-center justify-center mb-8 space-x-4">
         <div className={`flex items-center ${!file && !directInputText ? 'text-blue-600' : 'text-green-600'}`}>
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!file && !directInputText ? 'bg-blue-100 border-2 border-blue-600' : 'bg-green-100'}`}>

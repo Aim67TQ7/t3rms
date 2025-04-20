@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +19,6 @@ import { FileText, Plus } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
 
-// Maximum content size for edge function
 const MAX_CONTENT_SIZE = 2 * 1024 * 1024; // 2MB
 
 const Analyzer = () => {
@@ -115,7 +113,6 @@ const Analyzer = () => {
 
     console.log("Text content length:", text.length);
     
-    // Check content size
     if (text.length > MAX_CONTENT_SIZE / 2) {
       toast({
         title: "Content Too Large",
@@ -146,7 +143,6 @@ const Analyzer = () => {
       
       if (file) {
         setCurrentStep('Converting document...');
-        // Split into smaller chunks if needed
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
@@ -162,7 +158,7 @@ const Analyzer = () => {
       console.log("Sending content to analyze-contract function, content size:", fileContent.length);
       
       setCurrentStep('Analyzing with AI...');
-      const { data, error } = await supabase.functions.invoke('analyze-contract', {
+      const { data, error } = await supabase.functions.invoke('rapid-action', {
         body: {
           content: fileContent,
           fileType: fileType,
@@ -174,7 +170,6 @@ const Analyzer = () => {
         throw new Error(error.message || "Error analyzing document");
       }
 
-      // Check if data is null or undefined before accessing properties
       if (!data) {
         throw new Error("No analysis data received from the server");
       }
@@ -183,7 +178,6 @@ const Analyzer = () => {
 
       if (!isAuthenticated) {
         incrementAnonymousAnalysisCount();
-        // Store analysis data safely, ensuring we have default values for required fields
         storePendingAnalysis({
           ...data,
           filename: fileName,
@@ -225,7 +219,6 @@ const Analyzer = () => {
     } catch (error: any) {
       console.error("There was an error analyzing the text:", error);
       
-      // Give more specific error messages
       let errorMessage = "Failed to analyze document.";
       
       if (error.message && error.message.includes("send a request to the Edge Function")) {
@@ -269,7 +262,6 @@ const Analyzer = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-12 xl:col-span-12">
-              {/* Main upload area */}
               <div className="min-h-[70vh] flex items-center justify-center p-8">
                 <div className="w-full max-w-4xl">
                   <DropzoneUploader 

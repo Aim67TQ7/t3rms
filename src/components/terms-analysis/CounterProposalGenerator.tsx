@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,56 +16,67 @@ const CounterProposalGenerator = ({ analysisData, isPremium, onRequestPremium }:
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  // Generate counter-proposal text based on the analysis
   const generateCounterProposal = () => {
-    // Check if we have direct access to the analysis field (from response structure)
     const analysisContent = analysisData?.analysis || analysisData;
-    
     const criticalPoints = analysisContent?.criticalPoints || [];
     const financialRisks = analysisContent?.financialRisks || [];
     const recommendations = analysisContent?.recommendations || [];
-
+    
     const counterProposalParts = [];
     
-    // Start with a professional greeting
-    counterProposalParts.push("Thank you for sending over the contract. After careful review, we'd like to propose a few adjustments to ensure a fair and balanced agreement for both parties.");
+    counterProposalParts.push(`
+Dear [Counterparty Name],
 
-    // Add recommendations for high-priority issues
+I hope this email finds you well. Thank you for sharing the contract for our review. After a careful analysis, we would like to propose several modifications to ensure the agreement better serves both parties' interests while maintaining appropriate risk management protocols.
+
+Below are our specific recommendations for amendments:
+    `);
+
     if (criticalPoints.length > 0) {
-      counterProposalParts.push("\n\nKey contractual adjustments:");
-      criticalPoints
-        .slice(0, 3)
-        .forEach((point: any, index: number) => {
-          const title = point.title || point.issue || `Critical issue in section ${point.section || 'Unknown'}`;
-          const description = point.description || point.issue || 'This presents a significant risk that should be addressed';
-          counterProposalParts.push(`${index + 1}. ${title}: We suggest revising this clause to address ${description.substring(0, 100)}...`);
-        });
+      counterProposalParts.push("\n1. Critical Contract Terms:\n");
+      criticalPoints.forEach((point: any, index: number) => {
+        const title = point.title || point.issue || `Section ${point.section || 'Unknown'}`;
+        const description = point.description || point.issue;
+        const suggestion = point.suggestion || "We propose revising this clause to better balance the interests of both parties";
+        
+        counterProposalParts.push(`
+   ${index + 1}. Re: ${title}
+      Current Language: ${description}
+      Proposed Change: ${suggestion}
+        `);
+      });
     }
 
-    // Add financial terms adjustments
     if (financialRisks.length > 0) {
-      counterProposalParts.push("\n\nFinancial terms adjustments:");
-      financialRisks
-        .slice(0, 3)
-        .forEach((risk: any, index: number) => {
-          const title = risk.title || risk.risk || `Financial risk in section ${risk.section || 'Unknown'}`;
-          counterProposalParts.push(`${index + 1}. ${title}: We propose adjusting this to better reflect market standards and our company policies.`);
-        });
+      counterProposalParts.push("\n2. Financial Terms:\n");
+      financialRisks.forEach((risk: any, index: number) => {
+        const title = risk.title || risk.risk || `Financial term in section ${risk.section || 'Unknown'}`;
+        counterProposalParts.push(`
+   ${index + 1}. ${title}
+      - Proposed Modification: ${risk.suggestion || "We suggest adjusting these terms to align with standard industry practices"}
+      - Rationale: ${risk.rationale || "This change would provide better clarity and fairness for both parties"}
+        `);
+      });
     }
 
-    // Add constructive recommendations
     if (recommendations.length > 0) {
-      counterProposalParts.push("\n\nAdditional suggestions:");
-      recommendations
-        .slice(0, 3)
-        .forEach((rec: any, index: number) => {
-          const recText = rec.text || rec.recommendation || rec;
-          counterProposalParts.push(`${index + 1}. ${recText}`);
-        });
+      counterProposalParts.push("\n3. Additional Recommendations:\n");
+      recommendations.forEach((rec: any, index: number) => {
+        const recText = rec.text || rec.recommendation || rec;
+        counterProposalParts.push(`   ${index + 1}. ${recText}`);
+      });
     }
 
-    // Add closing statement
-    counterProposalParts.push("\n\nWe value our potential relationship and believe these adjustments will create a stronger foundation for our work together. I'm available to discuss these points at your convenience.");
+    counterProposalParts.push(`
+
+We believe these proposed modifications will create a more balanced agreement that better serves both organizations' interests while maintaining appropriate protections for all parties involved.
+
+I would welcome the opportunity to discuss these points in detail at your earliest convenience. Please let me know what times work best for you to review these suggestions together.
+
+Best regards,
+[Your Name]
+[Your Organization]
+    `);
     
     return counterProposalParts.join("\n");
   };

@@ -39,13 +39,20 @@ const Features = () => {
   return (
     <section className="py-16 md:py-24 bg-[#0a0a0a]">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Powerful Features for Contract Analysis
-          </h2>
-          <p className="text-xl text-purple-300/70">
-            Our AI-powered tools help you understand complex legal documents without the legal degree.
-          </p>
+        <div className="max-w-3xl mx-auto text-center mb-16 relative">
+          {/* Add gradient background elements */}
+          <div className="absolute -top-20 -left-4 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 right-0 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl"></div>
+          
+          {/* Content */}
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-purple-200 to-purple-300 mb-4">
+              Powerful Features for Contract Analysis
+            </h2>
+            <p className="text-xl text-purple-300/70">
+              Our AI-powered tools help you understand complex legal documents without the legal degree.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -11,6 +11,7 @@ interface TrafficLightHeatmapProps {
 
 const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const [processedData, setProcessedData] = useState<any>({ criticalPoints: [], financialRisks: [], unusualLanguage: [] });
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => ({
@@ -18,6 +19,13 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
       [id]: !prev[id]
     }));
   };
+
+  useEffect(() => {
+    if (analysisData) {
+      console.log("TrafficLightHeatmap received data:", analysisData);
+      setProcessedData(processIssues());
+    }
+  }, [analysisData]);
 
   // Process critical points and other issues in analysis data
   const processIssues = () => {
@@ -27,44 +35,71 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     console.log("Processing analysis data:", analysisContent);
 
     // Normalize critical points
-    const criticalPoints = (analysisContent?.criticalPoints || []).map((point: any) => {
-      // Check for different data structures and normalize
-      return {
-        title: point.title || `Issue in ${point.section || 'Unknown section'}`,
-        description: point.description || point.issue || point.concern || point.risk || 'Potential issue identified',
-        severity: point.severity || 'high',
-        reference: {
-          section: point.section || null,
-          excerpt: point.excerpt || null
-        }
-      };
-    });
+    const criticalPoints = Array.isArray(analysisContent?.criticalPoints) 
+      ? analysisContent.criticalPoints.map((point: any) => {
+          if (!point) return null;
+          // Check for different data structures and normalize
+          return {
+            title: point.title || `Issue in ${point.section || point.reference?.section || 'Unknown section'}`,
+            description: point.description || point.issue || point.concern || point.risk || 'Potential issue identified',
+            severity: point.severity || 'high',
+            reference: {
+              section: point.section || point.reference?.section || null,
+              excerpt: point.excerpt || point.reference?.excerpt || null
+            }
+          };
+        }).filter(Boolean)
+      : [];
 
     // Normalize financial risks
-    const financialRisks = (analysisContent?.financialRisks || []).map((risk: any) => {
-      return {
-        title: risk.title || `Financial risk in ${risk.section || 'Unknown section'}`,
-        description: risk.description || risk.risk || 'Financial risk identified',
-        severity: risk.severity || 'high',
-        reference: {
-          section: risk.section || null,
-          excerpt: risk.excerpt || null
-        }
-      };
-    });
+    const financialRisks = Array.isArray(analysisContent?.financialRisks)
+      ? analysisContent.financialRisks.map((risk: any) => {
+          if (!risk) return null;
+          return {
+            title: risk.title || `Financial risk in ${risk.section || risk.reference?.section || 'Unknown section'}`,
+            description: risk.description || risk.risk || 'Financial risk identified',
+            severity: risk.severity || 'high',
+            reference: {
+              section: risk.section || risk.reference?.section || null,
+              excerpt: risk.excerpt || risk.reference?.excerpt || null
+            }
+          };
+        }).filter(Boolean)
+      : [];
 
     // Normalize unusual language items
-    const unusualLanguage = (analysisContent?.unusualLanguage || []).map((item: any) => {
-      return {
-        title: item.title || `Unusual language in ${item.section || 'Unknown section'}`,
-        description: item.description || item.language || 'Unusual language identified',
-        severity: item.severity || 'medium',
+    const unusualLanguage = Array.isArray(analysisContent?.unusualLanguage)
+      ? analysisContent.unusualLanguage.map((item: any) => {
+          if (!item) return null;
+          return {
+            title: item.title || `Unusual language in ${item.section || item.reference?.section || 'Unknown section'}`,
+            description: item.description || item.language || 'Unusual language identified',
+            severity: item.severity || 'medium',
+            reference: {
+              section: item.section || item.reference?.section || null,
+              excerpt: item.excerpt || item.reference?.excerpt || null
+            }
+          };
+        }).filter(Boolean)
+      : [];
+
+    // If we don't have structured data, try to extract from raw content if available
+    if ((criticalPoints.length === 0 && financialRisks.length === 0 && unusualLanguage.length === 0) && 
+        (analysisContent.content || analysisContent.generatedText || analysisContent.rawContent)) {
+      
+      const rawText = analysisContent.content || analysisContent.generatedText || analysisContent.rawContent;
+      
+      // Add a fallback critical point to indicate the raw analysis needs review
+      criticalPoints.push({
+        title: "Document needs review",
+        description: "The AI identified potential issues but couldn't structure them. Please review the full analysis.",
+        severity: "medium",
         reference: {
-          section: item.section || null,
-          excerpt: item.excerpt || null
+          section: "Full document",
+          excerpt: rawText?.substring(0, 200) + "..." || "Raw analysis available"
         }
-      };
-    });
+      });
+    }
 
     // Log the processed data for debugging
     console.log("Processed data:", { criticalPoints, financialRisks, unusualLanguage });
@@ -75,8 +110,6 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
       unusualLanguage
     };
   };
-
-  const processedData = processIssues();
 
   // Filter issues by category
   const indemnityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
@@ -235,12 +268,12 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
               </span>
             </div>
           </div>
-          {analysisContent?.recommendations && (
+          {analysisContent?.recommendations && analysisContent.recommendations.length > 0 && (
             <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
               <strong>Key Recommendations:</strong>
               <ul className="list-disc pl-5 mt-2 space-y-1">
                 {(analysisContent.recommendations || []).slice(0, 3).map((rec: any, index: number) => (
-                  <li key={index}>{rec.text || rec.recommendation || rec}</li>
+                  <li key={index}>{rec.text || rec.recommendation || String(rec)}</li>
                 ))}
               </ul>
             </div>

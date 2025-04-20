@@ -151,7 +151,7 @@ const TermAnalysis = () => {
       
       if (file) {
         setCurrentStep('Converting document...');
-        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        fileContent = await convertFileToBase64(file);
         fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
         fileSize = file.size || new Blob([text]).size;
@@ -188,16 +188,18 @@ const TermAnalysis = () => {
       }
 
       console.log("Analysis data received:", data);
-      setAnalysisData(data);
+      
+      const processedData = ensureCorrectDataStructure(data);
+      setAnalysisData(processedData);
 
       if (!isAuthenticated) {
         incrementAnonymousAnalysisCount();
         storePendingAnalysis({
-          ...data,
+          ...processedData,
           filename: fileName,
           fileType: fileType,
           fileSize: fileSize,
-          overallScore: data.overallScore || 0
+          overallScore: processedData.overallScore || 0
         });
         setShowAuthPrompt(true);
         toast({
@@ -214,8 +216,8 @@ const TermAnalysis = () => {
             file_type: fileType,
             file_size: fileSize,
             status: 'completed',
-            analysis_score: data.overallScore || 0,
-            analysis_results: data,
+            analysis_score: processedData.overallScore || 0,
+            analysis_results: processedData,
             completed_at: new Date().toISOString()
           });
           
@@ -252,6 +254,54 @@ const TermAnalysis = () => {
       setLoading(false);
       setCurrentStep('');
     }
+  };
+
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const ensureCorrectDataStructure = (data: any) => {
+    if (!data.criticalPoints) data.criticalPoints = [];
+    if (!data.financialRisks) data.financialRisks = [];
+    if (!data.unusualLanguage) data.unusualLanguage = [];
+    if (!data.recommendations) data.recommendations = [];
+    
+    data.criticalPoints = data.criticalPoints.map((point: any) => ({
+      title: point.title || "Critical Issue",
+      description: point.description || point.issue || "Issue identified",
+      severity: point.severity || "high",
+      reference: {
+        section: point.section || point.reference?.section || null,
+        excerpt: point.excerpt || point.reference?.excerpt || null
+      }
+    }));
+    
+    data.financialRisks = data.financialRisks.map((risk: any) => ({
+      title: risk.title || "Financial Risk",
+      description: risk.description || risk.risk || "Financial risk identified",
+      severity: risk.severity || "high",
+      reference: {
+        section: risk.section || risk.reference?.section || null,
+        excerpt: risk.excerpt || risk.reference?.excerpt || null
+      }
+    }));
+    
+    data.unusualLanguage = data.unusualLanguage.map((item: any) => ({
+      title: item.title || "Unusual Language",
+      description: item.description || item.language || "Unusual language identified",
+      severity: item.severity || "medium",
+      reference: {
+        section: item.section || item.reference?.section || null,
+        excerpt: item.excerpt || item.reference?.excerpt || null
+      }
+    }));
+
+    return data;
   };
 
   return (

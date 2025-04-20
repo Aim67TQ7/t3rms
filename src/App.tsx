@@ -15,6 +15,7 @@ import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import AuthCallback from "@/pages/AuthCallback";
 import Analyzer from "@/pages/Analyzer";
+import TermAnalysis from "@/pages/TermAnalysis";
 import Pricing from "@/pages/Pricing";
 import EmbeddedTool from "@/pages/EmbeddedTool";
 import TermsConditionsGenerator from "@/pages/TermsConditionsGenerator";
@@ -57,6 +58,7 @@ const AppContent = () => {
             <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
             <Route path="/auth/callback" element={<><Seo title="Authentication - T3RMS" /><AuthCallback /></>} />
             <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} />
+            <Route path="/term-analysis" element={<><Seo title="Advanced Contract Analysis - T3RMS" description="Identify high-risk contract language with AI" /><TermAnalysis /></>} />
             <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
             <Route path="/embedded-tool" element={<><Seo title="Embedded Analysis Tool - T3RMS" /><EmbeddedTool /></>} />
             <Route path="/tcgenerator" element={<><Seo title="Terms & Conditions Generator - T3RMS" description="Generate compliant terms & conditions documents" /><TermsConditionsGenerator /></>} />

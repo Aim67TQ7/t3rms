@@ -14,7 +14,7 @@ import Navbar from "@/components/Navbar";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import AuthCallback from "@/pages/AuthCallback";
-import Analyzer from "@/pages/Analyzer";
+// Removed Analyzer import
 import TermAnalysis from "@/pages/TermAnalysis";
 import Pricing from "@/pages/Pricing";
 // Removed EmbeddedTool import
@@ -57,7 +57,7 @@ const AppContent = () => {
             <Route path="/" element={<><Seo /><Index /></>} />
             <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
             <Route path="/auth/callback" element={<><Seo title="Authentication - T3RMS" /><AuthCallback /></>} />
-            <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} />
+            {/* <Route path="/analyzer" element={<><Seo title="Document Analyzer - T3RMS" description="Analyze your terms & conditions documents with AI" /><Analyzer /></>} /> */}
             <Route path="/term-analysis" element={<><Seo title="Advanced Contract Analysis - T3RMS" description="Identify high-risk contract language with AI" /><TermAnalysis /></>} />
             <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
             {/* Removed embedded-tool route */}

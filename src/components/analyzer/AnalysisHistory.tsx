@@ -9,17 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AnalysisRow from './AnalysisRow';
+import type { Database } from '@/integrations/supabase/types';
 
-export type ContractAnalysis = {
-  id: string;
-  user_id: string;
-  filename: string;
-  file_type: string;
-  status: string;
-  analysis_score?: number;
-  analysis_results?: any;
-  created_at: string;
-};
+// Define the ContractAnalysis type based on the database schema
+export type ContractAnalysis = Database['public']['Tables']['contract_analyses']['Row'];
 
 interface AnalysisHistoryProps {
   analysisResults: ContractAnalysis[] | undefined;

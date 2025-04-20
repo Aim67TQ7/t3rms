@@ -1,16 +1,274 @@
 
-import React from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/navbar/useAuth";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
+import AuthPrompt from '@/components/AuthPrompt';
+import DropzoneUploader from '@/components/analyzer/DropzoneUploader';
+import AnalysisHistory from '@/components/analyzer/AnalysisHistory';
+import { ContractAnalysis } from '@/components/analyzer/AnalysisHistory';
+import { 
+  hasReachedAnonymousLimit, 
+  incrementAnonymousAnalysisCount,
+  storePendingAnalysis,
+  getPendingAnalysis
+} from '@/utils/anonymousUsage';
+import { Button } from "@/components/ui/button";
+import { FileText, Plus } from 'lucide-react';
 import Seo from '@/components/Seo';
+import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
 
 const Analyzer = () => {
+  const [text, setText] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const { toast } = useToast();
+  const { isAuthenticated, userId } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: analysisResults, isLoading: analysisLoading, refetch } = useQuery<ContractAnalysis[]>({
+    queryKey: ['analysisResults', userId],
+    queryFn: async () => {
+      if (!isAuthenticated) return [];
+      
+      const { data, error } = await supabase
+        .from('contract_analyses')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching analysis results:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: isAuthenticated
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const pendingAnalysis = getPendingAnalysis();
+      if (pendingAnalysis) {
+        handlePendingAnalysis(pendingAnalysis);
+      }
+    }
+  }, [isAuthenticated]);
+
+  const handlePendingAnalysis = async (analysisData: any) => {
+    try {
+      if (!analysisData) {
+        console.log("No pending analysis data available");
+        return;
+      }
+
+      const { error: saveError } = await supabase
+        .from('contract_analyses')
+        .insert({
+          user_id: userId,
+          filename: analysisData.filename || 'Unknown file',
+          file_type: analysisData.fileType || 'text/plain',
+          file_size: analysisData.fileSize || 0,
+          status: 'completed',
+          analysis_score: analysisData.overallScore || 0,
+          analysis_results: analysisData,
+          completed_at: new Date().toISOString()
+        });
+        
+      if (saveError) {
+        throw saveError;
+      }
+
+      toast({
+        title: "Analysis Available",
+        description: "Your analysis results are now available to view.",
+      });
+
+      refetch();
+    } catch (error: any) {
+      console.error("Error saving pending analysis:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your analysis results.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!text && !file) {
+      toast({
+        title: "Error",
+        description: "Please enter text or upload a file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Text content length:", text.length);
+    
+    if (!isAuthenticated && hasReachedAnonymousLimit()) {
+      toast({
+        title: "Analysis Limit Reached",
+        description: "You've reached the limit of free analyses. Please subscribe to continue.",
+        variant: "destructive",
+      });
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      let fileContent = '';
+      let fileType = '';
+      let fileName = '';
+      let fileSize = 0;
+      
+      if (file) {
+        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        fileType = file.type || 'text/plain';
+        fileName = file.name || 'document.txt';
+        fileSize = file.size || new Blob([text]).size;
+      } else if (text) {
+        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+        fileType = 'text/plain';
+        fileName = 'document.txt';
+        fileSize = new Blob([text]).size;
+      }
+
+      console.log("Sending content to analyze-contract function, content size:", fileContent.length);
+      
+      const { data, error } = await supabase.functions.invoke('analyze-contract', {
+        body: {
+          content: fileContent,
+          fileType: fileType,
+          fileName: fileName
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || "Error analyzing document");
+      }
+
+      // Check if data is null or undefined before accessing properties
+      if (!data) {
+        throw new Error("No analysis data received from the server");
+      }
+
+      console.log("Analysis data received:", data);
+
+      if (!isAuthenticated) {
+        incrementAnonymousAnalysisCount();
+        // Store analysis data safely, ensuring we have default values for required fields
+        storePendingAnalysis({
+          ...data,
+          filename: fileName,
+          fileType: fileType,
+          fileSize: fileSize,
+          overallScore: data.overallScore || 0
+        });
+        setShowAuthPrompt(true);
+        toast({
+          title: "Analysis Complete",
+          description: "Please sign up or log in to view your results.",
+        });
+      } else {
+        const { error: saveError } = await supabase
+          .from('contract_analyses')
+          .insert({
+            user_id: userId,
+            filename: fileName,
+            file_type: fileType,
+            file_size: fileSize,
+            status: 'completed',
+            analysis_score: data.overallScore || 0,
+            analysis_results: data,
+            completed_at: new Date().toISOString()
+          });
+          
+        if (saveError) {
+          throw saveError;
+        }
+
+        toast({
+          title: "Success",
+          description: "Contract analysis completed.",
+        });
+
+        refetch();
+      }
+    } catch (error: any) {
+      console.error("There was an error analyzing the text:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to analyze document.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <Seo 
-        title="T3RMS - AI Document Analyzer"
-        description="Upload your legal documents for instant AI analysis"
+        title="T3RMS - AI Document Analyzer | Instant Contract Analysis"
+        description="Upload your legal documents for instant AI analysis. Get risk assessments, identify unusual clauses, and receive actionable insights with T3RMS."
       />
       <div className="container mx-auto py-6 px-4">
-        <h1 className="text-3xl font-bold">Analyze T3RMS</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Analyze T3RMS</h1>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/tcgenerator")}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create Terms & Conditions
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5 xl:col-span-4">
+            <DropzoneUploader 
+              file={file}
+              setFile={setFile}
+              setText={setText}
+              onAnalyze={handleAnalyze}
+              loading={loading}
+            />
+          
+            {loading && (
+              <div className="mt-4">
+                <AnalysisStatusIndicator loading={loading} />
+              </div>
+            )}
+          
+            {showAuthPrompt && !isAuthenticated && (
+              <div className="mt-4">
+                <AuthPrompt 
+                  onDismiss={() => setShowAuthPrompt(false)} 
+                  showDismiss={true}
+                />
+              </div>
+            )}
+          </div>
+
+          {isAuthenticated && (
+            <div className="lg:col-span-7 xl:col-span-8">
+              <h2 className="text-2xl font-bold mb-4">Analysis History</h2>
+              <AnalysisHistory 
+                analysisResults={analysisResults}
+                isLoading={analysisLoading}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

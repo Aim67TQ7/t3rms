@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import MobileNavLinks from './MobileNavLinks'; // Changed from { MobileNavLinks } to MobileNavLinks
+import MobileNavLinks from './MobileNavLinks';
 import { getUserInitials, getUsageDisplay } from './utils';
 
 interface NavbarMobileProps {
@@ -55,14 +55,14 @@ export const NavbarMobile = ({
         aria-label="Toggle Menu"
       >
         {isOpen ? (
-          <X className="h-6 w-6 text-t3rms-charcoal" />
+          <X className="h-6 w-6 text-purple-400" />
         ) : (
-          <Menu className="h-6 w-6 text-t3rms-charcoal" />
+          <Menu className="h-6 w-6 text-purple-400" />
         )}
       </button>
 
       {isOpen && (
-        <div className="md:hidden pt-4 pb-2 animate-fade-in">
+        <div className="md:hidden pt-4 pb-2 animate-fade-in bg-[#0a0a0a]/95 backdrop-blur-md rounded-lg mt-4 border border-purple-500/20">
           <div className="flex flex-col space-y-2">
             <MobileNavLinks onClose={() => setIsOpen(false)} />
             
@@ -72,26 +72,26 @@ export const NavbarMobile = ({
                   <div className="px-4 py-2 mb-2">
                     <Badge 
                       variant="outline" 
-                      className="bg-t3rms-lightblue/30 text-t3rms-blue border-t3rms-blue/20 py-1 px-2 w-full text-center"
+                      className="bg-purple-900/30 text-purple-400 border-purple-500/50 py-1 px-2 w-full text-center"
                     >
-                      {getUsageDisplay(userData)} analyses remaining
+                      {getUsageDisplay(userData)} credits
                     </Badge>
                   </div>
                 )}
-                <div className="px-4 py-3 flex items-center justify-between bg-gray-50 rounded-md">
+                <div className="px-4 py-3 flex items-center justify-between bg-purple-900/30 rounded-md mx-2">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="bg-t3rms-blue text-white text-xs">
+                      <AvatarFallback className="bg-purple-600 text-white text-xs">
                         {getUserInitials(userEmail)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm text-gray-700 font-medium truncate max-w-[140px]">{userEmail}</span>
+                    <span className="text-sm text-purple-400 font-medium truncate max-w-[140px]">{userEmail}</span>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleLogout}
-                    className="text-t3rms-danger hover:text-t3rms-danger/90 hover:bg-red-50 p-1 h-auto"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-900/30 p-1 h-auto"
                   >
                     <LogOut size={16} />
                   </Button>
@@ -102,7 +102,7 @@ export const NavbarMobile = ({
                 <Button 
                   variant="default" 
                   size="sm" 
-                  className="w-full"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   onClick={() => navigate('/auth')}
                 >
                   Login / Sign Up

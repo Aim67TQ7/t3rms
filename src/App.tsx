@@ -43,11 +43,11 @@ const AppContent = () => {
   }, []);
 
   if (loading) {
-    return <div className="h-screen w-full flex items-center justify-center">Loading...</div>;
+    return <div className="h-screen w-full flex items-center justify-center bg-[#0a0a0a] text-purple-400">Loading...</div>;
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -68,7 +68,7 @@ const AppContent = () => {
           </Routes>
         </div>
       </TooltipProvider>
-    </>
+    </div>
   );
 };
 

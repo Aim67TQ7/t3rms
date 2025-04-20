@@ -58,7 +58,7 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled 
-          ? 'py-3 glass shadow-sm' 
+          ? 'py-3 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-purple-500/20' 
           : 'py-5 bg-transparent'
       }`}
     >

@@ -1,3 +1,4 @@
+
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -54,26 +55,26 @@ export const NavbarDesktop = ({ isAuthenticated, userData, userEmail }: NavbarDe
             {userData && (
               <Badge 
                 variant="outline" 
-                className="bg-t3rms-lightblue/30 text-t3rms-blue border-t3rms-blue/20 py-1 px-3"
+                className="bg-purple-900/30 text-purple-400 border-purple-500/50 py-1 px-3"
               >
-                {getUsageDisplay(userData)} analyses remaining
+                {getUsageDisplay(userData)} credits
               </Badge>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-full p-0 w-9 h-9 overflow-hidden">
+                <Button variant="outline" size="sm" className="rounded-full p-0 w-9 h-9 overflow-hidden bg-purple-900/30 border-purple-500/50">
                   <Avatar>
-                    <AvatarFallback className="bg-t3rms-blue text-white text-sm">
+                    <AvatarFallback className="bg-purple-600 text-white text-sm">
                       {getUserInitials(userEmail)}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm font-medium text-gray-700 border-b border-gray-100 mb-1">
+              <DropdownMenuContent align="end" className="w-48 bg-[#0a0a0a] border border-purple-500/20">
+                <div className="px-2 py-1.5 text-sm font-medium text-purple-400 border-b border-purple-500/20 mb-1">
                   {userEmail}
                 </div>
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-t3rms-danger">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-400">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -82,7 +83,11 @@ export const NavbarDesktop = ({ isAuthenticated, userData, userEmail }: NavbarDe
           </div>
         ) : (
           <Link to="/auth">
-            <Button variant="default" size="sm">
+            <Button 
+              variant="default" 
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
               Login / Sign Up
             </Button>
           </Link>

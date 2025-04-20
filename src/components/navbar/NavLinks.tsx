@@ -23,10 +23,10 @@ const NavLinks = () => {
       <Link
         to="/"
         className={cn(
-          "py-2 px-3 text-sm font-medium rounded-md",
+          "py-2 px-3 text-sm font-medium rounded-md transition-colors",
           isActive("/")
-            ? "bg-blue-100 text-blue-900"
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            ? "bg-purple-900/30 text-purple-400"
+            : "text-gray-300 hover:bg-purple-900/30 hover:text-purple-400"
         )}
       >
         Home
@@ -34,10 +34,10 @@ const NavLinks = () => {
       <Link
         to="/analyzer"
         className={cn(
-          "py-2 px-3 text-sm font-medium rounded-md",
+          "py-2 px-3 text-sm font-medium rounded-md transition-colors",
           isActive("/analyzer")
-            ? "bg-blue-100 text-blue-900"
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            ? "bg-purple-900/30 text-purple-400"
+            : "text-gray-300 hover:bg-purple-900/30 hover:text-purple-400"
         )}
       >
         Simple Analysis
@@ -45,10 +45,10 @@ const NavLinks = () => {
       <Link
         to="/term-analysis"
         className={cn(
-          "py-2 px-3 text-sm font-medium rounded-md",
+          "py-2 px-3 text-sm font-medium rounded-md transition-colors",
           isActive("/term-analysis")
-            ? "bg-blue-100 text-blue-900"
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            ? "bg-purple-900/30 text-purple-400"
+            : "text-gray-300 hover:bg-purple-900/30 hover:text-purple-400"
         )}
       >
         Advanced Analysis
@@ -56,10 +56,10 @@ const NavLinks = () => {
       <Link
         to="/tcgenerator"
         className={cn(
-          "py-2 px-3 text-sm font-medium rounded-md",
+          "py-2 px-3 text-sm font-medium rounded-md transition-colors",
           isActive("/tcgenerator")
-            ? "bg-blue-100 text-blue-900"
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            ? "bg-purple-900/30 text-purple-400"
+            : "text-gray-300 hover:bg-purple-900/30 hover:text-purple-400"
         )}
       >
         Create Terms
@@ -67,10 +67,10 @@ const NavLinks = () => {
       <Link
         to="/pricing"
         className={cn(
-          "py-2 px-3 text-sm font-medium rounded-md",
+          "py-2 px-3 text-sm font-medium rounded-md transition-colors",
           isActive("/pricing")
-            ? "bg-blue-100 text-blue-900"
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            ? "bg-purple-900/30 text-purple-400"
+            : "text-gray-300 hover:bg-purple-900/30 hover:text-purple-400"
         )}
       >
         Pricing
@@ -79,7 +79,7 @@ const NavLinks = () => {
       {isAuthenticated && (
         <button
           onClick={handleSignOut}
-          className="py-2 px-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 flex items-center"
+          className="py-2 px-3 text-sm font-medium rounded-md text-red-400 hover:bg-red-900/30 hover:text-red-300 flex items-center transition-colors"
         >
           <LogOut className="h-4 w-4 mr-2" />
           Logout

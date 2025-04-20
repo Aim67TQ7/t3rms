@@ -119,20 +119,19 @@ serve(async (req) => {
       );
     }
 
-    // Process with AI
-    const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+    // Process with OpenAI API instead of Anthropic
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      console.error("Anthropic API key is missing!");
-      throw new Error("ANTHROPIC_API_KEY is not set");
+      console.error("OpenAI API key is missing!");
+      throw new Error("OPENAI_API_KEY is not set");
     }
 
-    const model = "claude-3-haiku-20240307";
-    const apiUrl = "https://api.anthropic.com/v1/messages";
+    const model = "gpt-4o-mini";
+    const apiUrl = "https://api.openai.com/v1/chat/completions";
 
     const headers = {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+      "Authorization": `Bearer ${apiKey}`,
     };
 
     const prompt = `You are a legal contract analysis AI. Review the following contract and provide a detailed analysis.
@@ -143,18 +142,21 @@ serve(async (req) => {
 
     const data = {
       model: model,
-      max_tokens: 2048,
       temperature: 0.1,
       response_format: { type: "json_object" },
       messages: [
         {
-          role: "user",
-          content: `${prompt}\n\nContract:\n${content}`,
+          role: "system",
+          content: prompt
         },
-      ],
+        {
+          role: "user",
+          content: content
+        }
+      ]
     };
 
-    console.log("Sending request to Anthropic API...");
+    console.log("Sending request to OpenAI API...");
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: headers,
@@ -162,27 +164,23 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      console.error("Anthropic API error:", response.status, response.statusText, await response.text());
-      throw new Error(`Anthropic API request failed with status ${response.status}: ${response.statusText}`);
+      console.error("OpenAI API error:", response.status, response.statusText, await response.text());
+      throw new Error(`OpenAI API request failed with status ${response.status}: ${response.statusText}`);
     }
 
     const responseData = await response.json();
     let result;
     
     try {
-      // For structured JSON response format
-      if (responseData.content && responseData.content[0] && responseData.content[0].type === 'text') {
-        result = JSON.parse(responseData.content[0].text);
-      } else if (responseData.content && responseData.content[0] && responseData.content[0].text) {
-        // Fallback for older API versions
-        result = JSON.parse(responseData.content[0].text);
+      // Parse the OpenAI response
+      if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
+        result = JSON.parse(responseData.choices[0].message.content);
       } else {
-        // Direct parsing for response_format: { type: "json_object" }
-        result = responseData;
+        throw new Error("Unexpected response format from OpenAI");
       }
     } catch (error) {
-      console.error("Error parsing AI response:", error);
-      throw new Error("Failed to parse AI response");
+      console.error("Error parsing OpenAI response:", error);
+      throw new Error("Failed to parse OpenAI response");
     }
 
     return new Response(

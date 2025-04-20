@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ import { NavbarDesktop } from './NavbarDesktop';
 import { useAuth } from './useAuth';
 import type { Database } from '@/integrations/supabase/types';
 
-type UserProfile = Database['public']['Tables']['profiles']['Row'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -15,7 +16,7 @@ const Navbar = () => {
   const location = useLocation();
   const { isAuthenticated, userId, userEmail } = useAuth();
 
-  const { data: userData } = useQuery<UserProfile | null>({
+  const { data: userData } = useQuery<Profile | null>({
     queryKey: ['user-profile', userId],
     queryFn: async () => {
       if (!isAuthenticated) return null;

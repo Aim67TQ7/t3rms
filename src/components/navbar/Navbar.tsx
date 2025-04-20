@@ -19,9 +19,9 @@ const Navbar = () => {
       if (!isAuthenticated) return null;
       
       const { data, error } = await supabase
-        .from('t3rms_users')
+        .from('users')  // Changed from 't3rms_users'
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
       
       if (error) {

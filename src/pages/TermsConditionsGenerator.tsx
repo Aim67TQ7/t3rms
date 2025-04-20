@@ -40,7 +40,7 @@ import {
 } from '@/utils/termsGenerator';
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { Tables } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 const POLICY_TYPES = ["terms", "privacy", "cookie", "gdpr", "hipaa", "acceptable-use"] as const;
 
@@ -317,7 +317,7 @@ const TermsConditionsGenerator = () => {
           
           const { error } = await supabase
             .from('generated_terms')
-            .insert<Tables['generated_terms']>({
+            .insert({
               user_id: userId,
               business_name: formData.businessName,
               policy_types: formData.policyTypes,

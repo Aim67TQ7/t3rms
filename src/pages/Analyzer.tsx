@@ -20,11 +20,15 @@ import { FileText, Plus } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
 
+// Maximum content size for edge function
+const MAX_CONTENT_SIZE = 2 * 1024 * 1024; // 2MB
+
 const Analyzer = () => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [currentStep, setCurrentStep] = useState('Preparing document...');
   const { toast } = useToast();
   const { isAuthenticated, userId } = useAuth();
   const navigate = useNavigate();
@@ -111,6 +115,16 @@ const Analyzer = () => {
 
     console.log("Text content length:", text.length);
     
+    // Check content size
+    if (text.length > MAX_CONTENT_SIZE / 2) {
+      toast({
+        title: "Content Too Large",
+        description: "The document is too large to process. Please upload a smaller document or reduce the text length.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!isAuthenticated && hasReachedAnonymousLimit()) {
       toast({
         title: "Analysis Limit Reached",
@@ -122,6 +136,7 @@ const Analyzer = () => {
     }
 
     setLoading(true);
+    setCurrentStep('Preparing document...');
 
     try {
       let fileContent = '';
@@ -130,11 +145,14 @@ const Analyzer = () => {
       let fileSize = 0;
       
       if (file) {
+        setCurrentStep('Converting document...');
+        // Split into smaller chunks if needed
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
         fileSize = file.size || new Blob([text]).size;
       } else if (text) {
+        setCurrentStep('Processing text...');
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = 'text/plain';
         fileName = 'document.txt';
@@ -143,6 +161,7 @@ const Analyzer = () => {
 
       console.log("Sending content to analyze-contract function, content size:", fileContent.length);
       
+      setCurrentStep('Analyzing with AI...');
       const { data, error } = await supabase.functions.invoke('analyze-contract', {
         body: {
           content: fileContent,
@@ -178,6 +197,7 @@ const Analyzer = () => {
           description: "Please sign up or log in to view your results.",
         });
       } else {
+        setCurrentStep('Saving results...');
         const { error: saveError } = await supabase
           .from('contract_analyses')
           .insert({
@@ -204,13 +224,24 @@ const Analyzer = () => {
       }
     } catch (error: any) {
       console.error("There was an error analyzing the text:", error);
+      
+      // Give more specific error messages
+      let errorMessage = "Failed to analyze document.";
+      
+      if (error.message && error.message.includes("send a request to the Edge Function")) {
+        errorMessage = "The document is too large or complex to analyze. Please try with a smaller document or paste a portion of the text.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to analyze document.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      setCurrentStep('');
     }
   };
 
@@ -251,7 +282,7 @@ const Analyzer = () => {
                 
                   {loading && (
                     <div className="mt-4">
-                      <AnalysisStatusIndicator loading={loading} />
+                      <AnalysisStatusIndicator loading={loading} currentStep={currentStep} />
                     </div>
                   )}
                 

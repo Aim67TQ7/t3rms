@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileUp, FileText, ArrowRight } from 'lucide-react';
+import { FileUp, FileText, ArrowRight, AlertCircle } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 interface DropzoneUploaderProps {
   file: File | null;
@@ -13,15 +15,33 @@ interface DropzoneUploaderProps {
   loading: boolean;
 }
 
+// Maximum file size: 2MB to prevent edge function timeouts/failures
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
 const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: DropzoneUploaderProps) => {
   const [directInputText, setDirectInputText] = useState('');
   const [inputMethod, setInputMethod] = useState<'file' | 'text'>('file');
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     
     // Only allow one file
     const file = acceptedFiles[0];
+    
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      setFileSizeError(`File is too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+      toast({
+        title: "File too large",
+        description: `Please upload a file smaller than ${MAX_FILE_SIZE / 1024 / 1024}MB or paste the text directly.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setFileSizeError(null);
     setFile(file);
     setInputMethod('file');
 
@@ -35,16 +55,33 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
     };
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
+      toast({
+        title: "Error",
+        description: "Failed to read file. Please try again or paste the text directly.",
+        variant: "destructive",
+      });
     };
     reader.readAsText(file);
   };
 
   const handleTextInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
+    
+    // Check text length - roughly estimate 2MB of text
+    if (value.length > MAX_FILE_SIZE / 2) {
+      toast({
+        title: "Text too long",
+        description: "The text is too long for analysis. Please shorten it or upload a smaller document.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setDirectInputText(value);
     setText(value);
     setInputMethod('text');
     setFile(null);
+    setFileSizeError(null);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -56,7 +93,8 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
       'text/plain': ['.txt']
     },
     maxFiles: 1,
-    multiple: false
+    multiple: false,
+    maxSize: MAX_FILE_SIZE
   });
 
   return (
@@ -105,7 +143,9 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
               ? 'border-blue-500 bg-blue-50' 
               : file 
                 ? 'border-green-500 bg-green-50'
-                : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                : fileSizeError 
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
             }
           `}
         >
@@ -114,6 +154,8 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
             <div className="flex justify-center">
               {file ? (
                 <FileText className="h-16 w-16 text-green-500" />
+              ) : fileSizeError ? (
+                <AlertCircle className="h-16 w-16 text-red-500" />
               ) : (
                 <FileUp className={`h-16 w-16 ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`} />
               )}
@@ -126,13 +168,20 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
                   {file.name}
                 </p>
               </div>
+            ) : fileSizeError ? (
+              <div className="space-y-2">
+                <p className="text-lg font-medium text-red-600">Error</p>
+                <p className="text-sm text-red-600">
+                  {fileSizeError}
+                </p>
+              </div>
             ) : (
               <div className="space-y-2">
                 <p className="text-lg font-medium text-gray-700">
                   {isDragActive ? 'Drop your file here' : 'Drag & drop your file here'}
                 </p>
                 <p className="text-sm text-gray-500">
-                  or click to browse your files
+                  or click to browse your files (max size: 2MB)
                 </p>
               </div>
             )}
@@ -150,14 +199,15 @@ const DropzoneUploader = ({ file, setFile, setText, onAnalyze, loading }: Dropzo
             value={directInputText}
             onChange={handleTextInput}
           />
+          <p className="text-xs text-gray-500 text-right">Max ~1MB of text</p>
         </div>
       )}
 
       <Button 
         onClick={onAnalyze} 
-        disabled={(inputMethod === 'file' && !file) || (inputMethod === 'text' && !directInputText) || loading}
+        disabled={(inputMethod === 'file' && !file) || (inputMethod === 'text' && !directInputText) || loading || !!fileSizeError}
         className={`w-full py-6 text-lg ${
-          ((file || directInputText) && !loading)
+          ((file || directInputText) && !loading && !fileSizeError)
             ? 'bg-blue-600 hover:bg-blue-700'
             : 'bg-gray-300'
         }`}

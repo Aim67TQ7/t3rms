@@ -1,4 +1,3 @@
-
 import { useAuth } from "./useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useLocation } from "react-router-dom";
@@ -32,18 +31,6 @@ const MobileNavLinks = ({ onClose }: { onClose: () => void }) => {
         onClick={onClose}
       >
         Home
-      </Link>
-      <Link
-        to="/analyzer"
-        className={cn(
-          "py-2 px-3 text-base font-medium rounded-md transition-colors",
-          isActive("/analyzer")
-            ? "bg-purple-900/30 text-purple-400"
-            : "text-gray-300 hover:bg-purple-900/30 hover:text-purple-400"
-        )}
-        onClick={onClose}
-      >
-        Simple Analysis
       </Link>
       <Link
         to="/term-analysis"

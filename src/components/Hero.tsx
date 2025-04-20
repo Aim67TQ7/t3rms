@@ -56,18 +56,13 @@ const Hero = () => {
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            <Link to="/analyzer">
+            <Link to="/term-analysis">
               <Button 
                 size="lg"
                 className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(147,51,234,0.8)] hero-button-primary"
               >
                 Upload PO & Scan Free <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
-
-            <Link to="/tcgenerator" className="text-purple-400 hover:text-purple-300 flex items-center justify-center gap-2">
-              <FileText className="h-4 w-4" />
-              Need to write new Ts&Cs? Click here
             </Link>
           </div>
 

@@ -310,21 +310,16 @@ const TermAnalysis = () => {
         title="T3RMS - Advanced Contract Analysis | Identify High-Risk Language"
         description="Upload contracts for advanced AI analysis. Identify high-risk language, get counter-proposals, and track revisions with our specialized contract analysis tool."
       />
-      <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
-        </div>
-
+      <div className="min-h-screen bg-[#f7f9fa] relative overflow-hidden">
         <div className="container mx-auto py-6 px-4 relative z-10">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-purple-200 to-purple-300">
+            <h1 className="text-3xl font-bold text-gray-900">
               Advanced Contract Analysis
             </h1>
             <Button
               variant="outline"
               onClick={() => navigate("/tcgenerator")}
-              className="flex items-center gap-2 bg-purple-500/10 border-purple-500/20 text-purple-300 hover:bg-purple-500/20"
+              className="flex items-center gap-2 bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
             >
               <FileText className="h-4 w-4" />
               Create Terms & Conditions
@@ -337,12 +332,12 @@ const TermAnalysis = () => {
                 <div className="min-h-[70vh] flex items-center justify-center p-8">
                   <div className="w-full max-w-4xl">
                     {apiKeyMissing && (
-                      <div className="mb-6 p-4 border border-amber-300/20 bg-amber-900/20 rounded-lg">
+                      <div className="mb-6 p-4 border border-yellow-300/60 bg-yellow-50 rounded-lg">
                         <div className="flex items-start">
-                          <AlertCircle className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
+                          <AlertCircle className="h-5 w-5 text-yellow-700 mr-2 mt-0.5" />
                           <div>
-                            <h3 className="font-medium text-amber-300">API Configuration Required</h3>
-                            <p className="text-amber-400/80 text-sm mt-1">
+                            <h3 className="font-medium text-yellow-800">API Configuration Required</h3>
+                            <p className="text-yellow-700 text-sm mt-1">
                               The AI API key is not configured. The document analysis feature requires this API key to be set in 
                               the Supabase edge functions environment. Please contact the administrator to configure this.
                             </p>
@@ -352,15 +347,15 @@ const TermAnalysis = () => {
                     )}
                   
                     <div className="flex justify-center items-center mb-8 space-x-4">
-                      <div className="flex items-center text-purple-400">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500/10 border-2 border-purple-500/20">
+                      <div className="flex items-center text-gray-700">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 border-2 border-gray-300">
                           1
                         </div>
                         <span className="ml-2 font-medium">Upload</span>
                       </div>
-                      <div className="w-8 h-1 bg-purple-500/20"></div>
-                      <div className="flex items-center text-purple-400/50">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500/5 border-2 border-purple-500/10">
+                      <div className="w-8 h-1 bg-gray-300"></div>
+                      <div className="flex items-center text-gray-400">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 border-2 border-gray-200">
                           2
                         </div>
                         <span className="ml-2 font-medium">Analyze</span>
@@ -392,19 +387,19 @@ const TermAnalysis = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-6 glass-dark rounded-lg">
+                <div className="p-6 bg-white rounded-lg border border-gray-200 shadow">
                   <Tabs defaultValue="heatmap" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 mb-4 bg-purple-500/10 border border-purple-500/20">
-                      <TabsTrigger value="heatmap" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20">
+                    <TabsList className="grid w-full grid-cols-4 mb-4 bg-gray-100 border border-gray-200">
+                      <TabsTrigger value="heatmap" className="flex items-center gap-2 data-[state=active]:bg-gray-200">
                         <FileText className="h-4 w-4" /> Risk Heatmap
                       </TabsTrigger>
-                      <TabsTrigger value="counterproposal" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20">
+                      <TabsTrigger value="counterproposal" className="flex items-center gap-2 data-[state=active]:bg-gray-200">
                         <Copy className="h-4 w-4" /> Counter-Proposal
                       </TabsTrigger>
-                      <TabsTrigger value="heuristics" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20">
+                      <TabsTrigger value="heuristics" className="flex items-center gap-2 data-[state=active]:bg-gray-200">
                         <FileSearch className="h-4 w-4" /> Specific Issues
                       </TabsTrigger>
-                      <TabsTrigger value="revisions" className="flex items-center gap-2 data-[state=active]:bg-purple-500/20">
+                      <TabsTrigger value="revisions" className="flex items-center gap-2 data-[state=active]:bg-gray-200">
                         <Calendar className="h-4 w-4" /> Revision History
                       </TabsTrigger>
                     </TabsList>

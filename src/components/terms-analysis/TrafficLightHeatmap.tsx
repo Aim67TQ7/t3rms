@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, AlertTriangle, X, Check } from 'lucide-react';
+import { ChevronDown, ChevronRight, AlertTriangle, Check, Shield, ShieldX, Flag } from 'lucide-react';
 
 interface TrafficLightHeatmapProps {
   analysisData: any;
@@ -19,7 +19,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     }));
   };
 
-  // Filter critical points related to key high-risk categories
+  // Filter critical points related to key risk categories
   const indemnityIssues = analysisData?.criticalPoints?.filter((item: any) => 
     item.title?.toLowerCase().includes('indemnity') || 
     item.description?.toLowerCase().includes('indemnity')
@@ -27,92 +27,28 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
 
   const liabilityIssues = analysisData?.criticalPoints?.filter((item: any) => 
     item.title?.toLowerCase().includes('liability') || 
-    item.description?.toLowerCase().includes('liability cap') ||
-    item.description?.toLowerCase().includes('limitation of liability')
+    item.description?.toLowerCase().includes('liability')
   ) || [];
 
-  const paymentIssues = analysisData?.criticalPoints?.filter((item: any) => 
-    item.title?.toLowerCase().includes('payment') || 
-    item.description?.toLowerCase().includes('payment terms') ||
-    item.description?.toLowerCase().includes('net') ||
-    item.description?.toLowerCase().includes('days to pay')
-  ) || [];
+  const unusualLanguage = analysisData?.unusualLanguage || [];
+  const financialRisks = analysisData?.financialRisks || [];
 
-  // Improved risk level determination for more accurate traffic light display
-  const getIndemnityRiskLevel = () => {
-    if (indemnityIssues.length === 0) return "low";
-    
-    // Count high and medium risk issues
-    const highRiskCount = indemnityIssues.filter((issue: any) => 
-      issue.severity === "high" || issue.risk === "high"
-    ).length;
-    
-    const mediumRiskCount = indemnityIssues.filter((issue: any) => 
-      issue.severity === "medium" || issue.risk === "medium"
-    ).length;
+  const getRiskLevel = (issues: any[]) => {
+    if (!issues.length) return "low";
+    const highRiskCount = issues.filter(issue => issue.severity === "high").length;
+    const mediumRiskCount = issues.filter(issue => issue.severity === "medium").length;
     
     if (highRiskCount > 0) return "high";
     if (mediumRiskCount > 0) return "medium";
     return "low";
   };
 
-  const getLiabilityRiskLevel = () => {
-    if (liabilityIssues.length === 0) return "low";
-    
-    // Count high and medium risk issues
-    const highRiskCount = liabilityIssues.filter((issue: any) => 
-      issue.severity === "high" || issue.risk === "high"
-    ).length;
-    
-    const mediumRiskCount = liabilityIssues.filter((issue: any) => 
-      issue.severity === "medium" || issue.risk === "medium"
-    ).length;
-    
-    if (highRiskCount > 0) return "high";
-    if (mediumRiskCount > 0) return "medium";
-    return "low";
-  };
-
-  const getPaymentRiskLevel = () => {
-    if (paymentIssues.length === 0) return "low";
-    
-    // Count high and medium risk issues
-    const highRiskCount = paymentIssues.filter((issue: any) => 
-      issue.severity === "high" || issue.risk === "high"
-    ).length;
-    
-    const mediumRiskCount = paymentIssues.filter((issue: any) => 
-      issue.severity === "medium" || issue.risk === "medium"
-    ).length;
-    
-    if (highRiskCount > 0) return "high";
-    if (mediumRiskCount > 0) return "medium";
-    return "low";
-  };
-
-  // Calculate overall risk level based on all categories
-  const getOverallRiskLevel = () => {
-    const indemnityLevel = getIndemnityRiskLevel();
-    const liabilityLevel = getLiabilityRiskLevel();
-    const paymentLevel = getPaymentRiskLevel();
-    
-    if (indemnityLevel === "high" || liabilityLevel === "high" || paymentLevel === "high") {
-      return "high";
-    }
-    if (indemnityLevel === "medium" || liabilityLevel === "medium" || paymentLevel === "medium") {
-      return "medium";
-    }
-    return "low";
-  };
-
-  // Map risk levels to colors for visual display
   const riskColorMap = {
     high: "bg-red-500",
     medium: "bg-amber-500",
     low: "bg-green-500"
   };
 
-  // Get text descriptions based on risk levels
   const getRiskDescription = (riskLevel: string) => {
     switch (riskLevel) {
       case "high": return "High risk";
@@ -122,176 +58,131 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     }
   };
 
-  // Overall risk level for consistent scoring
-  const overallRiskLevel = getOverallRiskLevel();
-  
-  // Ensure score aligns with traffic light findings
-  const calculateAlignedScore = () => {
-    if (overallRiskLevel === "high") return Math.max(10, Math.min(40, analysisData?.overallScore || 30));
-    if (overallRiskLevel === "medium") return Math.max(41, Math.min(70, analysisData?.overallScore || 60));
-    return Math.max(71, Math.min(100, analysisData?.overallScore || 85));
+  const getOverallRiskLevel = () => {
+    const allIssues = [
+      ...indemnityIssues,
+      ...liabilityIssues,
+      ...unusualLanguage,
+      ...financialRisks
+    ];
+    return getRiskLevel(allIssues);
   };
 
-  const alignedScore = calculateAlignedScore();
+  const RiskCategory = ({ title, issues, icon: Icon }: { title: string; issues: any[]; icon: any }) => {
+    const riskLevel = getRiskLevel(issues);
+    
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon className={`h-5 w-5 ${riskLevel === 'high' ? 'text-red-500' : riskLevel === 'medium' ? 'text-amber-500' : 'text-green-500'}`} />
+              <span>{title}</span>
+            </div>
+            <div className={`w-6 h-6 rounded-full ${riskColorMap[riskLevel]}`}></div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {issues.length === 0 ? (
+            <div className="flex items-center text-green-600 gap-2">
+              <Check className="h-5 w-5" />
+              <span>No issues detected</span>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {issues.length} potential issue{issues.length !== 1 ? 's' : ''} found
+              </p>
+              <div className="space-y-1">
+                {issues.map((issue: any, index: number) => (
+                  <Collapsible 
+                    key={`${title}-${index}`} 
+                    open={openItems[`${title}-${index}`]} 
+                    onOpenChange={() => toggleItem(`${title}-${index}`)}
+                  >
+                    <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
+                        <span>{issue.title || `Issue #${index + 1}`}</span>
+                      </div>
+                      {openItems[`${title}-${index}`] ? 
+                        <ChevronDown className="h-4 w-4" /> : 
+                        <ChevronRight className="h-4 w-4" />
+                      }
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
+                      <p>{issue.description}</p>
+                      {issue.reference && (
+                        <div className="mt-2 text-xs text-gray-500">
+                          {issue.reference.section && <p>Section: {issue.reference.section}</p>}
+                          {issue.reference.excerpt && (
+                            <p className="mt-1 italic">"{issue.reference.excerpt}"</p>
+                          )}
+                        </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const overallRiskLevel = getOverallRiskLevel();
+  const alignedScore = analysisData?.overallScore || 0;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center justify-between">
-              <span>Indemnity</span>
-              <div className={`w-6 h-6 rounded-full ${riskColorMap[getIndemnityRiskLevel()]}`}></div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {indemnityIssues.length === 0 ? (
-              <div className="flex items-center text-green-600 gap-2">
-                <Check className="h-5 w-5" />
-                <span>No issues detected</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {indemnityIssues.length} potential issue{indemnityIssues.length !== 1 ? 's' : ''} found
-                </p>
-                <div className="space-y-1">
-                  {indemnityIssues.map((issue: any, index: number) => (
-                    <Collapsible key={`indemnity-${index}`} open={openItems[`indemnity-${index}`]} onOpenChange={() => toggleItem(`indemnity-${index}`)}>
-                      <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
-                          <span>{issue.title || `Issue #${index + 1}`}</span>
-                        </div>
-                        {openItems[`indemnity-${index}`] ? 
-                          <ChevronDown className="h-4 w-4" /> : 
-                          <ChevronRight className="h-4 w-4" />
-                        }
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
-                        <p>{issue.description}</p>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center justify-between">
-              <span>Liability Caps</span>
-              <div className={`w-6 h-6 rounded-full ${riskColorMap[getLiabilityRiskLevel()]}`}></div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {liabilityIssues.length === 0 ? (
-              <div className="flex items-center text-green-600 gap-2">
-                <Check className="h-5 w-5" />
-                <span>No issues detected</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {liabilityIssues.length} potential issue{liabilityIssues.length !== 1 ? 's' : ''} found
-                </p>
-                <div className="space-y-1">
-                  {liabilityIssues.map((issue: any, index: number) => (
-                    <Collapsible key={`liability-${index}`} open={openItems[`liability-${index}`]} onOpenChange={() => toggleItem(`liability-${index}`)}>
-                      <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
-                          <span>{issue.title || `Issue #${index + 1}`}</span>
-                        </div>
-                        {openItems[`liability-${index}`] ? 
-                          <ChevronDown className="h-4 w-4" /> : 
-                          <ChevronRight className="h-4 w-4" />
-                        }
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
-                        <p>{issue.description}</p>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center justify-between">
-              <span>Payment Terms</span>
-              <div className={`w-6 h-6 rounded-full ${riskColorMap[getPaymentRiskLevel()]}`}></div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {paymentIssues.length === 0 ? (
-              <div className="flex items-center text-green-600 gap-2">
-                <Check className="h-5 w-5" />
-                <span>No issues detected</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {paymentIssues.length} potential issue{paymentIssues.length !== 1 ? 's' : ''} found
-                </p>
-                <div className="space-y-1">
-                  {paymentIssues.map((issue: any, index: number) => (
-                    <Collapsible key={`payment-${index}`} open={openItems[`payment-${index}`]} onOpenChange={() => toggleItem(`payment-${index}`)}>
-                      <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
-                          <span>{issue.title || `Issue #${index + 1}`}</span>
-                        </div>
-                        {openItems[`payment-${index}`] ? 
-                          <ChevronDown className="h-4 w-4" /> : 
-                          <ChevronRight className="h-4 w-4" />
-                        }
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
-                        <p>{issue.description}</p>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Overall Contract Risk Assessment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
               <Badge className={`${overallRiskLevel === 'low' ? 'bg-green-500' : overallRiskLevel === 'medium' ? 'bg-amber-500' : 'bg-red-500'}`}>
                 Score: {alignedScore}/100
               </Badge>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {getRiskDescription(overallRiskLevel)} contract
+              <span className="text-sm font-medium">
+                {getRiskDescription(overallRiskLevel)} assessment
               </span>
             </div>
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Key Concerns:</h3>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                {analysisData.criticalPoints?.slice(0, 5).map((point: any, index: number) => (
-                  <li key={index} className="text-gray-700 dark:text-gray-300">
-                    {point.title}: {point.description?.substring(0, 120)}{point.description?.length > 120 ? '...' : ''}
-                  </li>
+          </div>
+          {analysisData?.recommendations && (
+            <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+              <strong>Key Recommendations:</strong>
+              <ul className="list-disc pl-5 mt-2 space-y-1">
+                {analysisData.recommendations.slice(0, 3).map((rec: any, index: number) => (
+                  <li key={index}>{rec.text || rec}</li>
                 ))}
               </ul>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <RiskCategory 
+          title="Indemnification Issues" 
+          issues={indemnityIssues}
+          icon={Shield}
+        />
+        <RiskCategory 
+          title="Liability Issues" 
+          issues={liabilityIssues}
+          icon={ShieldX}
+        />
+        <RiskCategory 
+          title="Financial Risks" 
+          issues={financialRisks}
+          icon={Flag}
+        />
+        <RiskCategory 
+          title="Unusual Language" 
+          issues={unusualLanguage}
+          icon={AlertTriangle}
+        />
+      </div>
     </div>
   );
 };

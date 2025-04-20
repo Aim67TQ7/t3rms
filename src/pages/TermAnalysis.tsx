@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +13,7 @@ import {
   getPendingAnalysis
 } from '@/utils/anonymousUsage';
 import { Button } from "@/components/ui/button";
-import { FileText, Copy, AlertCircle, TrafficLight, FileSearch, Calendar } from 'lucide-react';
+import { FileText, Copy, AlertCircle, FileSearch, Calendar } from 'lucide-react';
 import Seo from '@/components/Seo';
 import TermsUploader from '@/components/terms-analysis/TermsUploader';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
@@ -345,7 +344,7 @@ const TermAnalysis = () => {
                   <Tabs defaultValue="heatmap" className="w-full">
                     <TabsList className="grid w-full grid-cols-4 mb-4">
                       <TabsTrigger value="heatmap" className="flex items-center gap-2">
-                        <TrafficLight className="h-4 w-4" /> Risk Heatmap
+                        <FileText className="h-4 w-4" /> Risk Heatmap
                       </TabsTrigger>
                       <TabsTrigger value="counterproposal" className="flex items-center gap-2">
                         <Copy className="h-4 w-4" /> Counter-Proposal

@@ -102,26 +102,36 @@ const AnalysisRevisionHistory = ({
         doc.setTextColor(0, 0, 0);
         let yPos = 110;
         
-        const criticalPoints = selectedAnalysis.analysis_results?.criticalPoints || [];
-        criticalPoints.forEach((point: any, index: number) => {
-          doc.setTextColor(180, 0, 0);
-          doc.text(`${index + 1}. ${point.title}`, 20, yPos);
-          yPos += 10;
+        // Safely access criticalPoints from analysis_results
+        const analysisResults = selectedAnalysis.analysis_results || {};
+        if (typeof analysisResults === 'object') {
+          const criticalPoints = analysisResults.criticalPoints || [];
           
-          doc.setTextColor(0, 0, 0);
-          const descLines = doc.splitTextToSize(point.description || '', 170);
-          doc.text(descLines, 25, yPos);
-          yPos += 10 * descLines.length;
-          
-          // Add some space between items
-          yPos += 5;
-          
-          // Check if we need a new page
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = 20;
+          if (Array.isArray(criticalPoints)) {
+            criticalPoints.forEach((point: any, index: number) => {
+              if (point && typeof point === 'object') {
+                doc.setTextColor(180, 0, 0);
+                doc.text(`${index + 1}. ${point.title || 'Unknown issue'}`, 20, yPos);
+                yPos += 10;
+                
+                doc.setTextColor(0, 0, 0);
+                const description = point.description || 'No description available';
+                const descLines = doc.splitTextToSize(description, 170);
+                doc.text(descLines, 25, yPos);
+                yPos += 10 * descLines.length;
+                
+                // Add some space between items
+                yPos += 5;
+                
+                // Check if we need a new page
+                if (yPos > 270) {
+                  doc.addPage();
+                  yPos = 20;
+                }
+              }
+            });
           }
-        });
+        }
       } else {
         doc.setFontSize(12);
         doc.setTextColor(100, 100, 100);

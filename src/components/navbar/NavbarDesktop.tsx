@@ -1,4 +1,3 @@
-
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from './Logo';
-import { NavLinks } from './NavLinks';
+import NavLinks from './NavLinks';
 import { getUserInitials, getUsageDisplay } from './utils';
 
 interface NavbarDesktopProps {
@@ -46,7 +45,7 @@ export const NavbarDesktop = ({ isAuthenticated, userData, userEmail }: NavbarDe
       <Logo />
 
       <div className="hidden md:flex items-center space-x-1">
-        <NavLinks isAuthenticated={isAuthenticated} />
+        <NavLinks />
       </div>
 
       <div className="hidden md:flex items-center space-x-4">

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { MobileNavLinks } from './MobileNavLinks';
+import MobileNavLinks from './MobileNavLinks'; // Changed from { MobileNavLinks } to MobileNavLinks
 import { getUserInitials, getUsageDisplay } from './utils';
 
 interface NavbarMobileProps {
@@ -64,7 +64,7 @@ export const NavbarMobile = ({
       {isOpen && (
         <div className="md:hidden pt-4 pb-2 animate-fade-in">
           <div className="flex flex-col space-y-2">
-            <MobileNavLinks isAuthenticated={isAuthenticated} />
+            <MobileNavLinks onClose={() => setIsOpen(false)} />
             
             {isAuthenticated ? (
               <>

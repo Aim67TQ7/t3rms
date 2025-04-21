@@ -71,8 +71,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
           }
           // Check for different data structures and normalize
           return {
-            title: point.title || `Issue in ${point.section || point.reference?.section || 'Unknown section'}`,
-            description: point.description || point.issue || point.concern || point.risk || 'Potential issue identified',
+            title: point.title || point.issue || `Issue in ${point.section || point.reference?.section || 'Unknown section'}`,
+            description: point.description || point.issue || point.concern || point.risk || 'Issue details not provided',
             severity: point.severity || 'high',
             reference: {
               section: point.section || point.reference?.section || null,
@@ -99,13 +99,14 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
             };
           }
           return {
-            title: risk.title || `Financial risk in ${risk.section || risk.reference?.section || 'Unknown section'}`,
-            description: risk.description || risk.risk || 'Financial risk identified',
+            title: risk.title || risk.risk || `Financial risk in ${risk.section || risk.reference?.section || 'contract'}`,
+            description: risk.description || risk.risk || 'Financial implications not specified',
             severity: risk.severity || 'high',
             reference: {
               section: risk.section || risk.reference?.section || null,
               excerpt: risk.excerpt || risk.reference?.excerpt || null
-            }
+            },
+            implications: risk.implications || risk.financialImplications || risk.impact || null
           };
         }).filter(Boolean)
       : [];
@@ -127,8 +128,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
             };
           }
           return {
-            title: item.title || `Unusual language in ${item.section || item.reference?.section || 'Unknown section'}`,
-            description: item.description || item.language || 'Unusual language identified',
+            title: item.title || item.language || `Unusual language in ${item.section || item.reference?.section || 'contract'}`,
+            description: item.description || item.language || 'Unusual language details not provided',
             severity: item.severity || 'medium',
             reference: {
               section: item.section || item.reference?.section || null,
@@ -169,8 +170,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
 
   // Filter issues by category
   const indemnityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
-    (item.title?.toLowerCase().includes('indemnity') || 
-    item.description?.toLowerCase().includes('indemnity'))
+    (item.title?.toLowerCase().includes('indemnity') || item.title?.toLowerCase().includes('indemnification') || 
+    item.description?.toLowerCase().includes('indemnity') || item.description?.toLowerCase().includes('indemnification'))
   );
 
   const liabilityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
@@ -184,7 +185,9 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   // Identify additional important risks (not in the above categories)
   const otherCriticalIssues = processedData.criticalPoints.filter((item: any) => 
     !item.title?.toLowerCase().includes('indemnity') && 
-    !item.description?.toLowerCase().includes('indemnity') &&
+    !item.title?.toLowerCase().includes('indemnification') && 
+    !item.description?.toLowerCase().includes('indemnity') && 
+    !item.description?.toLowerCase().includes('indemnification') &&
     !item.title?.toLowerCase().includes('liability') && 
     !item.description?.toLowerCase().includes('liability')
   );
@@ -285,11 +288,18 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
                       <p>{issue.description}</p>
+                      
+                      {issue.implications && (
+                        <div className="mt-2 text-red-500 dark:text-red-400">
+                          <strong>Financial Implications:</strong> {issue.implications}
+                        </div>
+                      )}
+                      
                       {issue.reference && (
                         <div className="mt-2 text-xs text-gray-500">
-                          {issue.reference.section && <p>Section: {issue.reference.section}</p>}
+                          {issue.reference.section && <p><strong>Section:</strong> {issue.reference.section}</p>}
                           {issue.reference.excerpt && (
-                            <p className="mt-1 italic">"{issue.reference.excerpt}"</p>
+                            <p className="mt-1 italic"><strong>Excerpt:</strong> "{issue.reference.excerpt}"</p>
                           )}
                         </div>
                       )}

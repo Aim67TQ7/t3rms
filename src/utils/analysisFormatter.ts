@@ -54,7 +54,8 @@ export const formatAnalysisResults = (results: any): string => {
         markdown += `**Severity:** High\n\n`;
         markdown += `${point}\n\n`;
       } else {
-        markdown += `### ${point.title || 'Unnamed Point'}\n`;
+        const title = point.title || point.issue || 'Unnamed Point';
+        markdown += `### ${title}\n`;
         markdown += `**Severity:** ${point.severity || 'Unknown'}\n\n`;
         
         if (point.description) {
@@ -85,7 +86,7 @@ export const formatAnalysisResults = (results: any): string => {
         markdown += `${risk}\n\n`;
       } else {
         // Enhanced title formatting to be more specific
-        const riskTitle = risk.title || (risk.reference && risk.reference.section ? 
+        const riskTitle = risk.title || risk.risk || (risk.reference && risk.reference.section ? 
           `Risk in ${risk.reference.section}` : 'Financial Risk');
         
         markdown += `### ${riskTitle}\n`;
@@ -112,6 +113,10 @@ export const formatAnalysisResults = (results: any): string => {
         // Add any financial implications if available
         if (risk.implications) {
           markdown += `**Financial Implications:** ${risk.implications}\n\n`;
+        } else if (risk.financialImplications) {
+          markdown += `**Financial Implications:** ${risk.financialImplications}\n\n`;
+        } else if (risk.impact) {
+          markdown += `**Financial Implications:** ${risk.impact}\n\n`;
         }
       }
     });
@@ -128,7 +133,7 @@ export const formatAnalysisResults = (results: any): string => {
         markdown += `**Severity:** Medium\n\n`;
         markdown += `${item}\n\n`;
       } else {
-        markdown += `### ${item.title || 'Unnamed Issue'}\n`;
+        markdown += `### ${item.title || item.language || 'Unnamed Issue'}\n`;
         markdown += `**Severity:** ${item.severity || 'Unknown'}\n\n`;
         
         if (item.description) {
@@ -156,7 +161,7 @@ export const formatAnalysisResults = (results: any): string => {
       if (typeof rec === 'string') {
         markdown += `${index + 1}. ${rec}\n`;
       } else {
-        markdown += `${index + 1}. ${rec.text || 'No recommendation text'}\n`;
+        markdown += `${index + 1}. ${rec.text || rec.recommendation || 'No recommendation text'}\n`;
         if (rec.reference) {
           markdown += `   _(Section: ${rec.reference.section})_\n`;
         }

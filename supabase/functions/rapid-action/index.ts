@@ -160,9 +160,14 @@ serve(async (req) => {
       Provide a score from 0-100, with 100 being the least risky and 0 being extremely risky.
       Be very critical and cautious - flag anything that could be problematic, ambiguous, or one-sided.
       
-      For financial risks, be extremely detailed. Extract specific monetary values, percentages, payment terms, 
+      For financial risks, be extremely detailed and specific. Extract specific monetary values, percentages, payment terms, 
       liability limits, liquidated damages, service level penalties, and other financial implications from the text.
+      Be very descriptive with each financial risk. Avoid generic descriptions like "financial risk identified". 
+      Instead, use specific titles that describe the exact financial concern.
       Include direct quotes and section references whenever possible for financial terms.
+      
+      For critical points, be equally specific. Each critical point should have a clear, descriptive title that summarizes the specific issue.
+      Include direct quotes and section references for all critical points.
       
       Your response MUST be formatted as a JSON object with the following keys:
       - overallScore: number between 0-100
@@ -309,7 +314,7 @@ function ensureValidResponseStructure(data: any) {
     if (!item) return null;
     
     return {
-      title: item.title || "Unnamed Issue",
+      title: item.title || item.issue || item.risk || "Unnamed Issue",
       description: item.description || item.issue || item.risk || item.language || "No description provided",
       severity: ["high", "medium", "low"].includes(item.severity?.toLowerCase?.()) 
         ? item.severity.toLowerCase() 
@@ -328,14 +333,28 @@ function ensureValidResponseStructure(data: any) {
     const normalizedItem = normalizeItem(item);
     
     // Add financial implications if available
-    normalizedItem.implications = item.implications || item.financialImplications || null;
+    normalizedItem.implications = item.implications || item.financialImplications || item.impact || 
+      "Potential financial impact not specified";
     
-    // Ensure title contains financial context
-    if (!normalizedItem.title.toLowerCase().includes('financial') && 
-        !normalizedItem.title.toLowerCase().includes('monetary') &&
-        !normalizedItem.title.toLowerCase().includes('payment') &&
-        !normalizedItem.title.toLowerCase().includes('fee')) {
-      normalizedItem.title = `Financial Risk: ${normalizedItem.title}`;
+    // Enhance title if it's too generic
+    if (normalizedItem.title === "Financial Risk" || normalizedItem.title === "Unnamed Issue") {
+      // Look for specific terms in the description to create a more descriptive title
+      const description = normalizedItem.description.toLowerCase();
+      if (description.includes("payment")) {
+        normalizedItem.title = "Payment Terms Risk";
+      } else if (description.includes("termination")) {
+        normalizedItem.title = "Early Termination Fee Risk";
+      } else if (description.includes("liability")) {
+        normalizedItem.title = "Liability Limitation Risk";
+      } else if (description.includes("indemnification") || description.includes("indemnify")) {
+        normalizedItem.title = "Indemnification Risk";
+      } else if (description.includes("penalty")) {
+        normalizedItem.title = "Financial Penalty Risk";
+      } else if (description.includes("fee")) {
+        normalizedItem.title = "Unexpected Fee Risk";
+      } else if (normalizedItem.reference && normalizedItem.reference.section) {
+        normalizedItem.title = `Financial Risk in ${normalizedItem.reference.section}`;
+      }
     }
     
     return normalizedItem;
@@ -359,7 +378,7 @@ function ensureValidResponseStructure(data: any) {
     .map((rec: any) => {
       if (!rec) return null;
       return {
-        text: rec.text || "No recommendation text",
+        text: rec.text || rec.recommendation || "No recommendation text",
         reference: rec.reference ? {
           section: rec.reference.section || null,
           excerpt: rec.reference.excerpt || null

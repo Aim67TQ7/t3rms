@@ -51,21 +51,22 @@ const Hero = () => {
             Analyze & Create T3RMS
           </h2>
 
-          {/* CTA Button to Advanced Analysis */}
-          <div
-            className={`flex justify-center mt-4 transition-all duration-700 delay-400 ${
+          {/* Primary CTA - Removed Upload PO & Scan Free button */}
+
+          {/* Risk Meter Preview */}
+          <div 
+            className={`max-w-sm mx-auto bg-gray-900/50 p-4 rounded-xl border border-purple-500/20 transition-all duration-700 delay-400 ${
               isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
             }`}
           >
-            <Link to="/term-analysis">
-              <Button 
-                className="flex items-center gap-2 px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-xl shadow-lg hover:bg-purple-700 border-2 border-purple-500/20"
-                size="lg"
-              >
-                <span>Instant Risk Analysis</span>
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
+            <img 
+              src="/risk-meter-preview.gif" 
+              alt="Risk Analysis Preview" 
+              className="w-full rounded-lg shadow-lg"
+            />
+            <p className="text-sm text-gray-400 mt-2">
+              Instant risk analysis of your terms & conditions
+            </p>
           </div>
         </div>
       </div>

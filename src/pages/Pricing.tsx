@@ -33,6 +33,20 @@ const Pricing = () => {
       <main className="flex-grow mt-20">
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
+            <Alert className="mb-8 max-w-3xl mx-auto bg-t3rms-blue/10 text-t3rms-blue border-t3rms-blue">
+              <AlertDescription className="text-center text-base">
+                🚀 T3RMS is currently in beta testing phase. Credit packages will be available soon. 
+                <br />
+                We'd love your feedback. Please test out our free tier and 
+                <a 
+                  href="mailto:hello@t3rms.com" 
+                  className="ml-1 underline font-semibold hover:text-t3rms-blue"
+                >
+                  contact us
+                </a> if you're interested in more access or want to provide insights.
+              </AlertDescription>
+            </Alert>
+
             <div className="max-w-3xl mx-auto text-center mb-12">
               <h1 className="text-3xl md:text-4xl font-bold text-t3rms-charcoal mb-4">
                 Simple, Token-Based Pricing
@@ -120,7 +134,7 @@ const Pricing = () => {
                         <Check className="h-4 w-4" />
                       </span>
                       <span className="text-gray-600">
-                        <b>Includes 50 analyses per pack.</b>
+                        Includes <b>50 analyses per pack</b>.
                       </span>
                     </div>
                     <div className="flex items-center">
@@ -136,7 +150,7 @@ const Pricing = () => {
                         <Check className="h-4 w-4" />
                       </span>
                       <span className="text-gray-600">
-                        <b>Most 1–2 page contracts use 1 credit.</b>
+                        <b>Most 1–2 page contracts use 1 credit.</b> Some dense or heavily formatted contracts, or those with lengthy appendices, may exceed 1,000 tokens (1.3k tokens = 2 credits).
                       </span>
                     </div>
                     <div className="flex items-center">
@@ -144,14 +158,7 @@ const Pricing = () => {
                         <Check className="h-4 w-4" />
                       </span>
                       <span className="text-gray-600">
-                        <div>
-                          <b>Delivers:</b> key‑clause extraction, risk scoring, obligation summary, governing‑law &amp; jurisdiction checks
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1 ml-2">
-                          <span>
-                            <b>Clarification:</b> Dense formatting, heavy definitions, or lengthy appendices may increase the token count, which means more than 1 credit could be used for a single contract.
-                          </span>
-                        </div>
+                        <b>Delivers: key‑clause extraction, risk scoring, obligation summary, governing‑law and jurisdiction checks</b>
                       </span>
                     </div>
                   </div>

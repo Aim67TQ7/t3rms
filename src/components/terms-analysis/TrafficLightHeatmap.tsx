@@ -34,10 +34,40 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     
     console.log("Processing analysis data:", analysisContent);
 
+    // Try to parse JSON content if it exists
+    let parsedContent = null;
+    if (analysisContent?.content && typeof analysisContent.content === 'string') {
+      try {
+        // Look for JSON object in the content string
+        const jsonMatch = analysisContent.content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsedContent = JSON.parse(jsonMatch[0]);
+          console.log("Successfully parsed nested JSON content:", parsedContent);
+        }
+      } catch (error) {
+        console.error("Failed to parse content as JSON:", error);
+      }
+    }
+
+    // Use parsed content if available, otherwise use the original content
+    const effectiveContent = parsedContent || analysisContent;
+
     // Normalize critical points
-    const criticalPoints = Array.isArray(analysisContent?.criticalPoints) 
-      ? analysisContent.criticalPoints.map((point: any) => {
+    const criticalPoints = Array.isArray(effectiveContent?.criticalPoints) 
+      ? effectiveContent.criticalPoints.map((point: any) => {
           if (!point) return null;
+          // Check if point is a string (from nested JSON parsing)
+          if (typeof point === 'string') {
+            return {
+              title: point.split(',')[0] || "Critical Issue",
+              description: point,
+              severity: "high",
+              reference: {
+                section: "Identified in document",
+                excerpt: null
+              }
+            };
+          }
           // Check for different data structures and normalize
           return {
             title: point.title || `Issue in ${point.section || point.reference?.section || 'Unknown section'}`,
@@ -52,9 +82,21 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
       : [];
 
     // Normalize financial risks
-    const financialRisks = Array.isArray(analysisContent?.financialRisks)
-      ? analysisContent.financialRisks.map((risk: any) => {
+    const financialRisks = Array.isArray(effectiveContent?.financialRisks)
+      ? effectiveContent.financialRisks.map((risk: any) => {
           if (!risk) return null;
+          // Check if risk is a string (from nested JSON parsing)
+          if (typeof risk === 'string') {
+            return {
+              title: risk.split(',')[0] || "Financial Risk",
+              description: risk,
+              severity: "high",
+              reference: {
+                section: "Identified in document",
+                excerpt: null
+              }
+            };
+          }
           return {
             title: risk.title || `Financial risk in ${risk.section || risk.reference?.section || 'Unknown section'}`,
             description: risk.description || risk.risk || 'Financial risk identified',
@@ -68,9 +110,21 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
       : [];
 
     // Normalize unusual language items
-    const unusualLanguage = Array.isArray(analysisContent?.unusualLanguage)
-      ? analysisContent.unusualLanguage.map((item: any) => {
+    const unusualLanguage = Array.isArray(effectiveContent?.unusualLanguage)
+      ? effectiveContent.unusualLanguage.map((item: any) => {
           if (!item) return null;
+          // Check if item is a string (from nested JSON parsing)
+          if (typeof item === 'string') {
+            return {
+              title: item.split(',')[0] || "Unusual Language",
+              description: item,
+              severity: "medium",
+              reference: {
+                section: "Identified in document",
+                excerpt: null
+              }
+            };
+          }
           return {
             title: item.title || `Unusual language in ${item.section || item.reference?.section || 'Unknown section'}`,
             description: item.description || item.language || 'Unusual language identified',
@@ -83,22 +137,22 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
         }).filter(Boolean)
       : [];
 
-    // If we don't have structured data, try to extract from raw content if available
-    if ((criticalPoints.length === 0 && financialRisks.length === 0 && unusualLanguage.length === 0) && 
-        (analysisContent.content || analysisContent.generatedText || analysisContent.rawContent)) {
-      
-      const rawText = analysisContent.content || analysisContent.generatedText || analysisContent.rawContent;
-      
-      // Add a fallback critical point to indicate the raw analysis needs review
-      criticalPoints.push({
-        title: "Document needs review",
-        description: "The AI identified potential issues but couldn't structure them. Please review the full analysis.",
-        severity: "medium",
-        reference: {
-          section: "Full document",
-          excerpt: rawText?.substring(0, 200) + "..." || "Raw analysis available"
-        }
-      });
+    // If we don't have structured data but have overall score, ensure we show at least one issue
+    const overallScore = effectiveContent?.overallScore || (parsedContent?.overallScore);
+    
+    if (criticalPoints.length === 0 && financialRisks.length === 0 && unusualLanguage.length === 0) {
+      if (overallScore && overallScore < 85) {
+        // Add a fallback critical point to indicate the raw analysis needs review
+        criticalPoints.push({
+          title: "Document needs review",
+          description: "The AI identified potential risks but couldn't structure them in detail. Please review the full analysis results on the Analysis Result tab.",
+          severity: overallScore < 70 ? "high" : "medium",
+          reference: {
+            section: "Full document",
+            excerpt: analysisContent?.content?.substring(0, 200) + "..." || "Raw analysis available"
+          }
+        });
+      }
     }
 
     // Log the processed data for debugging
@@ -107,7 +161,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     return {
       criticalPoints,
       financialRisks,
-      unusualLanguage
+      unusualLanguage,
+      overallScore: overallScore || (criticalPoints.length > 0 || financialRisks.length > 0 || unusualLanguage.length > 0 ? 70 : 90)
     };
   };
 
@@ -252,7 +307,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   
   // Get overall score from the analysis data
   const analysisContent = analysisData?.analysis || analysisData;
-  const adjustedScore = analysisContent?.overallScore || 70;
+  const adjustedScore = processedData.overallScore || analysisContent?.overallScore || 
+    (parsedContent && parsedContent.overallScore ? parsedContent.overallScore : 70);
 
   return (
     <div className="space-y-6">

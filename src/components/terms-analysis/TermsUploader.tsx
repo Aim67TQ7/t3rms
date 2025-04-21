@@ -69,6 +69,25 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
       return;
     }
     
+    // Check if pasted text appears to contain JSON and extract it
+    if (directInputText.includes('{') && directInputText.includes('}')) {
+      try {
+        const jsonMatch = directInputText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          // Try to validate if it's parseable JSON
+          JSON.parse(jsonMatch[0]);
+          // If parsed successfully, let the user know we'll just use the raw content
+          toast({
+            title: "JSON detected",
+            description: "We detected JSON in your input. We'll analyze the raw text to avoid parsing issues.",
+          });
+        }
+      } catch (error) {
+        // Not valid JSON, continue as normal text
+        console.log("Input contains curly braces but is not valid JSON");
+      }
+    }
+    
     setShowLimitReached(false);
     onAnalyze();
   };

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, AlertTriangle, Check, Shield, ShieldX, Flag } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 interface TrafficLightHeatmapProps {
   analysisData: any;
@@ -13,6 +14,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [processedData, setProcessedData] = useState<any>({ criticalPoints: [], financialRisks: [], unusualLanguage: [] });
   const [extractedJsonData, setExtractedJsonData] = useState<any>(null);
+  const { toast } = useToast();
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => ({
@@ -86,6 +88,10 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     const financialRisks = Array.isArray(effectiveContent?.financialRisks)
       ? effectiveContent.financialRisks.map((risk: any) => {
           if (!risk) return null;
+          
+          // Debug the structure of each financial risk
+          console.log("Processing financial risk:", risk);
+          
           // Check if risk is a string (from nested JSON parsing)
           if (typeof risk === 'string') {
             return {
@@ -95,21 +101,61 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
               reference: {
                 section: "Identified in document",
                 excerpt: null
-              }
+              },
+              implications: "Financial implications may apply"
             };
           }
+          
+          // Create a specific title if one isn't provided or is generic
+          let riskTitle = risk.title || risk.risk || "";
+          if (!riskTitle || riskTitle === "Financial Risk") {
+            if (risk.description && risk.description.length > 0) {
+              // Extract a title from the first 50 chars of description
+              riskTitle = risk.description.substring(0, 50) + (risk.description.length > 50 ? "..." : "");
+            } else if (risk.reference?.section) {
+              riskTitle = `Risk in ${risk.reference.section}`;
+            } else {
+              riskTitle = "Financial Risk";
+            }
+          }
+          
           return {
-            title: risk.title || risk.risk || `Financial risk in ${risk.section || risk.reference?.section || 'contract'}`,
-            description: risk.description || risk.risk || 'Financial implications not specified',
+            title: riskTitle,
+            description: risk.description || risk.risk || (typeof risk === 'string' ? risk : 'Financial risk details not provided'),
             severity: risk.severity || 'high',
             reference: {
               section: risk.section || risk.reference?.section || null,
               excerpt: risk.excerpt || risk.reference?.excerpt || null
             },
-            implications: risk.implications || risk.financialImplications || risk.impact || null
+            implications: risk.implications || risk.financialImplications || risk.impact || "Potential financial impact"
           };
         }).filter(Boolean)
       : [];
+
+    // If financial risks array is empty but we have content, check for financial terms in the raw content
+    if (financialRisks.length === 0 && analysisContent?.content) {
+      const content = analysisContent.content.toLowerCase();
+      const financialTerms = ['payment', 'fee', 'cost', 'price', 'money', 'dollar', '$', 'expense', 'billing', 'charge'];
+      
+      if (financialTerms.some(term => content.includes(term))) {
+        toast({
+          title: "Financial Risk Detection",
+          description: "Potential financial terms detected but detailed risk analysis could not be generated.",
+          variant: "destructive"
+        });
+        
+        financialRisks.push({
+          title: "Unspecified Financial Risk",
+          description: "The document contains financial terms, but the AI couldn't provide specific risk details. Consider reviewing the document manually.",
+          severity: "medium",
+          reference: {
+            section: "Various sections",
+            excerpt: null
+          },
+          implications: "Potential financial impact requires manual review"
+        });
+      }
+    }
 
     // Normalize unusual language items
     const unusualLanguage = Array.isArray(effectiveContent?.unusualLanguage)
@@ -279,7 +325,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                     <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
                       <div className="flex items-center gap-2">
                         <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
-                        <span>{issue.title || `Issue #${index + 1}`}</span>
+                        <span className="font-medium">{issue.title || `Issue #${index + 1}`}</span>
                       </div>
                       {openItems[`${title}-${index}`] ? 
                         <ChevronDown className="h-4 w-4" /> : 
@@ -287,10 +333,10 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                       }
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
-                      <p>{issue.description}</p>
+                      <p className="mb-2">{issue.description}</p>
                       
-                      {issue.implications && (
-                        <div className="mt-2 text-red-500 dark:text-red-400">
+                      {issue.implications && title === "Financial Risks" && (
+                        <div className="mt-2 mb-2 text-red-500 dark:text-red-400">
                           <strong>Financial Implications:</strong> {issue.implications}
                         </div>
                       )}

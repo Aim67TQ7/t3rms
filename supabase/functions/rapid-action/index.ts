@@ -160,23 +160,28 @@ serve(async (req) => {
       Provide a score from 0-100, with 100 being the least risky and 0 being extremely risky.
       Be very critical and cautious - flag anything that could be problematic, ambiguous, or one-sided.
       
-      For financial risks, be extremely detailed and specific. Extract specific monetary values, percentages, payment terms, 
-      liability limits, liquidated damages, service level penalties, and other financial implications from the text.
-      Be very descriptive with each financial risk. Avoid generic descriptions like "financial risk identified". 
-      Instead, use specific titles that describe the exact financial concern.
-      Include direct quotes and section references whenever possible for financial terms.
+      For financial risks, be extremely detailed and specific:
+      - Identify any monetary values, percentages, payment terms, liability caps, penalties, damage amounts or financial obligations
+      - Always provide specific details about the financial implications, not just generic descriptions
+      - Use descriptive titles for each financial risk that clearly communicate the specific issue
+      - Give each financial risk a severity rating (high/medium/low)
+      - Always include section references and direct quotes from the contract when possible
+      - If you identify any financial terms, capture them as a financial risk, even if they seem standard
       
-      For critical points, be equally specific. Each critical point should have a clear, descriptive title that summarizes the specific issue.
-      Include direct quotes and section references for all critical points.
+      For critical points:
+      - Each critical point should have a clear, descriptive title that summarizes the specific issue
+      - Include direct quotes and section references for all critical points
+      - Identify sections that are ambiguous, one-sided, or could expose a party to undue risk
       
       Your response MUST be formatted as a JSON object with the following keys:
       - overallScore: number between 0-100
-      - criticalPoints: array of objects with title, description, severity (high/medium/low), and reference (section and excerpt)
-      - financialRisks: array of objects with title, description, severity, implications (monetary impact), and reference (section and excerpt)
-      - unusualLanguage: array of objects with title, description, severity, and reference
-      - recommendations: array of objects with text (and optional reference)
+      - criticalPoints: array of objects with {title, description, severity (high/medium/low), reference: {section, excerpt}}
+      - financialRisks: array of objects with {title, description, severity, implications (monetary impact), reference: {section, excerpt}}
+      - unusualLanguage: array of objects with {title, description, severity, reference: {section, excerpt}}
+      - recommendations: array of objects with {text, reference (optional)}
       
-      Make sure the output is valid JSON.`;
+      Be thorough in identifying financial risks - even standard payment terms should be listed with specific details.
+      Make sure the output is valid JSON with no trailing commas or syntax errors.`;
 
     console.log(`Sending request to OpenAI API using model: ${model}`);
     
@@ -313,6 +318,19 @@ function ensureValidResponseStructure(data: any) {
   const normalizeItem = (item: any) => {
     if (!item) return null;
     
+    // If item is a string, create a structured object
+    if (typeof item === 'string') {
+      return {
+        title: item.split('.')[0] || "Issue",
+        description: item,
+        severity: "medium",
+        reference: {
+          section: null,
+          excerpt: null
+        }
+      };
+    }
+    
     return {
       title: item.title || item.issue || item.risk || "Unnamed Issue",
       description: item.description || item.issue || item.risk || item.language || "No description provided",
@@ -329,6 +347,33 @@ function ensureValidResponseStructure(data: any) {
   // Enhanced normalization for financial risks to include implications
   const normalizeFinancialRisk = (item: any) => {
     if (!item) return null;
+    
+    // If item is a string, create a structured financial risk object
+    if (typeof item === 'string') {
+      // Look for dollar amounts or percentages to highlight in the title
+      const moneyPattern = /\$\d+(?:,\d+)*(?:\.\d+)?|\d+%|\d+ percent/;
+      const moneyMatch = item.match(moneyPattern);
+      
+      let title = "Financial Risk";
+      if (moneyMatch) {
+        title = `Financial Risk: ${moneyMatch[0]}`;
+      } else if (item.length > 50) {
+        title = item.substring(0, 47) + "...";
+      } else {
+        title = item;
+      }
+      
+      return {
+        title: title,
+        description: item,
+        severity: "high",
+        implications: "Financial implications may apply",
+        reference: {
+          section: null,
+          excerpt: null
+        }
+      };
+    }
     
     const normalizedItem = normalizeItem(item);
     
@@ -377,6 +422,15 @@ function ensureValidResponseStructure(data: any) {
   result.recommendations = result.recommendations
     .map((rec: any) => {
       if (!rec) return null;
+      
+      // If recommendation is a string, create a structured object
+      if (typeof rec === 'string') {
+        return {
+          text: rec,
+          reference: null
+        };
+      }
+      
       return {
         text: rec.text || rec.recommendation || "No recommendation text",
         reference: rec.reference ? {

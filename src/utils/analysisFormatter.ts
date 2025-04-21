@@ -74,7 +74,7 @@ export const formatAnalysisResults = (results: any): string => {
     });
   }
 
-  // Format financial risks - enhanced to show more details
+  // Format financial risks with enhanced details
   if (processedResults.financialRisks && processedResults.financialRisks.length > 0) {
     markdown += '## Financial Risks\n\n';
     processedResults.financialRisks.forEach((risk: any) => {
@@ -85,9 +85,9 @@ export const formatAnalysisResults = (results: any): string => {
         markdown += `**Severity:** High\n\n`;
         markdown += `${risk}\n\n`;
       } else {
-        // Enhanced title formatting to be more specific
+        // Use a more specific title when available
         const riskTitle = risk.title || risk.risk || (risk.reference && risk.reference.section ? 
-          `Risk in ${risk.reference.section}` : 'Financial Risk');
+          `Financial Risk in ${risk.reference.section}` : 'Financial Risk');
         
         markdown += `### ${riskTitle}\n`;
         markdown += `**Severity:** ${risk.severity || 'High'}\n\n`;
@@ -98,7 +98,12 @@ export const formatAnalysisResults = (results: any): string => {
           markdown += `${risk.risk}\n\n`;
         }
         
-        // Show more details from the reference
+        // Financial implications section
+        if (risk.implications || risk.financialImplications || risk.impact) {
+          markdown += `**Financial Implications:** ${risk.implications || risk.financialImplications || risk.impact}\n\n`;
+        }
+        
+        // Reference details
         if (risk.reference) {
           if (risk.reference.section) {
             markdown += `**Location:** ${risk.reference.section}\n`;
@@ -108,15 +113,6 @@ export const formatAnalysisResults = (results: any): string => {
           } else if (risk.excerpt) {
             markdown += `**Excerpt:** "${risk.excerpt}"\n\n`;
           }
-        }
-        
-        // Add any financial implications if available
-        if (risk.implications) {
-          markdown += `**Financial Implications:** ${risk.implications}\n\n`;
-        } else if (risk.financialImplications) {
-          markdown += `**Financial Implications:** ${risk.financialImplications}\n\n`;
-        } else if (risk.impact) {
-          markdown += `**Financial Implications:** ${risk.impact}\n\n`;
         }
       }
     });

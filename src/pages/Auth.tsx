@@ -32,7 +32,7 @@ const Auth = () => {
     }
     
     if (isAuthenticated) {
-      navigate('/term-analysis');
+      navigate('/analyzer');
     }
   }, [isAuthenticated, navigate, location.state, toast]);
 
@@ -54,7 +54,7 @@ const Auth = () => {
           description: "Welcome back!",
         });
 
-        navigate('/term-analysis');
+        navigate('/analyzer');
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -68,7 +68,7 @@ const Auth = () => {
           description: "Please check your email to verify your account.",
         });
 
-        navigate('/term-analysis');
+        navigate('/analyzer');
       }
     } catch (error: any) {
       toast({

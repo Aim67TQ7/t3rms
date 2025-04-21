@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -11,8 +10,7 @@ import {
   hasReachedAnonymousLimit, 
   incrementAnonymousAnalysisCount,
   storePendingAnalysis,
-  getPendingAnalysis,
-  resetAnonymousAnalysisCount
+  getPendingAnalysis
 } from '@/utils/anonymousUsage';
 import { Button } from "@/components/ui/button";
 import { FileText, Copy, AlertCircle, FileSearch, Calendar } from 'lucide-react';
@@ -63,10 +61,7 @@ const TermAnalysis = () => {
   });
 
   useEffect(() => {
-    // Reset anonymous analysis count for authenticated users to prevent incorrect limit messaging
     if (isAuthenticated) {
-      resetAnonymousAnalysisCount();
-      
       const pendingAnalysis = getPendingAnalysis();
       if (pendingAnalysis) {
         handlePendingAnalysis(pendingAnalysis);

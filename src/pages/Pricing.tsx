@@ -133,25 +133,33 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">50 document analyses</span>
+                      <span className="text-gray-600">
+                        Includes <b>50 analyses per pack</b>.
+                      </span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">1 credit per 1000 tokens</span>
+                      <span className="text-gray-600">
+                        <b>1 credit ≈ 1,000 tokens</b> (about 750–1,100 words)
+                      </span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Covers 1-2 page contracts</span>
+                      <span className="text-gray-600">
+                        <b>Most 1–2 page contracts use 1 credit.</b> Some dense or heavily formatted contracts, or those with lengthy appendices, may exceed 1,000 tokens (1.3k tokens = 2 credits).
+                      </span>
                     </div>
                     <div className="flex items-center">
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Advanced risk analysis</span>
+                      <span className="text-gray-600">
+                        <b>Delivers: key‑clause extraction, risk scoring, obligation summary, governing‑law and jurisdiction checks</b>
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -280,8 +288,7 @@ const Pricing = () => {
                     How do the credits work?
                   </h3>
                   <p className="text-gray-600">
-                    Each credit can be used for either analyzing a document or finalizing a terms and conditions document. 
-                    Credits never expire, so you can use them whenever you need to.
+                    Each credit covers roughly 1,000 tokens (about 750–1,100 words). Most 1–2 page contracts fit within 1 credit, but dense formatting or lengthy appendices can increase token count and credit usage.
                   </p>
                 </div>
                 
@@ -290,19 +297,28 @@ const Pricing = () => {
                     What happens when I use all my free analyses?
                   </h3>
                   <p className="text-gray-600">
-                    Once you've used your 3 free analyses, you can purchase a single document finalization for $4.99 or buy a credit pack of 50 uses for $9.99, depending on your needs.
+                    Once you've used your 3 free analyses, you can purchase a Value Pack (50 analyses for $9.95). <b>Remember, documents that exceed 1,000 tokens will consume multiple credits</b>.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
-                    Can I use credits for both analysis and document creation?
+                    What exactly do I get with each analysis?
                   </h3>
                   <p className="text-gray-600">
-                    Yes, credits are flexible and can be used for either analyzing existing documents or creating new terms and conditions.
+                    Each analysis delivers concrete outputs: key‑clause extraction, risk scoring, obligation summary, and checks for governing law and jurisdiction. This lets you quickly review the most important parts of your document.
                   </p>
                 </div>
-                
+
+                <div>
+                  <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
+                    What if my contract is long, dense, or has appendices?
+                  </h3>
+                  <p className="text-gray-600">
+                    Most standard contracts (1–2 pages, normal formatting) are under 1,000 tokens (1 credit). However, dense legal formatting, lots of definitions, or lengthy appendices may increase the token count, which means more than 1 credit could be used for analysis.
+                  </p>
+                </div>
+
                 <div>
                   <h3 className="text-lg font-medium text-t3rms-charcoal mb-2">
                     Is my data secure?

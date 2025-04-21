@@ -50,6 +50,13 @@ export const getAnonymousAnalysisCount = (): number => {
 };
 
 /**
+ * Reset the anonymous analysis count (used for testing or fixing issues)
+ */
+export const resetAnonymousAnalysisCount = (): void => {
+  localStorage.removeItem(ANONYMOUS_ANALYSIS_COUNT_KEY);
+};
+
+/**
  * Increment the anonymous analysis count
  */
 export const incrementAnonymousAnalysisCount = (): void => {

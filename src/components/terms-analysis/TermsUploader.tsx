@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -49,17 +50,24 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
 
   // Check free-tier use before running onAnalyze
   const handleAnalyzeClick = () => {
-    if (getFreeAnalysesUsed() >= FREE_ANALYSIS_LIMIT) {
-      setShowLimitReached(true);
-      toast({
-        title: "Free Limit Exceeded",
-        description:
-          "You have reached the free analysis limit. Please purchase 50 credits to continue analyzing documents.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Reset the limit check state first to ensure we don't show stale warnings
     setShowLimitReached(false);
+    
+    // Only check limits if there's actually text to analyze
+    if (directInputText.trim()) {
+      const usedCount = getFreeAnalysesUsed();
+      if (usedCount >= FREE_ANALYSIS_LIMIT) {
+        setShowLimitReached(true);
+        toast({
+          title: "Free Limit Exceeded",
+          description:
+            "You have reached the free analysis limit. Please purchase 50 credits to continue analyzing documents.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     onAnalyze();
   };
 

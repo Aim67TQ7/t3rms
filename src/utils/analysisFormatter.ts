@@ -73,7 +73,7 @@ export const formatAnalysisResults = (results: any): string => {
     });
   }
 
-  // Format financial risks - handle both object and string array formats
+  // Format financial risks - enhanced to show more details
   if (processedResults.financialRisks && processedResults.financialRisks.length > 0) {
     markdown += '## Financial Risks\n\n';
     processedResults.financialRisks.forEach((risk: any) => {
@@ -84,20 +84,34 @@ export const formatAnalysisResults = (results: any): string => {
         markdown += `**Severity:** High\n\n`;
         markdown += `${risk}\n\n`;
       } else {
-        markdown += `### ${risk.title || 'Unnamed Risk'}\n`;
-        markdown += `**Severity:** ${risk.severity || 'Unknown'}\n\n`;
+        // Enhanced title formatting to be more specific
+        const riskTitle = risk.title || (risk.reference && risk.reference.section ? 
+          `Risk in ${risk.reference.section}` : 'Financial Risk');
+        
+        markdown += `### ${riskTitle}\n`;
+        markdown += `**Severity:** ${risk.severity || 'High'}\n\n`;
         
         if (risk.description) {
           markdown += `${risk.description}\n\n`;
+        } else if (risk.risk) {
+          markdown += `${risk.risk}\n\n`;
         }
         
+        // Show more details from the reference
         if (risk.reference) {
           if (risk.reference.section) {
             markdown += `**Location:** ${risk.reference.section}\n`;
           }
           if (risk.reference.excerpt) {
             markdown += `**Excerpt:** "${risk.reference.excerpt}"\n\n`;
+          } else if (risk.excerpt) {
+            markdown += `**Excerpt:** "${risk.excerpt}"\n\n`;
           }
+        }
+        
+        // Add any financial implications if available
+        if (risk.implications) {
+          markdown += `**Financial Implications:** ${risk.implications}\n\n`;
         }
       }
     });

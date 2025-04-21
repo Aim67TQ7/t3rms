@@ -145,7 +145,7 @@ serve(async (req) => {
       );
     }
 
-    // Using gpt-4o instead of gpt-4o-mini for more thorough risk analysis
+    // Using gpt-4o for more thorough risk analysis
     const model = "gpt-4o";
     const apiUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -160,10 +160,14 @@ serve(async (req) => {
       Provide a score from 0-100, with 100 being the least risky and 0 being extremely risky.
       Be very critical and cautious - flag anything that could be problematic, ambiguous, or one-sided.
       
+      For financial risks, be extremely detailed. Extract specific monetary values, percentages, payment terms, 
+      liability limits, liquidated damages, service level penalties, and other financial implications from the text.
+      Include direct quotes and section references whenever possible for financial terms.
+      
       Your response MUST be formatted as a JSON object with the following keys:
       - overallScore: number between 0-100
       - criticalPoints: array of objects with title, description, severity (high/medium/low), and reference (section and excerpt)
-      - financialRisks: array of objects with title, description, severity, and reference
+      - financialRisks: array of objects with title, description, severity, implications (monetary impact), and reference (section and excerpt)
       - unusualLanguage: array of objects with title, description, severity, and reference
       - recommendations: array of objects with text (and optional reference)
       
@@ -317,13 +321,33 @@ function ensureValidResponseStructure(data: any) {
     };
   };
   
+  // Enhanced normalization for financial risks to include implications
+  const normalizeFinancialRisk = (item: any) => {
+    if (!item) return null;
+    
+    const normalizedItem = normalizeItem(item);
+    
+    // Add financial implications if available
+    normalizedItem.implications = item.implications || item.financialImplications || null;
+    
+    // Ensure title contains financial context
+    if (!normalizedItem.title.toLowerCase().includes('financial') && 
+        !normalizedItem.title.toLowerCase().includes('monetary') &&
+        !normalizedItem.title.toLowerCase().includes('payment') &&
+        !normalizedItem.title.toLowerCase().includes('fee')) {
+      normalizedItem.title = `Financial Risk: ${normalizedItem.title}`;
+    }
+    
+    return normalizedItem;
+  };
+  
   // Normalize each array
   result.criticalPoints = result.criticalPoints
     .map(normalizeItem)
     .filter(Boolean);
     
   result.financialRisks = result.financialRisks
-    .map(normalizeItem)
+    .map(normalizeFinancialRisk)
     .filter(Boolean);
     
   result.unusualLanguage = result.unusualLanguage
@@ -343,6 +367,33 @@ function ensureValidResponseStructure(data: any) {
       };
     })
     .filter(Boolean);
+
+  // Ensure at least one financial risk is present if none were identified but text contains certain keywords
+  if (result.financialRisks.length === 0 && result.criticalPoints.length > 0) {
+    // Check if any critical points might be financial in nature
+    const potentialFinancialPoints = result.criticalPoints.filter(point => 
+      point.description.toLowerCase().includes('payment') ||
+      point.description.toLowerCase().includes('fee') ||
+      point.description.toLowerCase().includes('cost') ||
+      point.description.toLowerCase().includes('price') ||
+      point.description.toLowerCase().includes('dollar') ||
+      point.description.toLowerCase().includes('$') ||
+      point.description.toLowerCase().includes('budget') ||
+      point.description.toLowerCase().includes('expense') ||
+      point.description.toLowerCase().includes('liability')
+    );
     
+    // If we found potential financial risks in critical points, add them to financial risks
+    if (potentialFinancialPoints.length > 0) {
+      potentialFinancialPoints.forEach(point => {
+        result.financialRisks.push({
+          ...point,
+          title: `Financial Risk: ${point.title}`,
+          implications: 'Potential financial impact identified from critical issue'
+        });
+      });
+    }
+  }
+  
   return result;
 }

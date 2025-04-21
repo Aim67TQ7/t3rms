@@ -12,6 +12,7 @@ interface TrafficLightHeatmapProps {
 const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [processedData, setProcessedData] = useState<any>({ criticalPoints: [], financialRisks: [], unusualLanguage: [] });
+  const [extractedJsonData, setExtractedJsonData] = useState<any>(null);
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => ({
@@ -23,6 +24,21 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   useEffect(() => {
     if (analysisData) {
       console.log("TrafficLightHeatmap received data:", analysisData);
+      
+      // Try to extract JSON content if it exists
+      if (analysisData?.content && typeof analysisData.content === 'string') {
+        try {
+          const jsonMatch = analysisData.content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            console.log("Successfully parsed nested JSON content:", parsed);
+            setExtractedJsonData(parsed);
+          }
+        } catch (error) {
+          console.error("Failed to parse content as JSON:", error);
+        }
+      }
+      
       setProcessedData(processIssues());
     }
   }, [analysisData]);
@@ -34,23 +50,8 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     
     console.log("Processing analysis data:", analysisContent);
 
-    // Try to parse JSON content if it exists
-    let parsedContent = null;
-    if (analysisContent?.content && typeof analysisContent.content === 'string') {
-      try {
-        // Look for JSON object in the content string
-        const jsonMatch = analysisContent.content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsedContent = JSON.parse(jsonMatch[0]);
-          console.log("Successfully parsed nested JSON content:", parsedContent);
-        }
-      } catch (error) {
-        console.error("Failed to parse content as JSON:", error);
-      }
-    }
-
-    // Use parsed content if available, otherwise use the original content
-    const effectiveContent = parsedContent || analysisContent;
+    // Use extracted JSON if available
+    const effectiveContent = extractedJsonData || analysisContent;
 
     // Normalize critical points
     const criticalPoints = Array.isArray(effectiveContent?.criticalPoints) 
@@ -138,7 +139,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
       : [];
 
     // If we don't have structured data but have overall score, ensure we show at least one issue
-    const overallScore = effectiveContent?.overallScore || (parsedContent?.overallScore);
+    const overallScore = effectiveContent?.overallScore || (extractedJsonData?.overallScore);
     
     if (criticalPoints.length === 0 && financialRisks.length === 0 && unusualLanguage.length === 0) {
       if (overallScore && overallScore < 85) {
@@ -308,7 +309,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   // Get overall score from the analysis data
   const analysisContent = analysisData?.analysis || analysisData;
   const adjustedScore = processedData.overallScore || analysisContent?.overallScore || 
-    (parsedContent && parsedContent.overallScore ? parsedContent.overallScore : 70);
+    (extractedJsonData && extractedJsonData.overallScore ? extractedJsonData.overallScore : 70);
 
   return (
     <div className="space-y-6">

@@ -6,11 +6,13 @@ export const formatAnalysisResults = (results: any): string => {
   
   // Try to extract nested JSON if it exists in the content field
   let processedResults = { ...results };
+  let extractedData = null;
+  
   if (results.content && typeof results.content === 'string') {
     try {
       const jsonMatch = results.content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const extractedData = JSON.parse(jsonMatch[0]);
+        extractedData = JSON.parse(jsonMatch[0]);
         // Merge the extracted data with existing data, prioritizing existing data
         processedResults = { ...extractedData, ...results };
         console.log("Extracted JSON data from content:", extractedData);

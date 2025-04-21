@@ -108,6 +108,9 @@ serve(async (req) => {
             content = decoded;
           }
         }
+        
+        // If the content is directly pasted (not base64), use it as is
+        console.log(`Received text content, length: ${content.length}`);
       } catch (error) {
         console.error('Error parsing JSON:', error);
         return new Response(
@@ -142,7 +145,8 @@ serve(async (req) => {
       );
     }
 
-    const model = "gpt-4o-mini";
+    // Using gpt-4o instead of gpt-4o-mini for more thorough risk analysis
+    const model = "gpt-4o";
     const apiUrl = "https://api.openai.com/v1/chat/completions";
 
     const headers = {
@@ -151,16 +155,25 @@ serve(async (req) => {
     };
 
     const prompt = `You are a legal contract analysis AI. Review the following contract and provide a detailed analysis.
-      Identify any potential risks, unusual clauses, and areas of concern. Provide a score from 0-100, with 100 being the least risky.
-      Also provide recommendations for improving the contract to reduce risk and protect the user's interests.
-      Be concise and specific, referencing the relevant sections of the contract where possible.
-      Your response should be formatted as a JSON object with the following keys: overallScore, criticalPoints, financialRisks, unusualLanguage, recommendations.`;
+      Identify any potential risks, unusual clauses, and areas of concern. 
+      Be thorough and scan for financial risks, liability limits, indemnification clauses, and termination conditions.
+      Provide a score from 0-100, with 100 being the least risky and 0 being extremely risky.
+      Be very critical and cautious - flag anything that could be problematic, ambiguous, or one-sided.
+      
+      Your response MUST be formatted as a JSON object with the following keys:
+      - overallScore: number between 0-100
+      - criticalPoints: array of objects with title, description, severity (high/medium/low), and reference (section and excerpt)
+      - financialRisks: array of objects with title, description, severity, and reference
+      - unusualLanguage: array of objects with title, description, severity, and reference
+      - recommendations: array of objects with text (and optional reference)
+      
+      Make sure the output is valid JSON.`;
 
     console.log(`Sending request to OpenAI API using model: ${model}`);
     
     const data = {
       model: model,
-      temperature: 0.1,
+      temperature: 0.0, // Lower temperature for more deterministic output
       response_format: { type: "json_object" },
       messages: [
         {
@@ -191,13 +204,63 @@ serve(async (req) => {
     try {
       // Parse the OpenAI response
       if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
-        result = JSON.parse(responseData.choices[0].message.content);
+        const messageContent = responseData.choices[0].message.content;
+        console.log("Received OpenAI response:", messageContent.substring(0, 200) + "...");
+        
+        try {
+          // First attempt: direct parsing
+          result = JSON.parse(messageContent);
+        } catch (parseError) {
+          console.error("Error parsing JSON response:", parseError);
+          
+          // Second attempt: try to extract JSON from text
+          try {
+            const jsonMatch = messageContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const extractedJson = jsonMatch[0];
+              result = JSON.parse(extractedJson);
+            } else {
+              throw new Error("Could not extract JSON from response");
+            }
+          } catch (extractError) {
+            console.error("Failed to extract JSON:", extractError);
+            
+            // Fallback: create a structured result from the text
+            result = {
+              overallScore: 50, // Default middle score
+              criticalPoints: [{
+                title: "AI Parse Error",
+                description: "The AI generated an invalid JSON response. Please try analyzing again or with a different model.",
+                severity: "medium",
+                reference: { section: "N/A", excerpt: "N/A" }
+              }],
+              financialRisks: [],
+              unusualLanguage: [],
+              recommendations: [{
+                text: "Retry the analysis or use a different document format."
+              }],
+              rawResponse: messageContent // Include the raw response for debugging
+            };
+          }
+        }
       } else {
         throw new Error("Unexpected response format from OpenAI");
       }
+      
+      // Validate and normalize the result structure
+      result = ensureValidResponseStructure(result);
+      
     } catch (error) {
-      console.error("Error parsing OpenAI response:", error);
-      throw new Error("Failed to parse OpenAI response");
+      console.error("Error processing OpenAI response:", error);
+      result = {
+        error: true,
+        message: "Failed to process AI response: " + error.message,
+        overallScore: 0,
+        criticalPoints: [],
+        financialRisks: [],
+        unusualLanguage: [],
+        recommendations: [{ text: "An error occurred during analysis. Please try again." }]
+      };
     }
 
     return new Response(
@@ -208,8 +271,78 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in rapid-action function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }), 
+      JSON.stringify({ 
+        error: true, 
+        message: error.message,
+        overallScore: 0,
+        criticalPoints: [],
+        financialRisks: [],
+        unusualLanguage: [],
+        recommendations: [{ text: "An error occurred during analysis. Please try again." }]
+      }), 
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
+
+// Helper function to ensure response has the expected structure
+function ensureValidResponseStructure(data: any) {
+  const result = { ...data };
+  
+  // Ensure all required arrays exist
+  if (!Array.isArray(result.criticalPoints)) result.criticalPoints = [];
+  if (!Array.isArray(result.financialRisks)) result.financialRisks = [];
+  if (!Array.isArray(result.unusualLanguage)) result.unusualLanguage = [];
+  if (!Array.isArray(result.recommendations)) result.recommendations = [];
+  
+  // Ensure overallScore is a number between 0-100
+  result.overallScore = typeof result.overallScore === 'number' 
+    ? Math.max(0, Math.min(100, result.overallScore)) 
+    : 50;
+  
+  // Normalize structure of array items
+  const normalizeItem = (item: any) => {
+    if (!item) return null;
+    
+    return {
+      title: item.title || "Unnamed Issue",
+      description: item.description || item.issue || item.risk || item.language || "No description provided",
+      severity: ["high", "medium", "low"].includes(item.severity?.toLowerCase?.()) 
+        ? item.severity.toLowerCase() 
+        : "medium",
+      reference: {
+        section: item.reference?.section || item.section || null,
+        excerpt: item.reference?.excerpt || item.excerpt || null
+      }
+    };
+  };
+  
+  // Normalize each array
+  result.criticalPoints = result.criticalPoints
+    .map(normalizeItem)
+    .filter(Boolean);
+    
+  result.financialRisks = result.financialRisks
+    .map(normalizeItem)
+    .filter(Boolean);
+    
+  result.unusualLanguage = result.unusualLanguage
+    .map(normalizeItem)
+    .filter(Boolean);
+    
+  // Normalize recommendations
+  result.recommendations = result.recommendations
+    .map((rec: any) => {
+      if (!rec) return null;
+      return {
+        text: rec.text || "No recommendation text",
+        reference: rec.reference ? {
+          section: rec.reference.section || null,
+          excerpt: rec.reference.excerpt || null
+        } : null
+      };
+    })
+    .filter(Boolean);
+    
+  return result;
+}

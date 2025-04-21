@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, FileText, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -50,21 +51,7 @@ const Hero = () => {
             Analyze & Create T3RMS
           </h2>
 
-          {/* Primary CTA */}
-          <div 
-            className={`flex flex-col gap-6 mb-16 transition-all duration-700 delay-300 ${
-              isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
-            }`}
-          >
-            <Link to="/term-analysis">
-              <Button 
-                size="lg"
-                className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(147,51,234,0.8)] hero-button-primary"
-              >
-                Upload PO & Scan Free <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
+          {/* Primary CTA - Removed Upload PO & Scan Free button */}
 
           {/* Risk Meter Preview */}
           <div 
@@ -91,3 +78,4 @@ const Hero = () => {
 };
 
 export default Hero;
+

@@ -151,25 +151,10 @@ const TermAnalysis = () => {
       
       if (file) {
         setCurrentStep('Converting document...');
-        const fileAsBase64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsArrayBuffer(file);
-          reader.onload = () => {
-            const arrayBuffer = reader.result as ArrayBuffer;
-            const bytes = new Uint8Array(arrayBuffer);
-            let binary = '';
-            for (let i = 0; i < bytes.byteLength; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            const base64 = btoa(binary);
-            resolve(`data:${file.type || 'application/octet-stream'};base64,${base64}`);
-          };
-          reader.onerror = error => reject(error);
-        });
-        fileContent = fileAsBase64;
-        fileType = file.type || 'application/octet-stream';
+        fileContent = await convertFileToBase64(file);
+        fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
-        fileSize = file.size || 0;
+        fileSize = file.size || new Blob([text]).size;
       } else if (text) {
         setCurrentStep('Processing text...');
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;

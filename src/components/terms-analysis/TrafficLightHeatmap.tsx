@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, AlertTriangle, Check, Shield, ShieldX, Flag } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
 
 interface TrafficLightHeatmapProps {
   analysisData: any;
@@ -13,8 +12,6 @@ interface TrafficLightHeatmapProps {
 const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [processedData, setProcessedData] = useState<any>({ criticalPoints: [], financialRisks: [], unusualLanguage: [] });
-  const [extractedJsonData, setExtractedJsonData] = useState<any>(null);
-  const { toast } = useToast();
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => ({
@@ -26,21 +23,6 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   useEffect(() => {
     if (analysisData) {
       console.log("TrafficLightHeatmap received data:", analysisData);
-      
-      // Try to extract JSON content if it exists
-      if (analysisData?.content && typeof analysisData.content === 'string') {
-        try {
-          const jsonMatch = analysisData.content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            console.log("Successfully parsed nested JSON content:", parsed);
-            setExtractedJsonData(parsed);
-          }
-        } catch (error) {
-          console.error("Failed to parse content as JSON:", error);
-        }
-      }
-      
       setProcessedData(processIssues());
     }
   }, [analysisData]);
@@ -52,29 +34,14 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     
     console.log("Processing analysis data:", analysisContent);
 
-    // Use extracted JSON if available
-    const effectiveContent = extractedJsonData || analysisContent;
-
     // Normalize critical points
-    const criticalPoints = Array.isArray(effectiveContent?.criticalPoints) 
-      ? effectiveContent.criticalPoints.map((point: any) => {
+    const criticalPoints = Array.isArray(analysisContent?.criticalPoints) 
+      ? analysisContent.criticalPoints.map((point: any) => {
           if (!point) return null;
-          // Check if point is a string (from nested JSON parsing)
-          if (typeof point === 'string') {
-            return {
-              title: point.split(',')[0] || "Critical Issue",
-              description: point,
-              severity: "high",
-              reference: {
-                section: "Identified in document",
-                excerpt: null
-              }
-            };
-          }
           // Check for different data structures and normalize
           return {
-            title: point.title || point.issue || `Issue in ${point.section || point.reference?.section || 'Unknown section'}`,
-            description: point.description || point.issue || point.concern || point.risk || 'Issue details not provided',
+            title: point.title || `Issue in ${point.section || point.reference?.section || 'Unknown section'}`,
+            description: point.description || point.issue || point.concern || point.risk || 'Potential issue identified',
             severity: point.severity || 'high',
             reference: {
               section: point.section || point.reference?.section || null,
@@ -85,97 +52,28 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
       : [];
 
     // Normalize financial risks
-    const financialRisks = Array.isArray(effectiveContent?.financialRisks)
-      ? effectiveContent.financialRisks.map((risk: any) => {
+    const financialRisks = Array.isArray(analysisContent?.financialRisks)
+      ? analysisContent.financialRisks.map((risk: any) => {
           if (!risk) return null;
-          
-          // Debug the structure of each financial risk
-          console.log("Processing financial risk:", risk);
-          
-          // Check if risk is a string (from nested JSON parsing)
-          if (typeof risk === 'string') {
-            return {
-              title: risk.split(',')[0] || "Financial Risk",
-              description: risk,
-              severity: "high",
-              reference: {
-                section: "Identified in document",
-                excerpt: null
-              },
-              implications: "Financial implications may apply"
-            };
-          }
-          
-          // Create a specific title if one isn't provided or is generic
-          let riskTitle = risk.title || risk.risk || "";
-          if (!riskTitle || riskTitle === "Financial Risk") {
-            if (risk.description && risk.description.length > 0) {
-              // Extract a title from the first 50 chars of description
-              riskTitle = risk.description.substring(0, 50) + (risk.description.length > 50 ? "..." : "");
-            } else if (risk.reference?.section) {
-              riskTitle = `Risk in ${risk.reference.section}`;
-            } else {
-              riskTitle = "Financial Risk";
-            }
-          }
-          
           return {
-            title: riskTitle,
-            description: risk.description || risk.risk || (typeof risk === 'string' ? risk : 'Financial risk details not provided'),
+            title: risk.title || `Financial risk in ${risk.section || risk.reference?.section || 'Unknown section'}`,
+            description: risk.description || risk.risk || 'Financial risk identified',
             severity: risk.severity || 'high',
             reference: {
               section: risk.section || risk.reference?.section || null,
               excerpt: risk.excerpt || risk.reference?.excerpt || null
-            },
-            implications: risk.implications || risk.financialImplications || risk.impact || "Potential financial impact"
+            }
           };
         }).filter(Boolean)
       : [];
 
-    // If financial risks array is empty but we have content, check for financial terms in the raw content
-    if (financialRisks.length === 0 && analysisContent?.content) {
-      const content = analysisContent.content.toLowerCase();
-      const financialTerms = ['payment', 'fee', 'cost', 'price', 'money', 'dollar', '$', 'expense', 'billing', 'charge'];
-      
-      if (financialTerms.some(term => content.includes(term))) {
-        toast({
-          title: "Financial Risk Detection",
-          description: "Potential financial terms detected but detailed risk analysis could not be generated.",
-          variant: "destructive"
-        });
-        
-        financialRisks.push({
-          title: "Unspecified Financial Risk",
-          description: "The document contains financial terms, but the AI couldn't provide specific risk details. Consider reviewing the document manually.",
-          severity: "medium",
-          reference: {
-            section: "Various sections",
-            excerpt: null
-          },
-          implications: "Potential financial impact requires manual review"
-        });
-      }
-    }
-
     // Normalize unusual language items
-    const unusualLanguage = Array.isArray(effectiveContent?.unusualLanguage)
-      ? effectiveContent.unusualLanguage.map((item: any) => {
+    const unusualLanguage = Array.isArray(analysisContent?.unusualLanguage)
+      ? analysisContent.unusualLanguage.map((item: any) => {
           if (!item) return null;
-          // Check if item is a string (from nested JSON parsing)
-          if (typeof item === 'string') {
-            return {
-              title: item.split(',')[0] || "Unusual Language",
-              description: item,
-              severity: "medium",
-              reference: {
-                section: "Identified in document",
-                excerpt: null
-              }
-            };
-          }
           return {
-            title: item.title || item.language || `Unusual language in ${item.section || item.reference?.section || 'contract'}`,
-            description: item.description || item.language || 'Unusual language details not provided',
+            title: item.title || `Unusual language in ${item.section || item.reference?.section || 'Unknown section'}`,
+            description: item.description || item.language || 'Unusual language identified',
             severity: item.severity || 'medium',
             reference: {
               section: item.section || item.reference?.section || null,
@@ -185,22 +83,22 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
         }).filter(Boolean)
       : [];
 
-    // If we don't have structured data but have overall score, ensure we show at least one issue
-    const overallScore = effectiveContent?.overallScore || (extractedJsonData?.overallScore);
-    
-    if (criticalPoints.length === 0 && financialRisks.length === 0 && unusualLanguage.length === 0) {
-      if (overallScore && overallScore < 85) {
-        // Add a fallback critical point to indicate the raw analysis needs review
-        criticalPoints.push({
-          title: "Document needs review",
-          description: "The AI identified potential risks but couldn't structure them in detail. Please review the full analysis results on the Analysis Result tab.",
-          severity: overallScore < 70 ? "high" : "medium",
-          reference: {
-            section: "Full document",
-            excerpt: analysisContent?.content?.substring(0, 200) + "..." || "Raw analysis available"
-          }
-        });
-      }
+    // If we don't have structured data, try to extract from raw content if available
+    if ((criticalPoints.length === 0 && financialRisks.length === 0 && unusualLanguage.length === 0) && 
+        (analysisContent.content || analysisContent.generatedText || analysisContent.rawContent)) {
+      
+      const rawText = analysisContent.content || analysisContent.generatedText || analysisContent.rawContent;
+      
+      // Add a fallback critical point to indicate the raw analysis needs review
+      criticalPoints.push({
+        title: "Document needs review",
+        description: "The AI identified potential issues but couldn't structure them. Please review the full analysis.",
+        severity: "medium",
+        reference: {
+          section: "Full document",
+          excerpt: rawText?.substring(0, 200) + "..." || "Raw analysis available"
+        }
+      });
     }
 
     // Log the processed data for debugging
@@ -209,15 +107,14 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
     return {
       criticalPoints,
       financialRisks,
-      unusualLanguage,
-      overallScore: overallScore || (criticalPoints.length > 0 || financialRisks.length > 0 || unusualLanguage.length > 0 ? 70 : 90)
+      unusualLanguage
     };
   };
 
   // Filter issues by category
   const indemnityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
-    (item.title?.toLowerCase().includes('indemnity') || item.title?.toLowerCase().includes('indemnification') || 
-    item.description?.toLowerCase().includes('indemnity') || item.description?.toLowerCase().includes('indemnification'))
+    (item.title?.toLowerCase().includes('indemnity') || 
+    item.description?.toLowerCase().includes('indemnity'))
   );
 
   const liabilityIssues = [...processedData.criticalPoints, ...processedData.financialRisks].filter((item: any) => 
@@ -231,9 +128,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   // Identify additional important risks (not in the above categories)
   const otherCriticalIssues = processedData.criticalPoints.filter((item: any) => 
     !item.title?.toLowerCase().includes('indemnity') && 
-    !item.title?.toLowerCase().includes('indemnification') && 
-    !item.description?.toLowerCase().includes('indemnity') && 
-    !item.description?.toLowerCase().includes('indemnification') &&
+    !item.description?.toLowerCase().includes('indemnity') &&
     !item.title?.toLowerCase().includes('liability') && 
     !item.description?.toLowerCase().includes('liability')
   );
@@ -325,7 +220,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                     <CollapsibleTrigger className="flex w-full items-center justify-between p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
                       <div className="flex items-center gap-2">
                         <AlertTriangle className={`h-4 w-4 ${issue.severity === 'high' ? 'text-red-500' : issue.severity === 'medium' ? 'text-amber-500' : 'text-gray-500'}`} />
-                        <span className="font-medium">{issue.title || `Issue #${index + 1}`}</span>
+                        <span>{issue.title || `Issue #${index + 1}`}</span>
                       </div>
                       {openItems[`${title}-${index}`] ? 
                         <ChevronDown className="h-4 w-4" /> : 
@@ -333,19 +228,12 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
                       }
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-2 py-2 text-sm border-l-2 border-gray-200 ml-2 pl-4">
-                      <p className="mb-2">{issue.description}</p>
-                      
-                      {issue.implications && title === "Financial Risks" && (
-                        <div className="mt-2 mb-2 text-red-500 dark:text-red-400">
-                          <strong>Financial Implications:</strong> {issue.implications}
-                        </div>
-                      )}
-                      
+                      <p>{issue.description}</p>
                       {issue.reference && (
                         <div className="mt-2 text-xs text-gray-500">
-                          {issue.reference.section && <p><strong>Section:</strong> {issue.reference.section}</p>}
+                          {issue.reference.section && <p>Section: {issue.reference.section}</p>}
                           {issue.reference.excerpt && (
-                            <p className="mt-1 italic"><strong>Excerpt:</strong> "{issue.reference.excerpt}"</p>
+                            <p className="mt-1 italic">"{issue.reference.excerpt}"</p>
                           )}
                         </div>
                       )}
@@ -364,8 +252,7 @@ const TrafficLightHeatmap = ({ analysisData }: TrafficLightHeatmapProps) => {
   
   // Get overall score from the analysis data
   const analysisContent = analysisData?.analysis || analysisData;
-  const adjustedScore = processedData.overallScore || analysisContent?.overallScore || 
-    (extractedJsonData && extractedJsonData.overallScore ? extractedJsonData.overallScore : 70);
+  const adjustedScore = analysisContent?.overallScore || 70;
 
   return (
     <div className="space-y-6">

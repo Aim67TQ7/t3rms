@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
 import { FileUp, FileText, ArrowRight, AlertCircle } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,7 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
     return val ? parseInt(val, 10) : 0;
   };
 
-  // Handle text input
+  // Hide upload file UI, only allow paste text for free users
   const handleTextInput = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
 
@@ -59,35 +59,6 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
       });
       return;
     }
-    
-    if (!directInputText.trim()) {
-      toast({
-        title: "No Content",
-        description: "Please paste some text to analyze.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Check if pasted text appears to contain JSON and extract it
-    if (directInputText.includes('{') && directInputText.includes('}')) {
-      try {
-        const jsonMatch = directInputText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          // Try to validate if it's parseable JSON
-          JSON.parse(jsonMatch[0]);
-          // If parsed successfully, let the user know we'll just use the raw content
-          toast({
-            title: "JSON detected",
-            description: "We detected JSON in your input. We'll analyze the raw text to avoid parsing issues.",
-          });
-        }
-      } catch (error) {
-        // Not valid JSON, continue as normal text
-        console.log("Input contains curly braces but is not valid JSON");
-      }
-    }
-    
     setShowLimitReached(false);
     onAnalyze();
   };
@@ -96,7 +67,7 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
     <div className="space-y-6">
       {/* Only show paste text, no file upload or input method choice */}
       <div className="space-y-2">
-        <div className="mb-2 text-md font-semibold text-blue-700">Paste Contract Text (Free Tier)</div>
+        <div className="mb-2 text-md font-semibold text-blue-700">Paste Text Only (Free Tier)</div>
         <Textarea
           placeholder="Paste your contract text here..."
           className={`min-h-[200px] transition-all duration-300 ${
@@ -106,16 +77,16 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
           }`}
           value={directInputText}
           onChange={handleTextInput}
-          disabled={showLimitReached || loading}
+          disabled={showLimitReached}
         />
         <p className="text-xs text-gray-500 text-right">Max ~1MB of text</p>
       </div>
 
       <button
         onClick={handleAnalyzeClick}
-        disabled={!directInputText.trim() || loading || !!fileSizeError || showLimitReached}
+        disabled={!directInputText || loading || !!fileSizeError || showLimitReached}
         className={`w-full py-6 text-lg rounded ${
-          directInputText.trim() && !loading && !fileSizeError && !showLimitReached
+          directInputText && !loading && !fileSizeError && !showLimitReached
             ? 'bg-blue-600 hover:bg-blue-700 text-white'
             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
         }`}

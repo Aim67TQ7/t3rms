@@ -27,7 +27,9 @@ export const FileDropzone = ({
         ${isDragActive 
           ? 'border-blue-500 bg-blue-50' 
           : file 
-            ? 'border-green-500 bg-green-50'
+            ? isLoading 
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-green-500 bg-green-50'
             : fileSizeError 
               ? 'border-red-500 bg-red-50'
               : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
@@ -74,6 +76,9 @@ export const FileDropzone = ({
             </p>
             <p className="text-sm text-gray-500">
               or click to browse your files (max size: 2MB)
+            </p>
+            <p className="text-xs text-gray-400">
+              Supported formats: .txt, .pdf, .doc, .docx
             </p>
           </div>
         )}

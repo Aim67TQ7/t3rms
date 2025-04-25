@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText } from 'lucide-react';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -19,28 +19,40 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
   const [inputMethod, setInputMethod] = useState<'file' | 'text'>('file');
   const [currentText, setCurrentText] = useState('');
   
+  const handleContentUpdate = (content: string) => {
+    setText(content);
+    setCurrentText(content);
+  };
+  
   const {
     fileSizeError,
     getRootProps,
     getInputProps,
     isDragActive,
     isLoading,
+    file: uploadedFile,
     setFile: setUploadedFile,
-  } = useFileUpload((content: string) => {
-    setText(content);
-    setCurrentText(content);
-  });
+  } = useFileUpload(handleContentUpdate);
+
+  // Synchronize the file state with parent component
+  useEffect(() => {
+    if (uploadedFile !== file) {
+      setFile(uploadedFile);
+    }
+  }, [uploadedFile, file, setFile]);
 
   const handleTextInput = (text: string) => {
     setText(text);
     setCurrentText(text);
     setFile(null);
+    setUploadedFile(null);
   };
 
   const handleInputMethodChange = (method: 'file' | 'text') => {
     setInputMethod(method);
     if (method === 'text') {
       setFile(null);
+      setUploadedFile(null);
     }
   };
 
@@ -61,21 +73,21 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
           isLoading={isLoading}
         />
       ) : (
-        <TextInputArea onTextUpdate={handleTextInput} />
+        <TextInputArea onTextUpdate={handleTextInput} initialText={currentText} />
       )}
 
       <Button 
         onClick={onAnalyze} 
         disabled={isLoading || loading || (inputMethod === 'file' && !file) || (inputMethod === 'text' && !currentText) || !!fileSizeError}
         className={`w-full py-6 text-lg ${
-          ((file || currentText) && !loading && !fileSizeError)
+          ((file || currentText) && !loading && !fileSizeError && !isLoading)
             ? 'bg-blue-600 hover:bg-blue-700'
             : 'bg-gray-300'
         }`}
       >
-        {loading ? (
+        {loading || isLoading ? (
           <>
-            <span className="animate-pulse">Analyzing...</span>
+            <span className="animate-pulse">{loading ? "Analyzing..." : "Processing file..."}</span>
           </>
         ) : (
           <>

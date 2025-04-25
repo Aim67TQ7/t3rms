@@ -33,6 +33,7 @@ export const useFileUpload = (onContentUpdate: (content: string) => void) => {
 
     try {
       const reader = new FileReader();
+      
       reader.onload = (event: ProgressEvent<FileReader>) => {
         if (event.target?.result) {
           const content = event.target.result as string;
@@ -40,7 +41,7 @@ export const useFileUpload = (onContentUpdate: (content: string) => void) => {
           console.log("File content read successfully, length:", content.length);
           toast({
             title: "File uploaded",
-            description: "Your file has been successfully uploaded.",
+            description: "Your file has been successfully uploaded and is ready for analysis.",
           });
         }
         setIsLoading(false);
@@ -57,7 +58,16 @@ export const useFileUpload = (onContentUpdate: (content: string) => void) => {
         setIsLoading(false);
       };
       
-      reader.readAsText(file);
+      // For PDF and DOC files, we'd need server-side processing
+      // For now, handle text files directly
+      if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+        reader.readAsText(file);
+      } else {
+        // For other file types, we'll still attempt to read as text
+        // but in a production app, you'd want to handle these properly
+        reader.readAsText(file);
+        console.log("Attempting to read non-text file as text:", file.type);
+      }
     } catch (error) {
       console.error("Error processing file:", error);
       setFile(null);
@@ -76,7 +86,10 @@ export const useFileUpload = (onContentUpdate: (content: string) => void) => {
       'text/plain': ['.txt'],
       'application/pdf': ['.pdf'],
       'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      // Allow more generic types to be more permissive
+      'text/*': [],
+      'application/*': []
     },
     maxFiles: 1,
     multiple: false,

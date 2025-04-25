@@ -53,28 +53,18 @@ serve(async (req) => {
         customer: customerId,
         customer_email: customerId ? undefined : userEmail,
         line_items: [{
-          price: 'price_1RHtjAQ5JeJXEK81hwYA4qIW', // Specific Price ID for Value Pack
+          price: 'price_1RHtjAQ5JeJXEK81hwYA4qIW', // Value Pack Price ID
           quantity: 1,
         }],
         mode: 'payment',
       };
     } else if (package_type === 'unlimited') {
-      // Monthly subscription for Unlimited
+      // Monthly subscription for Unlimited using the specific Price ID
       sessionConfig = {
         customer: customerId,
         customer_email: customerId ? undefined : userEmail,
         line_items: [{
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Unlimited Monthly',
-              description: 'Unlimited document analyses',
-            },
-            unit_amount: 2995, // $29.95
-            recurring: {
-              interval: 'month',
-            },
-          },
+          price: 'price_1RHtjbQ5JeJXEK81ejlKERN7', // Unlimited Monthly Price ID
           quantity: 1,
         }],
         mode: 'subscription',

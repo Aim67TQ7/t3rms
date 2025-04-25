@@ -6,23 +6,45 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, ArrowRight } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Pricing = () => {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
+  const { toast } = useToast();
   
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  const handlePurchase = async (packageType: 'value_pack' | 'unlimited') => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { package_type: packageType }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Error",
+        description: "Could not initialize checkout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const features = [
-    { name: "Document Uploads", free: true, pro: true, enterprise: true },
-    { name: "Risk Identification", free: true, pro: true, enterprise: true },
-    { name: "Risk Scoring", free: true, pro: true, enterprise: true },
-    { name: "Document History", free: false, pro: true, enterprise: true },
-    { name: "Downloadable PDFs", free: false, pro: true, enterprise: true },
-    { name: "API Access", free: false, pro: false, enterprise: true },
-    { name: "Custom Training", free: false, pro: false, enterprise: true },
-    { name: "Dedicated Support", free: false, pro: false, enterprise: true },
+    { name: "Document Uploads", free: true, pro: true, unlimited: true },
+    { name: "Risk Identification", free: true, pro: true, unlimited: true },
+    { name: "Risk Scoring", free: true, pro: true, unlimited: true },
+    { name: "Document History", free: false, pro: true, unlimited: true },
+    { name: "Downloadable PDFs", free: false, pro: true, unlimited: true },
+    { name: "API Access", free: false, pro: false, unlimited: true },
+    { name: "Priority Support", free: false, pro: false, unlimited: true },
   ];
 
   return (
@@ -92,9 +114,6 @@ const Pricing = () => {
               </Card>
               
               <Card className="border-2 border-t3rms-blue shadow-md relative transition-all hover:shadow-lg">
-                <div className="absolute -top-4 inset-x-0 mx-auto w-max bg-t3rms-blue text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  COMING SOON
-                </div>
                 <CardHeader className="pb-8">
                   <div className="mb-2">
                     <Badge className="bg-t3rms-blue text-white hover:bg-t3rms-blue/90 border-none">
@@ -124,25 +143,28 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">1 credit per 1000 tokens</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
-                        <Check className="h-4 w-4" />
-                      </span>
-                      <span className="text-gray-600">Covers 1-2 page contracts</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
-                        <Check className="h-4 w-4" />
-                      </span>
                       <span className="text-gray-600">Advanced risk analysis</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Document history</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">Downloadable PDFs</span>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button disabled className="w-full bg-t3rms-blue/50 cursor-not-allowed">
-                    Available Soon <ArrowRight className="ml-2 h-4 w-4" />
+                  <Button 
+                    className="w-full bg-t3rms-blue hover:bg-t3rms-blue/90"
+                    onClick={() => handlePurchase('value_pack')}
+                  >
+                    Buy Now <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardFooter>
               </Card>
@@ -151,18 +173,18 @@ const Pricing = () => {
                 <CardHeader className="pb-8">
                   <div className="mb-2">
                     <Badge variant="outline" className="bg-gray-900 text-white border-none">
-                      Enterprise
+                      Unlimited
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl font-bold text-t3rms-charcoal">
-                    Custom Plan
+                    Monthly Plan
                   </CardTitle>
                   <CardDescription className="text-gray-500">
                     For high-volume analysis needs
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="text-2xl font-bold text-t3rms-charcoal">Contact Us</span>
-                    <span className="text-gray-500 block mt-1">Custom pricing</span>
+                    <span className="text-4xl font-bold text-t3rms-charcoal">$29.95</span>
+                    <span className="text-gray-500 ml-2">/ month</span>
                   </div>
                 </CardHeader>
                 <CardContent className="border-t border-gray-100 pt-6">
@@ -177,12 +199,6 @@ const Pricing = () => {
                       <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
                         <Check className="h-4 w-4" />
                       </span>
-                      <span className="text-gray-600">Custom integrations</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
-                        <Check className="h-4 w-4" />
-                      </span>
                       <span className="text-gray-600">API access</span>
                     </div>
                     <div className="flex items-center">
@@ -191,13 +207,20 @@ const Pricing = () => {
                       </span>
                       <span className="text-gray-600">Priority support</span>
                     </div>
+                    <div className="flex items-center">
+                      <span className="flex-shrink-0 rounded-full p-1 bg-t3rms-success/10 text-t3rms-success mr-3">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-gray-600">All premium features</span>
+                    </div>
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button asChild className="w-full bg-gray-900 hover:bg-gray-800">
-                    <a href="mailto:enterprise@t3rms.com">
-                      Contact Sales <ArrowRight className="ml-2 h-4 w-4" />
-                    </a>
+                  <Button 
+                    className="w-full"
+                    onClick={() => handlePurchase('unlimited')}
+                  >
+                    Subscribe Now <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardFooter>
               </Card>
@@ -217,7 +240,7 @@ const Pricing = () => {
                       Value Pack
                     </th>
                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">
-                      Custom Plan
+                      Unlimited
                     </th>
                   </tr>
                 </thead>
@@ -242,7 +265,7 @@ const Pricing = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {feature.enterprise ? (
+                        {feature.unlimited ? (
                           <Check className="mx-auto h-5 w-5 text-t3rms-success" />
                         ) : (
                           <X className="mx-auto h-5 w-5 text-gray-300" />

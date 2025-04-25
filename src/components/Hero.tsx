@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, FileText, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Shield, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -67,21 +67,7 @@ const Hero = () => {
             </Link>
           </div>
 
-          {/* Risk Meter Preview */}
-          <div 
-            className={`max-w-sm mx-auto bg-gray-900/50 p-4 rounded-xl border border-purple-500/20 transition-all duration-700 delay-400 ${
-              isVisible ? 'opacity-100' : 'opacity-0 transform translate-y-4'
-            }`}
-          >
-            <img 
-              src="/risk-meter-preview.gif" 
-              alt="Risk Analysis Preview" 
-              className="w-full rounded-lg shadow-lg"
-            />
-            <p className="text-sm text-gray-400 mt-2">
-              Instant risk analysis of your terms & conditions
-            </p>
-          </div>
+          {/* Removed Risk Meter Preview section */}
         </div>
       </div>
 

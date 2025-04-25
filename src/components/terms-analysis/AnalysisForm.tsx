@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import AuthPrompt from '@/components/AuthPrompt';
-import { hasReachedAnonymousLimit, incrementAnonymousAnalysisCount } from '@/utils/anonymousUsage';
+import { hasReachedAnonymousLimit, incrementAnonymousAnalysisCount, storePendingAnalysis } from '@/utils/anonymousUsage';
 import TermsUploader from '@/components/terms-analysis/TermsUploader';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
 

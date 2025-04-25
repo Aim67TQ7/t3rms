@@ -1,5 +1,5 @@
 
-import { FileUp, FileText, AlertCircle } from 'lucide-react';
+import { FileUp, FileText, AlertCircle, Loader } from 'lucide-react';
 
 interface FileDropzoneProps {
   getRootProps: any;
@@ -7,7 +7,7 @@ interface FileDropzoneProps {
   isDragActive: boolean;
   file: File | null;
   fileSizeError: string | null;
-  onFileSelected?: (file: File | null) => void;
+  isLoading?: boolean;
 }
 
 export const FileDropzone = ({ 
@@ -16,25 +16,11 @@ export const FileDropzone = ({
   isDragActive, 
   file, 
   fileSizeError,
-  onFileSelected
+  isLoading = false
 }: FileDropzoneProps) => {
-  // Create a modified version of getRootProps that will trigger onFileSelected
-  const getModifiedRootProps = () => {
-    const originalProps = getRootProps();
-    return {
-      ...originalProps,
-      onDrop: (acceptedFiles: File[]) => {
-        originalProps.onDrop?.(acceptedFiles);
-        if (acceptedFiles.length > 0 && onFileSelected) {
-          onFileSelected(acceptedFiles[0]);
-        }
-      }
-    };
-  };
-
   return (
     <div 
-      {...getModifiedRootProps()} 
+      {...getRootProps()} 
       className={`
         dropzone border-2 border-dashed rounded-lg p-12 text-center 
         transition-all duration-300 cursor-pointer
@@ -51,7 +37,9 @@ export const FileDropzone = ({
       <input {...getInputProps()} />
       <div className="space-y-4">
         <div className="flex justify-center">
-          {file ? (
+          {isLoading ? (
+            <Loader className="h-16 w-16 text-blue-500 animate-spin" />
+          ) : file ? (
             <FileText className="h-16 w-16 text-green-500" />
           ) : fileSizeError ? (
             <AlertCircle className="h-16 w-16 text-red-500" />
@@ -60,7 +48,12 @@ export const FileDropzone = ({
           )}
         </div>
         
-        {file ? (
+        {isLoading ? (
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-blue-600">Reading file...</p>
+            <p className="text-sm text-blue-600">Please wait while we process your file</p>
+          </div>
+        ) : file ? (
           <div className="space-y-2">
             <p className="text-lg font-medium text-green-600">File ready for analysis</p>
             <p className="text-sm text-green-600 break-all">

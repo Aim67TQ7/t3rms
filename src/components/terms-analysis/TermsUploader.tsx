@@ -24,18 +24,12 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
     getRootProps,
     getInputProps,
     isDragActive,
+    isLoading,
     setFile: setUploadedFile,
   } = useFileUpload((content: string) => {
     setText(content);
     setCurrentText(content);
   });
-
-  // Make sure this function correctly passes the file to parent component
-  const handleFileUpload = (uploadedFile: File | null) => {
-    console.log("File selected in TermsUploader:", uploadedFile?.name);
-    setFile(uploadedFile);
-    setUploadedFile(uploadedFile);
-  };
 
   const handleTextInput = (text: string) => {
     setText(text);
@@ -64,7 +58,7 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
           isDragActive={isDragActive}
           file={file}
           fileSizeError={fileSizeError}
-          onFileSelected={handleFileUpload}
+          isLoading={isLoading}
         />
       ) : (
         <TextInputArea onTextUpdate={handleTextInput} />
@@ -72,7 +66,7 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
 
       <Button 
         onClick={onAnalyze} 
-        disabled={(inputMethod === 'file' && !file) || (inputMethod === 'text' && !currentText) || loading || !!fileSizeError}
+        disabled={isLoading || loading || (inputMethod === 'file' && !file) || (inputMethod === 'text' && !currentText) || !!fileSizeError}
         className={`w-full py-6 text-lg ${
           ((file || currentText) && !loading && !fileSizeError)
             ? 'bg-blue-600 hover:bg-blue-700'

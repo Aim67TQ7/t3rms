@@ -48,19 +48,12 @@ serve(async (req) => {
 
     let sessionConfig;
     if (package_type === 'value_pack') {
-      // One-time payment for Value Pack
+      // One-time payment for Value Pack using the specific Price ID
       sessionConfig = {
         customer: customerId,
         customer_email: customerId ? undefined : userEmail,
         line_items: [{
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Value Pack',
-              description: '50 document analyses',
-            },
-            unit_amount: 995, // $9.95
-          },
+          price: 'price_1RHtjAQ5JeJXEK81hwYA4qIW', // Specific Price ID for Value Pack
           quantity: 1,
         }],
         mode: 'payment',

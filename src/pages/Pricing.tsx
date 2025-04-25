@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -5,13 +6,17 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, ArrowRight } from 'lucide-react';
+import { Check, X, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Pricing = () => {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState<{[key: string]: boolean}>({
+    value_pack: false,
+    unlimited: false
+  });
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -19,13 +24,21 @@ const Pricing = () => {
 
   const handlePurchase = async (packageType: 'value_pack' | 'unlimited') => {
     try {
+      setIsLoading(prev => ({ ...prev, [packageType]: true }));
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { package_type: packageType }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        throw error;
+      }
+      
       if (data?.url) {
         window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned from server');
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -34,6 +47,8 @@ const Pricing = () => {
         description: "Could not initialize checkout. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(prev => ({ ...prev, [packageType]: false }));
     }
   };
 
@@ -163,8 +178,18 @@ const Pricing = () => {
                   <Button 
                     className="w-full bg-t3rms-blue hover:bg-t3rms-blue/90"
                     onClick={() => handlePurchase('value_pack')}
+                    disabled={isLoading.value_pack}
                   >
-                    Buy Now <ArrowRight className="ml-2 h-4 w-4" />
+                    {isLoading.value_pack ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Buy Now <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </CardFooter>
               </Card>
@@ -219,8 +244,18 @@ const Pricing = () => {
                   <Button 
                     className="w-full"
                     onClick={() => handlePurchase('unlimited')}
+                    disabled={isLoading.unlimited}
                   >
-                    Subscribe Now <ArrowRight className="ml-2 h-4 w-4" />
+                    {isLoading.unlimited ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Subscribe Now <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </CardFooter>
               </Card>

@@ -14,6 +14,7 @@ export const useFileUpload = (onContentUpdate: (content: string) => void) => {
     if (acceptedFiles.length === 0) return;
     
     const file = acceptedFiles[0];
+    console.log("File dropped:", file.name, "size:", file.size);
     
     if (file.size > MAX_FILE_SIZE) {
       setFileSizeError(`File is too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);

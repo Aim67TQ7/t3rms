@@ -7,6 +7,7 @@ interface FileDropzoneProps {
   isDragActive: boolean;
   file: File | null;
   fileSizeError: string | null;
+  onFileSelected?: (file: File | null) => void;
 }
 
 export const FileDropzone = ({ 
@@ -14,11 +15,26 @@ export const FileDropzone = ({
   getInputProps, 
   isDragActive, 
   file, 
-  fileSizeError 
+  fileSizeError,
+  onFileSelected
 }: FileDropzoneProps) => {
+  // Create a modified version of getRootProps that will trigger onFileSelected
+  const getModifiedRootProps = () => {
+    const originalProps = getRootProps();
+    return {
+      ...originalProps,
+      onDrop: (acceptedFiles: File[]) => {
+        originalProps.onDrop?.(acceptedFiles);
+        if (acceptedFiles.length > 0 && onFileSelected) {
+          onFileSelected(acceptedFiles[0]);
+        }
+      }
+    };
+  };
+
   return (
     <div 
-      {...getRootProps()} 
+      {...getModifiedRootProps()} 
       className={`
         dropzone border-2 border-dashed rounded-lg p-12 text-center 
         transition-all duration-300 cursor-pointer

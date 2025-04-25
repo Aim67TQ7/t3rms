@@ -45,7 +45,7 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
       return;
     }
     
-    if (text.length > MAX_CONTENT_SIZE / 2) {
+    if (text && text.length > MAX_CONTENT_SIZE / 2) {
       toast({
         title: "Content Too Large",
         description: "The document is too large to process. Please upload a smaller document or reduce the text length.",
@@ -75,18 +75,23 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
       let fileName = '';
       let fileSize = 0;
       
+      console.log("File state before processing:", file ? file.name : "No file");
+      console.log("Text length:", text ? text.length : 0);
+      
       if (file) {
         setCurrentStep('Converting document...');
         fileContent = await convertFileToBase64(file);
         fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
-        fileSize = file.size || new Blob([text]).size;
+        fileSize = file.size || 0;
+        console.log("Processing file:", fileName, "size:", fileSize);
       } else if (text) {
         setCurrentStep('Processing text...');
         fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = 'text/plain';
         fileName = 'document.txt';
         fileSize = new Blob([text]).size;
+        console.log("Processing text input, size:", fileSize);
       }
 
       console.log("Sending content to analyze-contract function, content size:", fileContent.length);
@@ -101,6 +106,7 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
       });
 
       if (error) {
+        console.error("Supabase function error:", error);
         throw new Error(error.message || "Error analyzing document");
       }
 

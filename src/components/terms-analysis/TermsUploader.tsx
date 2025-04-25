@@ -30,6 +30,13 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
     setCurrentText(content);
   });
 
+  // Make sure this function correctly passes the file to parent component
+  const handleFileUpload = (uploadedFile: File | null) => {
+    console.log("File selected in TermsUploader:", uploadedFile?.name);
+    setFile(uploadedFile);
+    setUploadedFile(uploadedFile);
+  };
+
   const handleTextInput = (text: string) => {
     setText(text);
     setCurrentText(text);
@@ -57,6 +64,7 @@ const TermsUploader = ({ file, setFile, setText, onAnalyze, loading }: TermsUplo
           isDragActive={isDragActive}
           file={file}
           fileSizeError={fileSizeError}
+          onFileSelected={handleFileUpload}
         />
       ) : (
         <TextInputArea onTextUpdate={handleTextInput} />

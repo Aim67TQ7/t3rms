@@ -38,7 +38,7 @@ const AuthCallback = () => {
               title: "Login Successful",
               description: "You've successfully signed in",
             });
-            navigate('/analyzer');
+            navigate('/term-analysis'); // Redirect to term-analysis instead of analyzer
           } else {
             navigate('/auth', { 
               state: { error: "Authentication failed. Please try again." } 

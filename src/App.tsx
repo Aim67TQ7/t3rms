@@ -23,6 +23,7 @@ import TermsAndConditions from "@/pages/TermsAndConditions";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import NotFound from "@/pages/NotFound";
 import PaymentSuccess from "@/pages/PaymentSuccess";
+import PaymentCanceled from "@/pages/PaymentCanceled";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const AppContent = () => {
             <Route path="/term-analysis" element={<><Seo title="Advanced Contract Analysis - T3RMS" description="Identify high-risk contract language with AI" /><TermAnalysis /></>} />
             <Route path="/pricing" element={<><Seo title="Pricing - T3RMS" /><Pricing /></>} />
             <Route path="/payment-success" element={<><Seo title="Payment Successful - T3RMS" /><PaymentSuccess /></>} />
+            <Route path="/payment-canceled" element={<><Seo title="Payment Canceled - T3RMS" /><PaymentCanceled /></>} />
             <Route path="/tcgenerator" element={<><Seo title="Terms & Conditions Generator - T3RMS" description="Generate compliant terms & conditions documents" /><TermsConditionsGenerator /></>} />
             <Route path="/terms" element={<><Seo title="Terms & Conditions - T3RMS" /><TermsAndConditions /></>} />
             <Route path="/privacy" element={<><Seo title="Privacy Policy - T3RMS" /><PrivacyPolicy /></>} />

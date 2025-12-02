@@ -13,7 +13,7 @@ interface AnalysisFormProps {
   analysisState: any;
 }
 
-const MAX_CONTENT_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_CONTENT_SIZE = 20 * 1024 * 1024; // 20MB
 
 export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: AnalysisFormProps) => {
   const {
@@ -70,49 +70,63 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
     setAnalysisData(null);
 
     try {
-      let fileContent = '';
-      let fileType = '';
       let fileName = '';
+      let fileType = '';
       let fileSize = 0;
       
       console.log("File state before processing:", file ? file.name : "No file");
       console.log("Text length:", text ? text.length : 0);
       
       if (file) {
-        setCurrentStep('Converting document...');
-        fileContent = await convertFileToBase64(file);
+        setCurrentStep('Preparing document...');
         fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
         fileSize = file.size || 0;
         console.log("Processing file:", fileName, "size:", fileSize);
       } else if (text) {
         setCurrentStep('Processing text...');
-        fileContent = `data:text/plain;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         fileType = 'text/plain';
         fileName = 'document.txt';
         fileSize = new Blob([text]).size;
         console.log("Processing text input, size:", fileSize);
       }
 
-      console.log("Sending content to analyze-contract function, content size:", fileContent.length);
+      console.log("Sending file to analyze-contract function via FormData");
       
       setCurrentStep('Analyzing with AI...');
-      const { data, error } = await supabase.functions.invoke('analyze-contract', {
-        body: {
-          content: fileContent,
-          fileType: fileType,
-          fileName: fileName
-        }
-      });
-
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw new Error(error.message || "Error analyzing document");
+      
+      // Use FormData for efficient file upload
+      const formData = new FormData();
+      if (file) {
+        formData.append('file', file);
+      } else if (text) {
+        // Create a text file blob for text input
+        const textBlob = new Blob([text], { type: 'text/plain' });
+        formData.append('file', textBlob, 'document.txt');
       }
+      
+      // Call edge function with FormData
+      const response = await fetch(
+        `https://axtrpteapxvkijzwipts.supabase.co/functions/v1/analyze-contract`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
+      
+      const data = await response.json();
 
-      if (data && data.error && data.message && data.message.includes("ANTHROPIC_API_KEY is not set")) {
-        setApiKeyMissing(true);
-        throw new Error("The AI service is not properly configured. Please contact the administrator.");
+      if (data && data.error) {
+        if (data.message && data.message.includes("OPENAI_API_KEY is not set")) {
+          setApiKeyMissing(true);
+          throw new Error("The AI service is not properly configured. Please contact the administrator.");
+        }
+        throw new Error(data.error);
       }
 
       if (!data) {
@@ -184,15 +198,6 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
       setLoading(false);
       setCurrentStep('');
     }
-  };
-
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
   };
 
   const ensureCorrectDataStructure = (data: any) => {

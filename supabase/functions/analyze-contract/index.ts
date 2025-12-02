@@ -131,6 +131,13 @@ serve(async (req) => {
 
     console.log(`Processing document: ${fileName}, size: ${content.length} characters`);
 
+    // Truncate content if too large for OpenAI (approx 100k tokens = ~400k chars)
+    const MAX_CHARS = 350000;
+    if (content.length > MAX_CHARS) {
+      console.log(`Content too large (${content.length} chars), truncating to ${MAX_CHARS} chars`);
+      content = content.substring(0, MAX_CHARS) + '\n\n[Document truncated due to size limits. Analysis based on first portion.]';
+    }
+
     // Process with OpenAI API
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {

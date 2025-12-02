@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,10 +6,6 @@ import AuthPrompt from '@/components/AuthPrompt';
 import { hasReachedAnonymousLimit, incrementAnonymousAnalysisCount, storePendingAnalysis } from '@/utils/anonymousUsage';
 import TermsUploader from '@/components/terms-analysis/TermsUploader';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Set worker source for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs`;
 
 interface AnalysisFormProps {
   isAuthenticated: boolean;
@@ -18,6 +14,13 @@ interface AnalysisFormProps {
 }
 
 const MAX_TEXT_LENGTH = 350000; // ~100k tokens for OpenAI
+
+// Declare global pdfjsLib type
+declare global {
+  interface Window {
+    pdfjsLib: any;
+  }
+}
 
 export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: AnalysisFormProps) => {
   const {
@@ -38,9 +41,30 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  const pdfLibLoaded = useRef(false);
 
-  // Extract text from PDF using PDF.js on client side
+  // Load PDF.js from CDN dynamically
+  const loadPdfJs = async (): Promise<any> => {
+    if (window.pdfjsLib) {
+      return window.pdfjsLib;
+    }
+    
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  // Extract text from PDF using PDF.js
   const extractTextFromPDF = async (file: File): Promise<string> => {
+    const pdfjsLib = await loadPdfJs();
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const numPages = pdf.numPages;
@@ -97,7 +121,7 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
         
         // Extract text based on file type
         if (file.type === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
-          setCurrentStep('Parsing PDF...');
+          setCurrentStep('Loading PDF parser...');
           console.log("Extracting text from PDF:", fileName);
           contentToAnalyze = await extractTextFromPDF(file);
           console.log("PDF text extracted, length:", contentToAnalyze.length);

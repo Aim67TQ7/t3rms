@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useToast } from "@/hooks/use-toast";
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 export const useFileUpload = (onContentUpdate: (content: string) => void) => {
   const [file, setFile] = useState<File | null>(null);

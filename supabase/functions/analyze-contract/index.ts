@@ -19,7 +19,7 @@ serve(async (req) => {
   try {
     // Check content length
     const contentLength = req.headers.get('content-length');
-    const MAX_SIZE = 8 * 1024 * 1024; // 8MB
+    const MAX_SIZE = 20 * 1024 * 1024; // 20MB
     
     if (contentLength && parseInt(contentLength) > MAX_SIZE) {
       return new Response(

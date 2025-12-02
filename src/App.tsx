@@ -11,7 +11,7 @@ import Seo from "@/components/Seo";
 import Navbar from "@/components/Navbar";
 
 // Import page components
-import Index from "@/pages/Index";
+// Removed Index import - using TermAnalysis as landing page
 import Auth from "@/pages/Auth";
 import AuthCallback from "@/pages/AuthCallback";
 // Removed Analyzer import
@@ -56,7 +56,7 @@ const AppContent = () => {
         <Navbar />
         <div className="pt-24">
           <Routes>
-            <Route path="/" element={<><Seo /><Index /></>} />
+            <Route path="/" element={<><Seo title="Advanced Contract Analysis - T3RMS" description="AI-powered contract analysis for identifying high-risk language" /><TermAnalysis /></>} />
             <Route path="/auth" element={<><Seo title="Login - T3RMS" /><Auth /></>} />
             <Route path="/auth/callback" element={<><Seo title="Authentication - T3RMS" /><AuthCallback /></>} />
             {/* Redirect /analyzer to /term-analysis for backwards compatibility */}

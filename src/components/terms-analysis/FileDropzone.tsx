@@ -75,7 +75,7 @@ export const FileDropzone = ({
               {isDragActive ? 'Drop your file here' : 'Drag & drop your contract here'}
             </p>
             <p className="text-sm text-gray-500">
-              or click to browse your files (max size: 2MB)
+              or click to browse your files (max size: 20MB)
             </p>
             <p className="text-xs text-gray-400">
               Supported formats: .txt, .pdf, .doc, .docx

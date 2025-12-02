@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,10 @@ import AuthPrompt from '@/components/AuthPrompt';
 import { hasReachedAnonymousLimit, incrementAnonymousAnalysisCount, storePendingAnalysis } from '@/utils/anonymousUsage';
 import TermsUploader from '@/components/terms-analysis/TermsUploader';
 import AnalysisStatusIndicator from '@/components/analyzer/AnalysisStatusIndicator';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set worker source for PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs`;
 
 interface AnalysisFormProps {
   isAuthenticated: boolean;
@@ -13,7 +17,7 @@ interface AnalysisFormProps {
   analysisState: any;
 }
 
-const MAX_CONTENT_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_TEXT_LENGTH = 350000; // ~100k tokens for OpenAI
 
 export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: AnalysisFormProps) => {
   const {
@@ -35,20 +39,28 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Extract text from PDF using PDF.js on client side
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const numPages = pdf.numPages;
+    let extractedText = '';
+    
+    for (let i = 1; i <= numPages; i++) {
+      setCurrentStep(`Extracting text from page ${i}/${numPages}...`);
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      extractedText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+    }
+    
+    return extractedText;
+  };
+
   const handleAnalyze = async () => {
     if (!text && !file) {
       toast({
         title: "Error",
         description: "Please enter text or upload a file.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (text && text.length > MAX_CONTENT_SIZE / 2) {
-      toast({
-        title: "Content Too Large",
-        description: "The document is too large to process. Please upload a smaller document or reduce the text length.",
         variant: "destructive",
       });
       return;
@@ -70,59 +82,62 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
     setAnalysisData(null);
 
     try {
-      let fileName = '';
-      let fileType = '';
+      let contentToAnalyze = '';
+      let fileName = 'document.txt';
+      let fileType = 'text/plain';
       let fileSize = 0;
       
       console.log("File state before processing:", file ? file.name : "No file");
       console.log("Text length:", text ? text.length : 0);
       
       if (file) {
-        setCurrentStep('Preparing document...');
-        fileType = file.type || 'text/plain';
         fileName = file.name || 'document.txt';
+        fileType = file.type || 'text/plain';
         fileSize = file.size || 0;
-        console.log("Processing file:", fileName, "size:", fileSize);
+        
+        // Extract text based on file type
+        if (file.type === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+          setCurrentStep('Parsing PDF...');
+          console.log("Extracting text from PDF:", fileName);
+          contentToAnalyze = await extractTextFromPDF(file);
+          console.log("PDF text extracted, length:", contentToAnalyze.length);
+        } else {
+          // For text files, read directly
+          setCurrentStep('Reading file...');
+          contentToAnalyze = await file.text();
+        }
       } else if (text) {
-        setCurrentStep('Processing text...');
-        fileType = 'text/plain';
-        fileName = 'document.txt';
+        contentToAnalyze = text;
         fileSize = new Blob([text]).size;
-        console.log("Processing text input, size:", fileSize);
       }
 
-      console.log("Sending file to analyze-contract function via FormData");
-      
+      // Truncate if too long
+      if (contentToAnalyze.length > MAX_TEXT_LENGTH) {
+        console.log(`Content too long (${contentToAnalyze.length}), truncating to ${MAX_TEXT_LENGTH}`);
+        contentToAnalyze = contentToAnalyze.substring(0, MAX_TEXT_LENGTH) + 
+          '\n\n[Document truncated due to size. Analysis based on first portion.]';
+        toast({
+          title: "Document Truncated",
+          description: "Your document is very large. Analyzing the first portion.",
+        });
+      }
+
+      console.log("Sending text to analyze-contract function, length:", contentToAnalyze.length);
       setCurrentStep('Analyzing with AI...');
       
-      // Use FormData for efficient file upload
-      const formData = new FormData();
-      if (file) {
-        formData.append('file', file);
-      } else if (text) {
-        // Create a text file blob for text input
-        const textBlob = new Blob([text], { type: 'text/plain' });
-        formData.append('file', textBlob, 'document.txt');
-      }
-      
-      // Call edge function with FormData and required headers
-      const response = await fetch(
-        `https://axtrpteapxvkijzwipts.supabase.co/functions/v1/analyze-contract`,
-        {
-          method: 'POST',
-          headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4dHJwdGVhcHh2a2lqendpcHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNTUzNTIsImV4cCI6MjA2MDYzMTM1Mn0.Sl4L9JKp1rBzL-AaYya-QB6nARZtEGbQXHRYa0hYFBU',
-          },
-          body: formData,
+      // Use Supabase client to invoke edge function with text content
+      const { data, error } = await supabase.functions.invoke('analyze-contract', {
+        body: {
+          content: contentToAnalyze,
+          fileType: 'text/plain',
+          fileName: fileName
         }
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server error: ${response.status}`);
+      });
+
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Error analyzing document");
       }
-      
-      const data = await response.json();
 
       if (data && data.error) {
         if (data.message && data.message.includes("OPENAI_API_KEY is not set")) {
@@ -187,7 +202,7 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
       let errorMessage = "Failed to analyze document.";
       
       if (error.message && error.message.includes("send a request to the Edge Function")) {
-        errorMessage = "The document is too large or complex to analyze. Please try with a smaller document or paste a portion of the text.";
+        errorMessage = "Unable to connect to the analysis service. Please try again.";
       } else if (error.message) {
         errorMessage = error.message;
       }

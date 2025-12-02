@@ -105,11 +105,14 @@ export const AnalysisForm = ({ isAuthenticated, userId, analysisState }: Analysi
         formData.append('file', textBlob, 'document.txt');
       }
       
-      // Call edge function with FormData
+      // Call edge function with FormData and required headers
       const response = await fetch(
         `https://axtrpteapxvkijzwipts.supabase.co/functions/v1/analyze-contract`,
         {
           method: 'POST',
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4dHJwdGVhcHh2a2lqendpcHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNTUzNTIsImV4cCI6MjA2MDYzMTM1Mn0.Sl4L9JKp1rBzL-AaYya-QB6nARZtEGbQXHRYa0hYFBU',
+          },
           body: formData,
         }
       );

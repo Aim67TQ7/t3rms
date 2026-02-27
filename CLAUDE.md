@@ -2,18 +2,19 @@
 
 **Audited:** 2026-02-26
 **Bucket:** [SALVAGE]
+**Status:** Retired
 
 ## What This Was
-Contract intelligence tool
+T3RMS — terms and conditions analyzer
 
 ## Job To Be Done
-Contract analysis/intelligence
+Parse T&C documents, flag risky clauses, score fairness
 
 ## Agent Replacement
 N/A
 
 ## What To Extract
-Contract parsing logic, clause extraction patterns, legal term definitions
+Contract clause extraction patterns, legal term taxonomy, risk scoring logic
 
 ## Claude's Notes
-- Salvage value identified: Contract parsing logic, clause extraction patterns
+- Salvage value: Contract clause extraction patterns, legal term taxonomy, risk scoring logic
